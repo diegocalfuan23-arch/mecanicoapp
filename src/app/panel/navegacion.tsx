@@ -19,6 +19,19 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/historial",
+    texto: "Buscar patente",
+    icono: (
+      <path
+        d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    ),
+  },
+  {
     href: "/panel/ordenes",
     texto: "Órdenes",
     icono: (
