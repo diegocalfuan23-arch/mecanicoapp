@@ -172,7 +172,7 @@ export function TablaPropietarios({
           )}
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+        <div className="scroll-discreto mt-6 overflow-x-auto rounded-xl border border-border">
           <table className="w-full border-collapse text-[14px]">
             <thead>
               <tr className="border-b border-border bg-card">

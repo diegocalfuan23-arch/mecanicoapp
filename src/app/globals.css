@@ -64,3 +64,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+@utility scroll-discreto {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover,
+  &:focus-within {
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* Chrome, Edge, Safari */
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+    transition: background 0.15s;
+  }
+
+  &:hover::-webkit-scrollbar-thumb,
+  &:focus-within::-webkit-scrollbar-thumb {
+    background: var(--border);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.38 0.012 60);
+  }
+}
