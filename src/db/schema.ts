@@ -97,16 +97,25 @@ export const vehiculo = pgTable(
     modelo: text("modelo"),
     anio: integer("anio"),
     color: text("color"),
-    // auto · camioneta · SUV · furgón · moto · camión
+    // auto · camioneta · SUV · furgón · moto · camión · bus
     tipo: text("tipo"),
+    motor: text("motor"),
+    ejes: integer("ejes"),
+    // Japonés, coreano, europeo, americano, chino
+    procedencia: text("procedencia"),
 
-    // Quién figura como dueño y quién más aparece en el padrón
+    // El dueño se maneja aparte: tiene ficha propia y puede tener varios autos
     propietarioId: text("propietario_id").references(() => cliente.id, {
       onDelete: "set null",
     }),
-    copropietarioId: text("copropietario_id").references(() => cliente.id, {
-      onDelete: "set null",
-    }),
+
+    // Quien acompaña o puede retirar el auto: hijo, esposa, mamá.
+    // Es un dato del vehículo, no una ficha aparte.
+    copropietario: text("copropietario"),
+    copropietarioTelefono: text("copropietario_telefono"),
+
+    // Primera vez que entra al taller
+    primeraVez: boolean("primera_vez").notNull().default(true),
 
     notas: text("notas"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
