@@ -141,8 +141,18 @@ export const trabajo = pgTable(
       .notNull()
       .references(() => vehiculo.id, { onDelete: "cascade" }),
 
-    descripcion: text("descripcion").notNull(),
+    // Número correlativo por taller: OT-1, OT-2…
+    numero: integer("numero").notNull(),
+
+    // Lo que el cliente reporta al dejar el auto, con sus palabras
+    sintoma: text("sintoma"),
+    // Lo que efectivamente se hizo; se completa al cerrar la orden
+    descripcion: text("descripcion"),
     kilometraje: integer("kilometraje"),
+
+    // ingresado · en_proceso · terminado · entregado
+    estado: text("estado").notNull().default("ingresado"),
+    fechaEntrega: timestamp("fecha_entrega"),
 
     // En pesos, sin decimales
     manoObra: integer("mano_obra").notNull().default(0),

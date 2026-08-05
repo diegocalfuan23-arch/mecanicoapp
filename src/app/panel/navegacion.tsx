@@ -19,6 +19,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/ordenes",
+    texto: "Órdenes",
+    icono: (
+      <path
+        d="M6 3.5h8a1 1 0 011 1V16a.5.5 0 01-.8.4L10 14l-4.2 2.4A.5.5 0 015 16V4.5a1 1 0 011-1zM7.5 8h5M7.5 10.5h3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/vehiculos",
     texto: "Vehículos",
     icono: (

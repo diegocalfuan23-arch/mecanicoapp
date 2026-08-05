@@ -7,7 +7,7 @@ import { pesos, fecha } from "@/lib/formato";
 
 type Deuda = {
   id: string;
-  descripcion: string;
+  descripcion: string | null;
   total: number;
   abonado: number;
   estadoPago: string;
@@ -136,7 +136,9 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-[15px]">{d.descripcion}</p>
+                <p className="mt-1 text-[15px]">
+                  {d.descripcion ?? "Sin detalle del trabajo"}
+                </p>
                 <p className="mt-1 text-[13px] text-muted-foreground">
                   {d.propietario ?? "Sin dueño registrado"} · {fecha(d.fecha)} ·
                   hace {dias} {dias === 1 ? "día" : "días"}
