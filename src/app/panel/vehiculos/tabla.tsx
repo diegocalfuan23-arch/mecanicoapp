@@ -152,7 +152,11 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                     {v.procedencia ?? "—"}
                   </td>
                   <td className="px-4 py-3 font-mono text-[13px] whitespace-nowrap text-muted-foreground">
-                    {v.vin ?? "—"}
+                    {v.vin ? (
+                      <span title={v.vin}>{v.vin.slice(0, 6)}…</span>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {v.propietario ?? "—"}
