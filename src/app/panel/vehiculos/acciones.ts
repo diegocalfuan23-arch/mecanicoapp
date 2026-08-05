@@ -28,6 +28,7 @@ export type DatosVehiculo = {
   motor?: string;
   ejes?: string;
   procedencia?: string;
+  kilometrajeInicial?: string;
   propietarioNombre?: string;
   propietarioTelefono?: string;
   copropietario?: string;
@@ -52,6 +53,7 @@ export async function listarVehiculos() {
       motor: vehiculo.motor,
       ejes: vehiculo.ejes,
       procedencia: vehiculo.procedencia,
+      kilometrajeInicial: vehiculo.kilometrajeInicial,
       copropietario: vehiculo.copropietario,
       primeraVez: vehiculo.primeraVez,
       propietario: cliente.nombre,
@@ -114,6 +116,9 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
     motor: datos.motor?.trim() || null,
     ejes: datos.ejes ? Number(datos.ejes) : null,
     procedencia: datos.procedencia || null,
+    kilometrajeInicial: datos.kilometrajeInicial
+      ? Number(datos.kilometrajeInicial)
+      : null,
     propietarioId,
     copropietario: datos.copropietario?.trim() || null,
     copropietarioTelefono: datos.copropietarioTelefono?.trim() || null,

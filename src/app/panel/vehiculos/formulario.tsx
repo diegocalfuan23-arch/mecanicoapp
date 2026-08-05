@@ -7,10 +7,18 @@ import * as Yup from "yup";
 import { guardarVehiculo } from "./acciones";
 
 const TIPOS = [
-  "Auto",
-  "Camioneta",
+  "Sedán",
+  "Hatchback",
+  "City car",
+  "Mini",
+  "Coupé",
+  "Cabriolet",
+  "Station wagon",
+  "Crossover",
   "SUV",
+  "Pick up",
   "Furgón",
+  "Minibús",
   "Camión",
   "Bus",
   "Moto",
@@ -42,6 +50,9 @@ const esquema = Yup.object({
     .min(1900, "Año muy antiguo")
     .max(new Date().getFullYear() + 1, "Año muy adelantado"),
   ejes: Yup.number().typeError("Solo números").min(1).max(10),
+  kilometrajeInicial: Yup.number()
+    .typeError("Solo números")
+    .min(0, "No puede ser negativo"),
 });
 
 export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
@@ -60,6 +71,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
       motor: "",
       ejes: "",
       procedencia: "",
+      kilometrajeInicial: "",
       propietarioNombre: "",
       propietarioTelefono: "",
       copropietario: "",
@@ -164,6 +176,10 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
             inputMode: "numeric",
           })}
           {selector("procedencia", "Procedencia", PROCEDENCIAS)}
+          {campo("kilometrajeInicial", "Kilometraje", {
+            placeholder: "125000",
+            inputMode: "numeric",
+          })}
         </div>
       </div>
 

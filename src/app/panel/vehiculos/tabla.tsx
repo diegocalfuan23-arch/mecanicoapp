@@ -15,6 +15,7 @@ type Vehiculo = {
   motor: string | null;
   ejes: number | null;
   procedencia: string | null;
+  kilometrajeInicial: number | null;
   copropietario: string | null;
   primeraVez: boolean;
   propietario: string | null;
@@ -29,6 +30,7 @@ const COLUMNAS = [
   "Color",
   "Motor",
   "Ejes",
+  "Km",
   "Procedencia",
   "VIN",
   "Dueño",
@@ -140,6 +142,11 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {v.ejes ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                    {v.kilometrajeInicial
+                      ? v.kilometrajeInicial.toLocaleString("es-CL")
+                      : "—"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {v.procedencia ?? "—"}

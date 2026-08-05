@@ -103,6 +103,8 @@ export const vehiculo = pgTable(
     ejes: integer("ejes"),
     // Japonés, coreano, europeo, americano, chino
     procedencia: text("procedencia"),
+    // Con cuánto llegó al taller la primera vez
+    kilometrajeInicial: integer("kilometraje_inicial"),
 
     // El dueño se maneja aparte: tiene ficha propia y puede tener varios autos
     propietarioId: text("propietario_id").references(() => cliente.id, {
