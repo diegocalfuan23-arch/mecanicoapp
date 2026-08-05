@@ -32,6 +32,33 @@ const SECCIONES = [
       />
     ),
   },
+  {
+    href: "/panel/propietarios",
+    texto: "Propietarios",
+    icono: (
+      <path
+        d="M10 10a3 3 0 100-6 3 3 0 000 6zM4 16.5c0-2.5 2.7-4 6-4s6 1.5 6 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    ),
+  },
+  {
+    href: "/panel/pagos",
+    texto: "Fiados",
+    icono: (
+      <path
+        d="M3 6.5h14v9H3v-9zM3 9.5h14M6 13h2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
 ];
 
 function Enlaces({ alNavegar }: { alNavegar?: () => void }) {
