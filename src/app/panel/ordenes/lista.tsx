@@ -365,65 +365,76 @@ export function ListaOrdenes({
           )}
         </div>
       ) : (
-        <ul className="mt-6 flex flex-col gap-3">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibles.map((o) => {
             const saldo = o.total - o.abonado;
+            const editando = cerrando === o.id;
 
             return (
               <li
                 key={o.id}
-                className="rounded-xl border border-border bg-card p-5"
+                className={`flex flex-col rounded-xl border border-border bg-card p-5 ${
+                  editando ? "sm:col-span-2 xl:col-span-3" : ""
+                }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[13px] text-muted-foreground">
-                        OT-{o.numero}
-                      </span>
-                      <span className="font-mono font-medium">{o.patente}</span>
-                      {o.marca && (
-                        <span className="text-muted-foreground">
-                          {o.marca} {o.modelo}
-                        </span>
-                      )}
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
-                      >
-                        {nombreEstado(o.estado)}
-                      </span>
-                      {o.estadoPago !== "pagado" && o.total > 0 && (
-                        <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-primary">
-                          Debe {pesos(saldo)}
-                        </span>
-                      )}
-                    </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-[13px] text-muted-foreground">
+                    OT-{o.numero}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                  >
+                    {nombreEstado(o.estado)}
+                  </span>
+                </div>
 
-                    {o.sintoma && (
-                      <p className="mt-2 text-[15px]">
-                        <span className="text-muted-foreground">Reporta: </span>
-                        {o.sintoma}
-                      </p>
-                    )}
-                    {o.descripcion && (
-                      <p className="mt-1 text-[15px]">
-                        <span className="text-muted-foreground">Se hizo: </span>
-                        {o.descripcion}
-                      </p>
-                    )}
-
-                    <p className="mt-1.5 text-[13px] text-muted-foreground">
-                      {o.propietario ?? "Sin dueño registrado"} ·{" "}
-                      {fecha(o.fecha)}
-                      {o.kilometraje
-                        ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                        : ""}
-                    </p>
-                  </div>
-
-                  {o.total > 0 && (
-                    <p className="text-xl font-semibold">{pesos(o.total)}</p>
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-mono text-lg font-medium">
+                    {o.patente}
+                  </span>
+                  {o.marca && (
+                    <span className="text-[14px] text-muted-foreground">
+                      {o.marca} {o.modelo}
+                    </span>
                   )}
                 </div>
+
+                <div className="mt-3 flex-1 space-y-1">
+                  {o.sintoma && (
+                    <p className="text-[15px]">
+                      <span className="text-muted-foreground">Reporta: </span>
+                      {o.sintoma}
+                    </p>
+                  )}
+                  {o.descripcion && (
+                    <p className="text-[15px]">
+                      <span className="text-muted-foreground">Se hizo: </span>
+                      {o.descripcion}
+                    </p>
+                  )}
+                </div>
+
+                <p className="mt-3 text-[13px] text-muted-foreground">
+                  {o.propietario ?? "Sin dueño registrado"}
+                  <br />
+                  {fecha(o.fecha)}
+                  {o.kilometraje
+                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                    : ""}
+                </p>
+
+                {o.total > 0 && (
+                  <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
+                    <span className="text-lg font-semibold">
+                      {pesos(o.total)}
+                    </span>
+                    {o.estadoPago !== "pagado" && (
+                      <span className="text-[13px] font-medium text-primary">
+                        Debe {pesos(saldo)}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {o.estado === "ingresado" && (
@@ -436,9 +447,7 @@ export function ListaOrdenes({
                   )}
                   {(o.estado === "ingresado" || o.estado === "en_proceso") && (
                     <button
-                      onClick={() =>
-                        setCerrando(cerrando === o.id ? null : o.id)
-                      }
+                      onClick={() => setCerrando(editando ? null : o.id)}
                       className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
                     >
                       Terminar
@@ -461,14 +470,14 @@ export function ListaOrdenes({
                           rel="noreferrer"
                           className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
                         >
-                          Avisar que está listo
+                          Avisar
                         </a>
                       )}
                     </>
                   )}
                 </div>
 
-                {cerrando === o.id && (
+                {editando && (
                   <Cerrar orden={o} onListo={() => setCerrando(null)} />
                 )}
               </li>
