@@ -92,7 +92,7 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
           {vehiculos.length === 0 && (
             <button
               onClick={() => setAbierto(true)}
-              className="mt-4 text-primary hover:underline"
+              className="mt-4 text-acento hover:underline"
             >
               Registrar el primero
             </button>
@@ -176,7 +176,7 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {v.primeraVez && (
-                      <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[12px] font-medium text-primary">
+                      <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[12px] font-medium text-acento">
                         Primera vez
                       </span>
                     )}

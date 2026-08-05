@@ -80,7 +80,7 @@ export default function Registro() {
       pie={
         <>
           ¿Ya tienes cuenta?{" "}
-          <Link href="/entrar" className="text-foreground hover:text-primary">
+          <Link href="/entrar" className="text-foreground hover:text-acento">
             Entra aquí
           </Link>
         </>

@@ -74,7 +74,7 @@ export default async function Panel() {
               {t.titulo}
             </span>
             <p
-              className={`mt-2 text-3xl font-semibold ${t.alerta ? "text-primary" : ""}`}
+              className={`mt-2 text-3xl font-semibold ${t.alerta ? "text-acento" : ""}`}
             >
               {t.valor}
             </p>

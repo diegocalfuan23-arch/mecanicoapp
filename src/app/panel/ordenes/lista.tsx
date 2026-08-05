@@ -35,7 +35,7 @@ type VehiculoOpcion = {
 
 const COLOR_ESTADO: Record<string, string> = {
   ingresado: "bg-muted text-muted-foreground",
-  en_proceso: "bg-primary/15 text-primary",
+  en_proceso: "bg-primary/15 text-acento",
   terminado: "bg-success/15 text-success",
   entregado: "bg-muted text-muted-foreground",
 };
@@ -90,7 +90,7 @@ function Abrir({
         </p>
         <button
           onClick={onListo}
-          className="mt-4 text-primary hover:underline"
+          className="mt-4 text-acento hover:underline"
         >
           Volver
         </button>
@@ -358,7 +358,7 @@ export function ListaOrdenes({
           {ordenes.length === 0 && (
             <button
               onClick={() => setAbriendo(true)}
-              className="mt-4 text-primary hover:underline"
+              className="mt-4 text-acento hover:underline"
             >
               Ingresar el primer vehículo
             </button>
@@ -429,7 +429,7 @@ export function ListaOrdenes({
                       {pesos(o.total)}
                     </span>
                     {o.estadoPago !== "pagado" && (
-                      <span className="text-[13px] font-medium text-primary">
+                      <span className="text-[13px] font-medium text-acento">
                         Debe {pesos(saldo)}
                       </span>
                     )}

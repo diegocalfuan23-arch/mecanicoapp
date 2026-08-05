@@ -111,7 +111,7 @@ export default async function FichaVehiculo({
             Debe
           </span>
           <p
-            className={`mt-1 text-2xl font-semibold ${debe > 0 ? "text-primary" : ""}`}
+            className={`mt-1 text-2xl font-semibold ${debe > 0 ? "text-acento" : ""}`}
           >
             {debe > 0 ? pesos(debe) : "Al día"}
           </p>
@@ -148,7 +148,7 @@ export default async function FichaVehiculo({
           </p>
           <Link
             href="/panel/ordenes"
-            className="mt-3 inline-block text-primary hover:underline"
+            className="mt-3 inline-block text-acento hover:underline"
           >
             Abrir una orden
           </Link>
@@ -175,7 +175,7 @@ export default async function FichaVehiculo({
                     </span>
                   )}
                   {t.estado !== "entregado" && (
-                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-primary">
+                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-acento">
                       {ESTADO_TEXTO[t.estado]}
                     </span>
                   )}
@@ -203,7 +203,7 @@ export default async function FichaVehiculo({
                       </span>
                     )}
                     {t.estadoPago !== "pagado" && (
-                      <span className="text-primary"> · debe {pesos(saldo)}</span>
+                      <span className="text-acento"> · debe {pesos(saldo)}</span>
                     )}
                   </p>
                 )}

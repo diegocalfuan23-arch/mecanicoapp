@@ -12,6 +12,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-acento: var(--acento);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -40,8 +41,11 @@
   --card-foreground: oklch(0.97 0.004 60);
   --popover: oklch(0.2 0.009 60);
   --popover-foreground: oklch(0.97 0.004 60);
-  --primary: oklch(0.76 0.16 62);
+  /* Botones: oscuro, para que el texto blanco encima se lea bien */
+  --primary: oklch(0.63 0.17 48);
   --primary-foreground: oklch(1 0 0);
+  /* Texto y detalles sobre fondo oscuro: más claro, para que resalte */
+  --acento: oklch(0.78 0.15 62);
   --secondary: oklch(0.26 0.01 60);
   --secondary-foreground: oklch(0.97 0.004 60);
   --muted: oklch(0.26 0.01 60);

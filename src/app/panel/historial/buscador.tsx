@@ -78,7 +78,7 @@ export function Buscador() {
           </p>
           <Link
             href="/panel/vehiculos"
-            className="mt-3 inline-block text-primary hover:underline"
+            className="mt-3 inline-block text-acento hover:underline"
           >
             Registrarlo
           </Link>

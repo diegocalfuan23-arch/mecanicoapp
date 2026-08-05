@@ -103,7 +103,7 @@ function Enlaces({ alNavegar }: { alNavegar?: () => void }) {
               aria-current={activo ? "page" : undefined}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] transition-colors ${
                 activo
-                  ? "bg-primary/10 font-medium text-primary"
+                  ? "bg-primary/10 font-medium text-acento"
                   : "text-muted-foreground hover:bg-card hover:text-foreground"
               }`}
             >
@@ -160,7 +160,7 @@ export function MenuMovil() {
           />
           <div className="absolute inset-y-0 left-0 w-64 border-r border-border bg-background p-4">
             <div className="mb-6 px-3 py-2 text-lg font-semibold tracking-tight">
-              Mecanico<span className="text-primary">App</span>
+              Mecanico<span className="text-acento">App</span>
             </div>
             <Enlaces alNavegar={() => setAbierto(false)} />
           </div>

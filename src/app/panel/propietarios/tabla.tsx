@@ -165,7 +165,7 @@ export function TablaPropietarios({
           {propietarios.length === 0 && (
             <button
               onClick={() => setAbierto(true)}
-              className="mt-4 text-primary hover:underline"
+              className="mt-4 text-acento hover:underline"
             >
               Registrar el primero
             </button>
@@ -201,7 +201,7 @@ export function TablaPropietarios({
                         href={`https://wa.me/${p.telefono.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-primary hover:underline"
+                        className="text-acento hover:underline"
                       >
                         {p.telefono}
                       </a>
@@ -212,7 +212,7 @@ export function TablaPropietarios({
                   <td className="px-4 py-3 whitespace-nowrap">{p.autos}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {p.deuda > 0 ? (
-                      <span className="font-medium text-primary">
+                      <span className="font-medium text-acento">
                         {pesos(p.deuda)}
                       </span>
                     ) : (

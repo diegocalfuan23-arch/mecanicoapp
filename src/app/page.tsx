@@ -39,7 +39,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <span className="text-lg font-semibold tracking-tight">
-          Mecanico<span className="text-primary">App</span>
+          Mecanico<span className="text-acento">App</span>
         </span>
         <nav className="flex items-center gap-6 text-sm">
           <Link
@@ -132,7 +132,7 @@ export default function Home() {
               {funciones.map((f) => (
                 <div key={f.titulo} className="bg-background p-7">
                   <h3 className="text-lg font-medium">{f.titulo}</h3>
-                  <p className="mt-1.5 text-primary">{f.resumen}</p>
+                  <p className="mt-1.5 text-acento">{f.resumen}</p>
                   <p className="mt-3 leading-relaxed text-muted-foreground">
                     {f.detalle}
                   </p>

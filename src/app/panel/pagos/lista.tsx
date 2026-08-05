@@ -131,7 +131,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
                     </span>
                   )}
                   {d.estadoPago === "abonado" && (
-                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-primary">
+                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-acento">
                       Abonado
                     </span>
                   )}

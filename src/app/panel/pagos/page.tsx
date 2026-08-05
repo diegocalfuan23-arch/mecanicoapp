@@ -21,7 +21,7 @@ export default async function Pagos() {
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Te deben en total
           </span>
-          <p className="mt-1 text-3xl font-semibold text-primary">
+          <p className="mt-1 text-3xl font-semibold text-acento">
             {pesos(resumen.pendiente)}
           </p>
         </div>

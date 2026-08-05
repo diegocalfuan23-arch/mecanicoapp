@@ -22,7 +22,7 @@ export default async function LayoutPanel({
           <div className="flex items-center gap-3">
             <MenuMovil />
             <Link href="/panel" className="text-lg font-semibold tracking-tight">
-              Mecanico<span className="text-primary">App</span>
+              Mecanico<span className="text-acento">App</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">

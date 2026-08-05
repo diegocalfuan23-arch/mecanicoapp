@@ -51,7 +51,7 @@ export default function Entrar() {
       pie={
         <>
           ¿No tienes cuenta?{" "}
-          <Link href="/registro" className="text-foreground hover:text-primary">
+          <Link href="/registro" className="text-foreground hover:text-acento">
             Crea una gratis
           </Link>
         </>
