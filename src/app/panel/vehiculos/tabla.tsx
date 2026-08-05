@@ -126,7 +126,15 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                     {v.tipo ?? "—"}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {v.marca ?? "—"}
+                    {v.marca ? (
+                      <span title={v.marca}>
+                        {v.marca.length > 6
+                          ? `${v.marca.slice(0, 6)}…`
+                          : v.marca}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {v.modelo ?? "—"}
