@@ -52,7 +52,7 @@ export default async function Panel() {
       href: "/panel/pagos",
       titulo: "Te deben",
       valor: pesos(deuda.monto),
-      pie: deuda.monto === 0 ? "Todo al día" : "Ver los fiados",
+      pie: deuda.monto === 0 ? "Todo al día" : "Ver los pagos",
       alerta: deuda.monto > 0,
     },
   ];

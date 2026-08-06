@@ -74,7 +74,7 @@ const SECCIONES = [
   },
   {
     href: "/panel/pagos",
-    texto: "Fiados",
+    texto: "Pagos",
     icono: (
       <path
         d="M3 6.5h14v9H3v-9zM3 9.5h14M6 13h2"

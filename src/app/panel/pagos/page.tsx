@@ -8,7 +8,7 @@ export default async function Pagos() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-xl font-semibold tracking-tight">Fiados</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Pagos</h1>
         <p className="mt-2 text-muted-foreground">
           {resumen.cuantos === 0
             ? "Los trabajos que salieron sin pagar aparecen acá."
