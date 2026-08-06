@@ -59,7 +59,7 @@ export default async function Panel() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <h1 className="text-xl font-semibold tracking-tight">
         Hola, {sesion.user.name.split(" ")[0]}
       </h1>
 
@@ -74,7 +74,7 @@ export default async function Panel() {
               {t.titulo}
             </span>
             <p
-              className={`mt-2 text-3xl font-semibold ${t.alerta ? "text-acento" : ""}`}
+              className={`mt-2 text-[30px] leading-none font-bold sm:text-[40px] ${t.alerta ? "text-acento" : ""}`}
             >
               {t.valor}
             </p>

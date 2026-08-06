@@ -12,7 +12,7 @@ export default async function Ordenes() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-xl font-semibold tracking-tight">
           Órdenes de trabajo
         </h1>
         <p className="mt-2 text-muted-foreground">

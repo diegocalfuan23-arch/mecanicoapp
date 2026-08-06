@@ -8,7 +8,7 @@ export default async function Pagos() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Fiados</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Fiados</h1>
         <p className="mt-2 text-muted-foreground">
           {resumen.cuantos === 0
             ? "Los trabajos que salieron sin pagar aparecen acá."
@@ -21,7 +21,7 @@ export default async function Pagos() {
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Te deben en total
           </span>
-          <p className="mt-1 text-3xl font-semibold text-acento">
+          <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px] text-acento">
             {pesos(resumen.pendiente)}
           </p>
         </div>

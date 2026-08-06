@@ -61,26 +61,26 @@ function Abonar({
       <p className="text-[13px] text-muted-foreground">
         Saldo pendiente: <span className="text-foreground">{pesos(saldo)}</span>
       </p>
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row">
         <input
           value={monto}
           onChange={(e) => setMonto(e.target.value.replace(/\D/g, ""))}
           placeholder="Monto abonado"
           inputMode="numeric"
           autoFocus
-          className="flex-1 rounded-lg border border-border bg-card px-3.5 py-2.5 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          className="flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
         />
         <button
           type="submit"
           disabled={enviando || !monto}
-          className="rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {enviando ? "Guardando…" : "Registrar abono"}
         </button>
         <button
           type="button"
           onClick={onCerrar}
-          className="rounded-lg border border-border px-5 py-2.5 transition-colors hover:bg-card"
+          className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
         >
           Cancelar
         </button>
@@ -111,7 +111,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
   }
 
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="flex flex-col gap-4">
       {deudas.map((d) => {
         const saldo = d.total - d.abonado;
         const dias = diasDesde(d.fecha);
@@ -119,7 +119,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
         return (
           <li
             key={d.id}
-            className="rounded-xl border border-border bg-card p-5"
+            className="rounded-xl border border-border bg-card p-6"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
@@ -131,7 +131,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
                     </span>
                   )}
                   {d.estadoPago === "abonado" && (
-                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-acento">
+                    <span className="rounded-full bg-foreground/10 px-2 py-1 text-[12px] font-medium">
                       Abonado
                     </span>
                   )}

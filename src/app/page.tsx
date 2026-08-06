@@ -64,8 +64,8 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="mx-auto flex max-w-4xl flex-col items-center gap-7 px-6 py-24 text-center sm:py-32">
-          <span className="rounded-full border border-border px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <section className="mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 py-24 text-center sm:py-32">
+          <span className="rounded-full border border-border px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Para talleres independientes
           </span>
           <h1 className="text-balance text-4xl leading-[1.05] font-semibold tracking-tight sm:text-6xl">
@@ -78,16 +78,16 @@ export default function Home() {
             al día y el cliente que vuelve solo. Sin planillas ni cuadernos que
             se pierden.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-4 sm:flex-row">
             <Link
               href="/registro"
-              className="rounded-lg bg-primary px-7 py-3.5 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Probar gratis
             </Link>
             <Link
               href="#funciones"
-              className="rounded-lg border border-border px-7 py-3.5 font-medium transition-colors hover:bg-card"
+              className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
             >
               Ver qué hace
             </Link>
@@ -99,7 +99,7 @@ export default function Home() {
             <h2 className="text-3xl font-semibold tracking-tight">
               Así se lleva un taller hoy
             </h2>
-            <div className="mt-10 divide-y divide-border border-y border-border">
+            <div className="mt-8 divide-y divide-border border-y border-border">
               {antes.map(([que, como]) => (
                 <div
                   key={que}
@@ -128,12 +128,12 @@ export default function Home() {
                 días.
               </p>
             </div>
-            <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+            <div className="mt-16 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
               {funciones.map((f) => (
-                <div key={f.titulo} className="bg-background p-7">
+                <div key={f.titulo} className="bg-background p-6">
                   <h3 className="text-lg font-medium">{f.titulo}</h3>
-                  <p className="mt-1.5 text-acento">{f.resumen}</p>
-                  <p className="mt-3 leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-muted-foreground">{f.resumen}</p>
+                  <p className="mt-4 leading-relaxed text-muted-foreground">
                     {f.detalle}
                   </p>
                 </div>
@@ -153,7 +153,7 @@ export default function Home() {
             </p>
             <Link
               href="/registro"
-              className="mt-8 inline-block rounded-lg bg-primary px-7 py-3.5 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              className="mt-8 inline-block rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Empezar ahora
             </Link>
@@ -162,7 +162,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-border py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-muted-foreground sm:flex-row">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
           <span>© {new Date().getFullYear()} MecanicoApp</span>
           <span>Hecho en Chile</span>
         </div>

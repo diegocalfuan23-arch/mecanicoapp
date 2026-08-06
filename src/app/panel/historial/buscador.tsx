@@ -78,7 +78,7 @@ export function Buscador() {
           </p>
           <Link
             href="/panel/vehiculos"
-            className="mt-3 inline-block text-acento hover:underline"
+            className="mt-4 inline-block text-acento hover:underline"
           >
             Registrarlo
           </Link>
@@ -91,10 +91,10 @@ export function Buscador() {
             <li key={v.id}>
               <Link
                 href={`/panel/historial/${v.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-5 py-4 transition-colors hover:border-primary/40"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card px-6 py-4 transition-colors hover:border-primary/40"
               >
                 <div>
-                  <div className="flex flex-wrap items-baseline gap-x-3">
+                  <div className="flex flex-wrap items-baseline gap-x-4">
                     <span className="font-mono text-lg font-medium">
                       {v.patente}
                     </span>
@@ -102,7 +102,7 @@ export function Buscador() {
                       {[v.marca, v.modelo, v.anio].filter(Boolean).join(" ")}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[13px] text-muted-foreground">
+                  <p className="mt-1 text-[13px] text-muted-foreground">
                     {v.propietario ?? "Sin dueño registrado"}
                     {v.color ? ` · ${v.color}` : ""}
                   </p>

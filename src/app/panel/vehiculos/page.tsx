@@ -13,7 +13,7 @@ export default async function Vehiculos() {
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Vehículos</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Vehículos</h1>
         <p className="mt-2 text-muted-foreground">
           {vehiculos.length === 0
             ? "Registra los autos que pasan por el taller."

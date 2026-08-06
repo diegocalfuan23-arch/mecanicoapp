@@ -20,7 +20,7 @@ export function FuerzaClave({ valor }: { valor: string }) {
   const nivel = NIVELES[puntaje];
 
   return (
-    <div className="mt-2.5">
+    <div className="mt-2">
       <div className="flex items-center gap-2">
         <div className="flex flex-1 gap-1" aria-hidden>
           {REGLAS.map((_, i) => (
@@ -37,7 +37,7 @@ export function FuerzaClave({ valor }: { valor: string }) {
         </span>
       </div>
 
-      <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
         {REGLAS.map((regla) => {
           const ok = regla.prueba(valor);
           return (

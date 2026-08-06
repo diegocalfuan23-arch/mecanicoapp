@@ -18,8 +18,8 @@ export default async function LayoutPanel({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-border">
-        <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-4">
             <MenuMovil />
             <Link href="/panel" className="text-lg font-semibold tracking-tight">
               Mecanico<span className="text-acento">App</span>

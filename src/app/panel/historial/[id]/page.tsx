@@ -35,7 +35,7 @@ export default async function FichaVehiculo({
     <div className="mx-auto max-w-3xl">
       <Link
         href="/panel/historial"
-        className="inline-flex items-center gap-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-2 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
       >
         <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
           <path
@@ -52,7 +52,7 @@ export default async function FichaVehiculo({
 
       {/* Identidad del vehículo */}
       <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h1 className="font-mono text-3xl font-semibold tracking-tight">
+        <h1 className="font-mono text-2xl font-semibold tracking-tight">
           {datos.patente}
         </h1>
         <span className="text-lg text-muted-foreground">
@@ -61,7 +61,7 @@ export default async function FichaVehiculo({
       </div>
 
       {/* Dueño */}
-      <div className="mt-4 rounded-xl border border-border bg-card p-5">
+      <div className="mt-4 rounded-xl border border-border bg-card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
@@ -71,7 +71,7 @@ export default async function FichaVehiculo({
               {datos.propietario ?? "Sin dueño registrado"}
             </p>
             {datos.copropietario && (
-              <p className="mt-0.5 text-[14px] text-muted-foreground">
+              <p className="mt-1 text-[14px] text-muted-foreground">
                 También retira: {datos.copropietario}
                 {datos.copropietarioTelefono
                   ? ` · ${datos.copropietarioTelefono}`
@@ -94,24 +94,24 @@ export default async function FichaVehiculo({
 
       {/* Resumen */}
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-6">
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Visitas
           </span>
-          <p className="mt-1 text-2xl font-semibold">{trabajos.length}</p>
+          <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px]">{trabajos.length}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-6">
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Ha gastado
           </span>
-          <p className="mt-1 text-2xl font-semibold">{pesos(gastado)}</p>
+          <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px]">{pesos(gastado)}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-6">
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Debe
           </span>
           <p
-            className={`mt-1 text-2xl font-semibold ${debe > 0 ? "text-acento" : ""}`}
+            className={`mt-2 text-[30px] leading-none font-bold sm:text-[40px] ${debe > 0 ? "text-acento" : ""}`}
           >
             {debe > 0 ? pesos(debe) : "Al día"}
           </p>
@@ -120,8 +120,8 @@ export default async function FichaVehiculo({
 
       {/* Especificaciones */}
       {especificaciones.length > 0 && (
-        <div className="mt-4 rounded-xl border border-border bg-card p-5">
-          <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+        <div className="mt-4 rounded-xl border border-border bg-card p-6">
+          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
             {especificaciones.map(([etiqueta, valor]) => (
               <div key={String(etiqueta)} className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">{etiqueta}</dt>
@@ -139,7 +139,7 @@ export default async function FichaVehiculo({
       )}
 
       {/* Lo que se le ha hecho */}
-      <h2 className="mt-10 text-lg font-medium">Lo que se le ha hecho</h2>
+      <h2 className="mt-8 text-lg font-medium">Lo que se le ha hecho</h2>
 
       {trabajos.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-border py-12 text-center">
@@ -148,7 +148,7 @@ export default async function FichaVehiculo({
           </p>
           <Link
             href="/panel/ordenes"
-            className="mt-3 inline-block text-acento hover:underline"
+            className="mt-4 inline-block text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             Abrir una orden
           </Link>
@@ -160,9 +160,9 @@ export default async function FichaVehiculo({
 
             return (
               <li key={t.id} className="relative pb-6 pl-6 last:pb-0">
-                <span className="absolute top-1.5 -left-[5px] size-2.5 rounded-full bg-primary" />
+                <span className="absolute top-2 -left-[5px] size-2.5 rounded-full bg-border" />
 
-                <div className="flex flex-wrap items-baseline gap-x-3">
+                <div className="flex flex-wrap items-baseline gap-x-4">
                   <span className="text-[15px] font-medium">
                     {fecha(t.fecha)}
                   </span>
@@ -175,17 +175,17 @@ export default async function FichaVehiculo({
                     </span>
                   )}
                   {t.estado !== "entregado" && (
-                    <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[12px] font-medium text-acento">
+                    <span className="rounded-full bg-foreground/10 px-2 py-1 text-[12px] font-medium">
                       {ESTADO_TEXTO[t.estado]}
                     </span>
                   )}
                 </div>
 
                 {t.descripcion ? (
-                  <p className="mt-1.5 text-[15px]">{t.descripcion}</p>
+                  <p className="mt-2 text-[15px]">{t.descripcion}</p>
                 ) : (
                   t.sintoma && (
-                    <p className="mt-1.5 text-[15px]">
+                    <p className="mt-2 text-[15px]">
                       <span className="text-muted-foreground">Reporta: </span>
                       {t.sintoma}
                     </p>
@@ -193,7 +193,7 @@ export default async function FichaVehiculo({
                 )}
 
                 {t.total > 0 && (
-                  <p className="mt-1.5 text-[14px] text-muted-foreground">
+                  <p className="mt-2 text-[14px] text-muted-foreground">
                     {pesos(t.total)}
                     {t.manoObra > 0 && t.repuestos > 0 && (
                       <span>
@@ -203,7 +203,10 @@ export default async function FichaVehiculo({
                       </span>
                     )}
                     {t.estadoPago !== "pagado" && (
-                      <span className="text-acento"> · debe {pesos(saldo)}</span>
+                      <span className="font-medium text-foreground">
+                        {" "}
+                        · debe {pesos(saldo)}
+                      </span>
                     )}
                   </p>
                 )}

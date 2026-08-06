@@ -105,7 +105,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
   ) => (
     <div>
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-medium">{etiqueta}</span>
+        <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
         <input
           name={name}
           value={form.values[name] as string}
@@ -113,7 +113,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
           onBlur={form.handleBlur}
           aria-invalid={!!err(name)}
           {...extra}
-          className={`w-full rounded-lg border bg-background px-3.5 py-2.5 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
+          className={`w-full rounded-lg border bg-background px-4 py-2 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
             err(name)
               ? "border-destructive/70 focus:border-destructive focus:ring-destructive/30"
               : "border-border focus:border-primary/60 focus:ring-primary/30"
@@ -121,7 +121,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         />
       </label>
       {err(name) && (
-        <p className="mt-1.5 text-[12px] text-destructive">{err(name)}</p>
+        <p className="mt-2 text-[12px] text-destructive">{err(name)}</p>
       )}
     </div>
   );
@@ -132,12 +132,12 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
     opciones: string[]
   ) => (
     <label className="block">
-      <span className="mb-1.5 block text-[13px] font-medium">{etiqueta}</span>
+      <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
       <select
         name={name}
         value={form.values[name] as string}
         onChange={form.handleChange}
-        className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-[15px] transition-colors outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+        className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[15px] transition-colors outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
       >
         <option value="">Sin especificar</option>
         {opciones.map((o) => (
@@ -155,7 +155,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
           El vehículo
         </h3>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {campo("patente", "Patente", {
             placeholder: "ABCD12",
             autoFocus: true,
@@ -187,7 +187,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
           El dueño
         </h3>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {campo("propietarioNombre", "Nombre", { placeholder: "Juan Pérez" })}
           {campo("propietarioTelefono", "Teléfono", {
             placeholder: "+56 9 1234 5678",
@@ -203,7 +203,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         <p className="mt-1 text-[13px] text-muted-foreground">
           Quien acompaña o puede retirar el auto.
         </p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {campo("copropietario", "Nombre", { placeholder: "María Pérez" })}
           {campo("copropietarioTelefono", "Teléfono", {
             placeholder: "+56 9 8765 4321",
@@ -212,7 +212,7 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         </div>
       </div>
 
-      <label className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3">
+      <label className="flex items-center gap-4 rounded-lg border border-border bg-background px-4 py-4">
         <input
           type="checkbox"
           name="primeraVez"
@@ -231,18 +231,18 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
         </p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <button
           type="submit"
           disabled={form.isSubmitting}
-          className="rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {form.isSubmitting ? "Guardando…" : "Registrar vehículo"}
         </button>
         <button
           type="button"
           onClick={onListo}
-          className="rounded-lg border border-border px-6 py-3 font-medium transition-colors hover:bg-card"
+          className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
         >
           Cancelar
         </button>

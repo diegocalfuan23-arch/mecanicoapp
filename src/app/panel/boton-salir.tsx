@@ -13,7 +13,7 @@ export function BotonSalir() {
         router.push("/");
         router.refresh();
       }}
-      className="rounded-lg border border-border px-3.5 py-2 text-sm transition-colors hover:bg-card"
+      className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-card"
     >
       Salir
     </button>

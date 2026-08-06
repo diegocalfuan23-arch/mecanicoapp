@@ -35,8 +35,8 @@ type VehiculoOpcion = {
 
 const COLOR_ESTADO: Record<string, string> = {
   ingresado: "bg-muted text-muted-foreground",
-  en_proceso: "bg-primary/15 text-acento",
-  terminado: "bg-success/15 text-success",
+  en_proceso: "bg-foreground/10 text-foreground",
+  terminado: "bg-foreground/10 text-foreground",
   entregado: "bg-muted text-muted-foreground",
 };
 
@@ -45,7 +45,7 @@ function nombreEstado(valor: string) {
 }
 
 function campoBase(error?: boolean) {
-  return `w-full rounded-lg border bg-background px-3.5 py-2.5 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
+  return `w-full rounded-lg border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
     error
       ? "border-destructive/70 focus:border-destructive focus:ring-destructive/30"
       : "border-border focus:border-primary/60 focus:ring-primary/30"
@@ -90,7 +90,7 @@ function Abrir({
         </p>
         <button
           onClick={onListo}
-          className="mt-4 text-acento hover:underline"
+          className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
           Volver
         </button>
@@ -108,7 +108,7 @@ function Abrir({
 
       <form onSubmit={enviar} className="mt-6 flex flex-col gap-4">
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">Vehículo</span>
+          <span className="mb-2 block text-[13px] font-medium">Vehículo</span>
           <select
             value={vehiculoId}
             onChange={(e) => setVehiculoId(e.target.value)}
@@ -127,7 +127,7 @@ function Abrir({
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">
+          <span className="mb-2 block text-[13px] font-medium">
             Kilometraje de entrada
           </span>
           <input
@@ -140,7 +140,7 @@ function Abrir({
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">
+          <span className="mb-2 block text-[13px] font-medium">
             Qué reporta el cliente
           </span>
           <textarea
@@ -154,18 +154,18 @@ function Abrir({
 
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <button
             type="submit"
             disabled={enviando}
-            className="rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {enviando ? "Abriendo…" : "Abrir orden"}
           </button>
           <button
             type="button"
             onClick={onListo}
-            className="rounded-lg border border-border px-6 py-3 font-medium transition-colors hover:bg-background"
+            className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-background"
           >
             Cancelar
           </button>
@@ -214,7 +214,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       className="mt-4 rounded-lg border border-border bg-background p-4"
     >
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-medium">
+        <span className="mb-2 block text-[13px] font-medium">
           Qué se hizo
         </span>
         <textarea
@@ -229,7 +229,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">
+          <span className="mb-2 block text-[13px] font-medium">
             Mano de obra
           </span>
           <input
@@ -241,7 +241,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">
+          <span className="mb-2 block text-[13px] font-medium">
             Repuestos
           </span>
           <input
@@ -253,7 +253,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-medium">Pago</span>
+          <span className="mb-2 block text-[13px] font-medium">Pago</span>
           <select
             value={estadoPago}
             onChange={(e) => setEstadoPago(e.target.value)}
@@ -266,25 +266,25 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       </div>
 
       {total > 0 && (
-        <p className="mt-3 text-[15px]">
+        <p className="mt-4 text-[15px]">
           Total: <span className="font-semibold">{pesos(total)}</span>
         </p>
       )}
 
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 flex gap-4">
         <button
           type="submit"
           disabled={enviando}
-          className="rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {enviando ? "Guardando…" : "Cerrar orden"}
         </button>
         <button
           type="button"
           onClick={onListo}
-          className="rounded-lg border border-border px-5 py-2.5 transition-colors hover:bg-card"
+          className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
         >
           Cancelar
         </button>
@@ -321,7 +321,7 @@ export function ListaOrdenes({
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-1 rounded-lg border border-border p-1">
           {[
             { valor: "abiertas", texto: "Abiertas" },
@@ -330,7 +330,7 @@ export function ListaOrdenes({
             <button
               key={f.valor}
               onClick={() => setFiltro(f.valor)}
-              className={`rounded px-4 py-1.5 text-[14px] transition-colors ${
+              className={`rounded px-4 py-2 text-[14px] transition-colors ${
                 filtro === f.valor
                   ? "bg-card font-medium"
                   : "text-muted-foreground hover:text-foreground"
@@ -342,7 +342,7 @@ export function ListaOrdenes({
         </div>
         <button
           onClick={() => setAbriendo(true)}
-          className="rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           Ingresar vehículo
         </button>
@@ -358,7 +358,7 @@ export function ListaOrdenes({
           {ordenes.length === 0 && (
             <button
               onClick={() => setAbriendo(true)}
-              className="mt-4 text-acento hover:underline"
+              className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Ingresar el primer vehículo
             </button>
@@ -373,7 +373,7 @@ export function ListaOrdenes({
             return (
               <li
                 key={o.id}
-                className={`flex flex-col rounded-xl border border-border bg-card p-5 ${
+                className={`flex flex-col rounded-xl border border-border bg-card p-6 ${
                   editando ? "sm:col-span-2 xl:col-span-3" : ""
                 }`}
               >
@@ -382,7 +382,7 @@ export function ListaOrdenes({
                     OT-{o.numero}
                   </span>
                   <span
-                    className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                    className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
                   >
                     {nombreEstado(o.estado)}
                   </span>
@@ -399,7 +399,7 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                <div className="mt-3 flex-1 space-y-1">
+                <div className="mt-4 flex-1 space-y-1">
                   {o.sintoma && (
                     <p className="text-[15px]">
                       <span className="text-muted-foreground">Reporta: </span>
@@ -414,7 +414,7 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                <p className="mt-3 text-[13px] text-muted-foreground">
+                <p className="mt-4 text-[13px] text-muted-foreground">
                   {o.propietario ?? "Sin dueño registrado"}
                   <br />
                   {fecha(o.fecha)}
@@ -424,7 +424,7 @@ export function ListaOrdenes({
                 </p>
 
                 {o.total > 0 && (
-                  <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
+                  <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
                     <span className="text-lg font-semibold">
                       {pesos(o.total)}
                     </span>

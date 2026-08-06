@@ -50,12 +50,12 @@ export function Campo({
   return (
     <div>
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-medium">{etiqueta}</span>
+        <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
         <input
           {...props}
           aria-invalid={!!error}
           aria-describedby={idError}
-          className={`w-full rounded-lg border bg-card px-3.5 py-2.5 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/60 focus:ring-1 ${
+          className={`w-full rounded-lg border bg-card px-4 py-2 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/60 focus:ring-1 ${
             error
               ? "border-destructive/70 focus:border-destructive focus:ring-destructive/30"
               : "border-border focus:border-primary/60 focus:ring-primary/30"
@@ -64,7 +64,7 @@ export function Campo({
       </label>
       {ayuda}
       {error && (
-        <p id={idError} className="mt-1.5 text-[12px] text-destructive">
+        <p id={idError} className="mt-2 text-[12px] text-destructive">
           {error}
         </p>
       )}
