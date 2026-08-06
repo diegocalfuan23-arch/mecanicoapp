@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
@@ -23,39 +23,113 @@ const COLUMNAS = [
   "Acciones",
 ];
 
-/** Ver la ficha, editarla o borrarla. */
+/** Ver la ficha, editarla o borrarla, tras los tres puntos. */
 function Acciones({
   v,
   onEditar,
   onBorrar,
-  borrando,
 }: {
   v: Vehiculo;
   onEditar: () => void;
   onBorrar: () => void;
-  borrando: boolean;
 }) {
+  const [abierto, setAbierto] = useState(false);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const contenedor = useRef<HTMLDivElement>(null);
+
+  /**
+   * El menu va con position:fixed porque la tabla vive dentro de un
+   * contenedor con overflow, que si no lo recortaria.
+   */
+  function alternar() {
+    const caja = contenedor.current?.getBoundingClientRect();
+    if (caja) {
+      setPos({
+        top: caja.bottom + 8,
+        right: window.innerWidth - caja.right,
+      });
+    }
+    setAbierto((a) => !a);
+  }
+
+  // Cerrar al hacer clic fuera, al presionar Escape o al mover la pagina.
+  useEffect(() => {
+    if (!abierto) return;
+
+    function fuera(e: MouseEvent) {
+      if (!contenedor.current?.contains(e.target as Node)) setAbierto(false);
+    }
+    function escape(e: KeyboardEvent) {
+      if (e.key === "Escape") setAbierto(false);
+    }
+    const cerrar = () => setAbierto(false);
+
+    document.addEventListener("mousedown", fuera);
+    document.addEventListener("keydown", escape);
+    window.addEventListener("scroll", cerrar, true);
+    window.addEventListener("resize", cerrar);
+    return () => {
+      document.removeEventListener("mousedown", fuera);
+      document.removeEventListener("keydown", escape);
+      window.removeEventListener("scroll", cerrar, true);
+      window.removeEventListener("resize", cerrar);
+    };
+  }, [abierto]);
+
+  const opcion =
+    "block w-full px-4 py-2 text-left text-[14px] transition-colors hover:bg-background";
+
   return (
-    <div className="flex flex-wrap gap-2">
-      <Link
-        href={`/panel/historial/${v.id}`}
-        className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
-      >
-        Ver
-      </Link>
+    <div ref={contenedor} className="relative">
       <button
-        onClick={onEditar}
-        className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
+        onClick={alternar}
+        aria-haspopup="menu"
+        aria-expanded={abierto}
+        aria-label={`Acciones de ${v.patente}`}
+        className="rounded-lg border border-border p-2 transition-colors hover:bg-background"
       >
-        Editar
+        <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+          <circle cx="4" cy="10" r="1.5" fill="currentColor" />
+          <circle cx="10" cy="10" r="1.5" fill="currentColor" />
+          <circle cx="16" cy="10" r="1.5" fill="currentColor" />
+        </svg>
       </button>
-      <button
-        onClick={onBorrar}
-        disabled={borrando}
-        className="rounded-lg border border-border px-4 py-2 text-[13px] text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
-      >
-        {borrando ? "Borrando…" : "Eliminar"}
-      </button>
+
+      {abierto && (
+        <div
+          role="menu"
+          style={{ top: pos.top, right: pos.right }}
+          className="fixed z-50 w-40 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
+        >
+          <Link
+            href={`/panel/historial/${v.id}`}
+            role="menuitem"
+            className={opcion}
+          >
+            Ver
+          </Link>
+          <button
+            role="menuitem"
+            onClick={() => {
+              setAbierto(false);
+              onEditar();
+            }}
+            className={opcion}
+          >
+            Editar
+          </button>
+          <button
+            role="menuitem"
+            onClick={() => {
+              setAbierto(false);
+              onBorrar();
+            }}
+            className={`${opcion} text-destructive hover:bg-destructive/10`}
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -249,7 +323,6 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                     v={v}
                     onEditar={() => setEditando(v)}
                     onBorrar={() => setConfirmando(v)}
-                    borrando={borrando && confirmando?.id === v.id}
                   />
                 </div>
               </li>
@@ -341,7 +414,6 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                       v={v}
                       onEditar={() => setEditando(v)}
                       onBorrar={() => setConfirmando(v)}
-                      borrando={borrando && confirmando?.id === v.id}
                     />
                   </td>
                 </tr>
