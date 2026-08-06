@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { eq, and, ne, sql, desc } from "drizzle-orm";
+import { eq, and, ne, sql, desc, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { trabajo, vehiculo, cliente, abono } from "@/db/schema";
@@ -50,6 +50,46 @@ export async function resumenDeuda() {
     })
     .from(trabajo)
     .where(and(eq(trabajo.tallerId, tallerId), ne(trabajo.estadoPago, "pagado")));
+
+  return fila;
+}
+
+/** Cada cobro que entró, del más nuevo al más viejo. */
+export async function listarCobros() {
+  const tallerId = await tallerActual();
+
+  return db
+    .select({
+      id: abono.id,
+      monto: abono.monto,
+      fecha: abono.fecha,
+      descripcion: trabajo.descripcion,
+      patente: vehiculo.patente,
+      propietario: cliente.nombre,
+    })
+    .from(abono)
+    .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+    .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+    .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
+    .where(eq(trabajo.tallerId, tallerId))
+    .orderBy(desc(abono.fecha))
+    .limit(100);
+}
+
+/** Cuánto entró en el mes corriente. */
+export async function cobradoDelMes() {
+  const tallerId = await tallerActual();
+  const ahora = new Date();
+  const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+  const [fila] = await db
+    .select({
+      monto: sql<number>`coalesce(sum(${abono.monto}), 0)`.mapWith(Number),
+      cuantos: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(abono)
+    .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+    .where(and(eq(trabajo.tallerId, tallerId), gte(abono.fecha, inicio)));
 
   return fila;
 }

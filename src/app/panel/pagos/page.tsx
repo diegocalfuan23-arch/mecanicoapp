@@ -1,9 +1,18 @@
-import { listarDeudas, resumenDeuda } from "./acciones";
-import { ListaDeudas } from "./lista";
-import { pesos } from "@/lib/formato";
+import {
+  listarDeudas,
+  resumenDeuda,
+  listarCobros,
+  cobradoDelMes,
+} from "./acciones";
+import { VistasPagos } from "./vistas";
 
 export default async function Pagos() {
-  const [deudas, resumen] = await Promise.all([listarDeudas(), resumenDeuda()]);
+  const [deudas, resumen, cobros, mes] = await Promise.all([
+    listarDeudas(),
+    resumenDeuda(),
+    listarCobros(),
+    cobradoDelMes(),
+  ]);
 
   return (
     <>
@@ -16,18 +25,12 @@ export default async function Pagos() {
         </p>
       </div>
 
-      {resumen.pendiente > 0 && (
-        <div className="mb-8 rounded-xl border border-border bg-card p-6">
-          <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-            Te deben en total
-          </span>
-          <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px] text-acento">
-            {pesos(resumen.pendiente)}
-          </p>
-        </div>
-      )}
-
-      <ListaDeudas deudas={deudas} />
+      <VistasPagos
+        deudas={deudas}
+        cobros={cobros}
+        pendiente={resumen.pendiente}
+        cobrado={mes.monto}
+      />
     </>
   );
 }
