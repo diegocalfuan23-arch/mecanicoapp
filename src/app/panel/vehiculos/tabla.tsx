@@ -1,26 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { FormularioVehiculo } from "./formulario";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
+import { eliminarVehiculo } from "./acciones";
 
-type Vehiculo = {
-  id: string;
-  patente: string;
-  vin: string | null;
-  marca: string | null;
-  modelo: string | null;
-  anio: number | null;
-  color: string | null;
-  tipo: string | null;
-  motor: string | null;
-  ejes: number | null;
-  procedencia: string | null;
-  kilometrajeInicial: number | null;
-  copropietario: string | null;
-  primeraVez: boolean;
-  propietario: string | null;
-  propietarioTelefono: string | null;
-};
+type Vehiculo = VehiculoEditable;
 
 const COLUMNAS = [
   "Patente",
@@ -34,12 +20,71 @@ const COLUMNAS = [
   "Procedencia",
   "VIN",
   "Dueño",
-  "",
+  "Acciones",
 ];
 
+/** Ver la ficha, editarla o borrarla. */
+function Acciones({
+  v,
+  onEditar,
+  onBorrar,
+  borrando,
+}: {
+  v: Vehiculo;
+  onEditar: () => void;
+  onBorrar: () => void;
+  borrando: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Link
+        href={`/panel/historial/${v.id}`}
+        className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
+      >
+        Ver
+      </Link>
+      <button
+        onClick={onEditar}
+        className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
+      >
+        Editar
+      </button>
+      <button
+        onClick={onBorrar}
+        disabled={borrando}
+        className="rounded-lg border border-border px-4 py-2 text-[13px] text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+      >
+        {borrando ? "Borrando…" : "Eliminar"}
+      </button>
+    </div>
+  );
+}
+
 export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
+  const router = useRouter();
   const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState<Vehiculo | null>(null);
+  const [confirmando, setConfirmando] = useState<Vehiculo | null>(null);
+  const [borrando, setBorrando] = useState(false);
+  const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState("");
+
+  async function borrar() {
+    if (!confirmando) return;
+    setBorrando(true);
+    setErrorBorrado(null);
+
+    const res = await eliminarVehiculo(confirmando.id);
+    setBorrando(false);
+
+    if (res?.error) {
+      setErrorBorrado(res.error);
+      return;
+    }
+
+    setConfirmando(null);
+    router.refresh();
+  }
 
   const filtrados = busqueda.trim()
     ? vehiculos.filter((v) => {
@@ -54,12 +99,23 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
       })
     : vehiculos;
 
-  if (abierto) {
+  if (abierto || editando) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-lg font-medium">Nuevo vehículo</h2>
+        <h2 className="text-lg font-medium">
+          {editando ? `Editar ${editando.patente}` : "Nuevo vehículo"}
+        </h2>
         <div className="mt-6">
-          <FormularioVehiculo onListo={() => setAbierto(false)} />
+          <FormularioVehiculo
+            /* Remonta el formulario al cambiar de ficha, si no Formik
+               conserva los valores de la anterior. */
+            key={editando?.id ?? "nuevo"}
+            vehiculo={editando ?? undefined}
+            onListo={() => {
+              setAbierto(false);
+              setEditando(null);
+            }}
+          />
         </div>
       </div>
     );
@@ -67,6 +123,52 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
 
   return (
     <>
+      {confirmando && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+          <button
+            aria-label="Cancelar"
+            onClick={() => {
+              setConfirmando(null);
+              setErrorBorrado(null);
+            }}
+            className="absolute inset-0 bg-black/60"
+          />
+          <div
+            role="dialog"
+            aria-modal
+            className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6"
+          >
+            <h2 className="text-lg font-medium">
+              ¿Eliminar {confirmando.patente}?
+            </h2>
+            <p className="mt-2 text-[15px] text-muted-foreground">
+              {errorBorrado ?? "Esta ficha se borra y no se puede recuperar."}
+            </p>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              {!errorBorrado && (
+                <button
+                  onClick={borrar}
+                  disabled={borrando}
+                  className="rounded-lg bg-destructive px-6 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {borrando ? "Borrando…" : "Sí, eliminar"}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setConfirmando(null);
+                  setErrorBorrado(null);
+                }}
+                className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
+              >
+                {errorBorrado ? "Entendido" : "Cancelar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <input
           value={busqueda}
@@ -141,6 +243,15 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   {v.propietario ?? "Sin dueño registrado"}
                   {v.copropietario ? ` · con ${v.copropietario}` : ""}
                 </p>
+
+                <div className="mt-4">
+                  <Acciones
+                    v={v}
+                    onEditar={() => setEditando(v)}
+                    onBorrar={() => setConfirmando(v)}
+                    borrando={borrando && confirmando?.id === v.id}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -167,6 +278,11 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                 >
                   <td className="px-4 py-4 font-mono font-medium whitespace-nowrap">
                     {v.patente}
+                    {v.primeraVez && (
+                      <span className="ml-2 rounded-full bg-foreground/10 px-2 py-1 font-sans text-[12px] font-medium">
+                        Primera vez
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {v.tipo ?? "—"}
@@ -221,11 +337,12 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.primeraVez && (
-                      <span className="rounded-full bg-foreground/10 px-2 py-1 text-[12px] font-medium">
-                        Primera vez
-                      </span>
-                    )}
+                    <Acciones
+                      v={v}
+                      onEditar={() => setEditando(v)}
+                      onBorrar={() => setConfirmando(v)}
+                      borrando={borrando && confirmando?.id === v.id}
+                    />
                   </td>
                 </tr>
               ))}

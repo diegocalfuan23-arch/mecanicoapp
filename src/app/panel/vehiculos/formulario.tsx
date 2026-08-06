@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { guardarVehiculo } from "./acciones";
+import { guardarVehiculo, actualizarVehiculo } from "./acciones";
 
 const TIPOS = [
   "Sedán",
@@ -55,34 +55,69 @@ const esquema = Yup.object({
     .min(0, "No puede ser negativo"),
 });
 
-export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
+/** Lo que hace falta para rellenar el formulario al editar. */
+export type VehiculoEditable = {
+  id: string;
+  patente: string;
+  vin: string | null;
+  marca: string | null;
+  modelo: string | null;
+  anio: number | null;
+  color: string | null;
+  tipo: string | null;
+  motor: string | null;
+  ejes: number | null;
+  procedencia: string | null;
+  kilometrajeInicial: number | null;
+  copropietario: string | null;
+  copropietarioTelefono: string | null;
+  notas: string | null;
+  primeraVez: boolean;
+  propietario: string | null;
+  propietarioTelefono: string | null;
+};
+
+const texto = (v: string | number | null | undefined) =>
+  v === null || v === undefined ? "" : String(v);
+
+export function FormularioVehiculo({
+  onListo,
+  vehiculo,
+}: {
+  onListo: () => void;
+  /** Si viene, el formulario edita esa ficha en vez de crear una nueva. */
+  vehiculo?: VehiculoEditable;
+}) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const editando = !!vehiculo;
 
   const form = useFormik({
     initialValues: {
-      patente: "",
-      vin: "",
-      marca: "",
-      modelo: "",
-      anio: "",
-      color: "",
-      tipo: "",
-      motor: "",
-      ejes: "",
-      procedencia: "",
-      kilometrajeInicial: "",
-      propietarioNombre: "",
-      propietarioTelefono: "",
-      copropietario: "",
-      copropietarioTelefono: "",
-      primeraVez: true,
-      notas: "",
+      patente: texto(vehiculo?.patente),
+      vin: texto(vehiculo?.vin),
+      marca: texto(vehiculo?.marca),
+      modelo: texto(vehiculo?.modelo),
+      anio: texto(vehiculo?.anio),
+      color: texto(vehiculo?.color),
+      tipo: texto(vehiculo?.tipo),
+      motor: texto(vehiculo?.motor),
+      ejes: texto(vehiculo?.ejes),
+      procedencia: texto(vehiculo?.procedencia),
+      kilometrajeInicial: texto(vehiculo?.kilometrajeInicial),
+      propietarioNombre: texto(vehiculo?.propietario),
+      propietarioTelefono: texto(vehiculo?.propietarioTelefono),
+      copropietario: texto(vehiculo?.copropietario),
+      copropietarioTelefono: texto(vehiculo?.copropietarioTelefono),
+      primeraVez: vehiculo?.primeraVez ?? true,
+      notas: texto(vehiculo?.notas),
     },
     validationSchema: esquema,
     onSubmit: async (valores) => {
       setErrorServidor(null);
-      const res = await guardarVehiculo(valores);
+      const res = vehiculo
+        ? await actualizarVehiculo(vehiculo.id, valores)
+        : await guardarVehiculo(valores);
 
       if (res?.error) {
         setErrorServidor(res.error);
@@ -237,7 +272,11 @@ export function FormularioVehiculo({ onListo }: { onListo: () => void }) {
           disabled={form.isSubmitting}
           className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {form.isSubmitting ? "Guardando…" : "Registrar vehículo"}
+          {form.isSubmitting
+            ? "Guardando…"
+            : editando
+              ? "Guardar cambios"
+              : "Registrar vehículo"}
         </button>
         <button
           type="button"

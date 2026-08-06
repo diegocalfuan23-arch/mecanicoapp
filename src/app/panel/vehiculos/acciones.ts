@@ -2,10 +2,10 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { vehiculo, cliente } from "@/db/schema";
+import { vehiculo, cliente, trabajo } from "@/db/schema";
 
 function id() {
   return crypto.randomUUID();
@@ -55,6 +55,8 @@ export async function listarVehiculos() {
       procedencia: vehiculo.procedencia,
       kilometrajeInicial: vehiculo.kilometrajeInicial,
       copropietario: vehiculo.copropietario,
+      copropietarioTelefono: vehiculo.copropietarioTelefono,
+      notas: vehiculo.notas,
       primeraVez: vehiculo.primeraVez,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
@@ -63,6 +65,120 @@ export async function listarVehiculos() {
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .where(eq(vehiculo.tallerId, tallerId))
     .orderBy(desc(vehiculo.createdAt));
+}
+
+export async function actualizarVehiculo(
+  vehiculoId: string,
+  datos: DatosVehiculo
+) {
+  const tallerId = await tallerActual();
+  const patente = datos.patente.trim().toUpperCase();
+
+  const [actual] = await db
+    .select({ id: vehiculo.id })
+    .from(vehiculo)
+    .where(and(eq(vehiculo.id, vehiculoId), eq(vehiculo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!actual) return { error: "No se encontró ese vehículo." };
+
+  // Otra ficha del taller ya puede tener esa patente.
+  const repetida = await db
+    .select({ id: vehiculo.id })
+    .from(vehiculo)
+    .where(and(eq(vehiculo.tallerId, tallerId), eq(vehiculo.patente, patente)))
+    .limit(2);
+
+  if (repetida.some((v) => v.id !== vehiculoId)) {
+    return { error: `La patente ${patente} ya está en otra ficha.` };
+  }
+
+  let propietarioId: string | null = null;
+  const nombre = datos.propietarioNombre?.trim();
+
+  if (nombre) {
+    const existente = await db
+      .select({ id: cliente.id })
+      .from(cliente)
+      .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
+      .limit(1);
+
+    if (existente.length) {
+      propietarioId = existente[0].id;
+    } else {
+      propietarioId = id();
+      await db.insert(cliente).values({
+        id: propietarioId,
+        tallerId,
+        nombre,
+        telefono: datos.propietarioTelefono?.trim() || null,
+      });
+    }
+  }
+
+  await db
+    .update(vehiculo)
+    .set({
+      patente,
+      vin: datos.vin?.trim().toUpperCase() || null,
+      marca: datos.marca?.trim() || null,
+      modelo: datos.modelo?.trim() || null,
+      anio: datos.anio ? Number(datos.anio) : null,
+      color: datos.color?.trim() || null,
+      tipo: datos.tipo || null,
+      motor: datos.motor?.trim() || null,
+      ejes: datos.ejes ? Number(datos.ejes) : null,
+      procedencia: datos.procedencia || null,
+      kilometrajeInicial: datos.kilometrajeInicial
+        ? Number(datos.kilometrajeInicial)
+        : null,
+      propietarioId,
+      copropietario: datos.copropietario?.trim() || null,
+      copropietarioTelefono: datos.copropietarioTelefono?.trim() || null,
+      primeraVez: datos.primeraVez,
+      notas: datos.notas?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(vehiculo.id, vehiculoId));
+
+  revalidatePath("/panel/vehiculos");
+  revalidatePath("/panel/historial");
+  return { ok: true };
+}
+
+/**
+ * Borrar arrastra las ordenes en cascada, asi que un vehiculo con
+ * historial no se elimina: ese historial es el corazon de la app.
+ */
+export async function eliminarVehiculo(vehiculoId: string) {
+  const tallerId = await tallerActual();
+
+  const [actual] = await db
+    .select({ patente: vehiculo.patente })
+    .from(vehiculo)
+    .where(and(eq(vehiculo.id, vehiculoId), eq(vehiculo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!actual) return { error: "No se encontró ese vehículo." };
+
+  const [conteo] = await db
+    .select({ cuantos: sql<number>`count(*)`.mapWith(Number) })
+    .from(trabajo)
+    .where(eq(trabajo.vehiculoId, vehiculoId));
+
+  if (conteo.cuantos > 0) {
+    return {
+      error: `${actual.patente} tiene ${conteo.cuantos} ${
+        conteo.cuantos === 1 ? "trabajo registrado" : "trabajos registrados"
+      }. Si lo borras se pierde su historial.`,
+    };
+  }
+
+  await db.delete(vehiculo).where(eq(vehiculo.id, vehiculoId));
+
+  revalidatePath("/panel/vehiculos");
+  revalidatePath("/panel/historial");
+  return { ok: true };
 }
 
 export async function guardarVehiculo(datos: DatosVehiculo) {
