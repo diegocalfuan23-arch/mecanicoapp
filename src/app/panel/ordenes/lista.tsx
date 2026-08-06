@@ -342,7 +342,7 @@ export function ListaOrdenes({
         </div>
         <button
           onClick={() => setAbriendo(true)}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           Ingresar vehículo
         </button>
@@ -373,7 +373,7 @@ export function ListaOrdenes({
             return (
               <li
                 key={o.id}
-                className={`flex flex-col rounded-xl border border-border bg-card p-6 ${
+                className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
                   editando ? "sm:col-span-2 xl:col-span-3" : ""
                 }`}
               >
@@ -424,7 +424,7 @@ export function ListaOrdenes({
                 </p>
 
                 {o.total > 0 && (
-                  <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
+                  <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-4">
                     <span className="text-lg font-semibold">
                       {pesos(o.total)}
                     </span>

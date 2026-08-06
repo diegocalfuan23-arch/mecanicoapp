@@ -149,7 +149,7 @@ export function TablaPropietarios({
         />
         <button
           onClick={() => setAbierto(true)}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           Registrar propietario
         </button>

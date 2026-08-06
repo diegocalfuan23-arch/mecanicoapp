@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "MecanicoApp — El cuaderno del taller, en tu celular",
   description:
     "Historial por patente, control de repuestos, fiados al día y recordatorios por WhatsApp. Hecho para talleres independientes en Chile.",
+};
+
+/** Sin esto el navegador del celular asume ~980px de ancho y encoge todo. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
