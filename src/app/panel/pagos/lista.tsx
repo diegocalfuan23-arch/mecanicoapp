@@ -146,7 +146,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
               </div>
 
               <div className="text-right">
-                <p className="text-xl font-semibold">{pesos(saldo)}</p>
+                <p className="text-2xl font-bold">{pesos(saldo)}</p>
                 {d.abonado > 0 && (
                   <p className="text-[13px] text-muted-foreground">
                     de {pesos(d.total)}
@@ -165,7 +165,7 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
               <button
                 onClick={() => saldar(d.id)}
                 disabled={saldando === d.id}
-                className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {saldando === d.id ? "Guardando…" : "Marcar pagado"}
               </button>

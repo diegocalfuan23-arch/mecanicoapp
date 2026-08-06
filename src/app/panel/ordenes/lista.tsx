@@ -389,9 +389,7 @@ export function ListaOrdenes({
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-mono text-lg font-medium">
-                    {o.patente}
-                  </span>
+                  <span className="font-mono font-medium">{o.patente}</span>
                   {o.marca && (
                     <span className="text-[14px] text-muted-foreground">
                       {o.marca} {o.modelo}
@@ -425,7 +423,7 @@ export function ListaOrdenes({
 
                 {o.total > 0 && (
                   <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-4">
-                    <span className="text-lg font-semibold">
+                    <span className="text-2xl font-bold">
                       {pesos(o.total)}
                     </span>
                     {o.estadoPago !== "pagado" && (
@@ -448,7 +446,7 @@ export function ListaOrdenes({
                   {(o.estado === "ingresado" || o.estado === "en_proceso") && (
                     <button
                       onClick={() => setCerrando(editando ? null : o.id)}
-                      className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                      className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
                     >
                       Terminar
                     </button>
@@ -457,7 +455,7 @@ export function ListaOrdenes({
                     <>
                       <button
                         onClick={() => avanzar(o.id, "entregado")}
-                        className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                        className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
                       >
                         Entregar
                       </button>
