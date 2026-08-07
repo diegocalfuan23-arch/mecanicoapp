@@ -86,14 +86,31 @@ pregunta generó cada respuesta. Estado de cada tema: **construido**,
 
 > "Aparte de reparar autos, ¿qué es lo que más tiempo te quita?"
 
-- **Lo que más tiempo quita es atender clientes.** Esta era la
-  pregunta marcada como más importante del guion, y la respuesta
-  contradice la suposición inicial de que el dolor principal era
-  administrativo (fiados, historial, repuestos). Sigue sin
+- **Lo que más tiempo quita es atender clientes, y también cobrar.**
+  Esta era la pregunta marcada como más importante del guion. La
+  respuesta principal ("atender clientes") contradice la suposición
+  inicial de que el dolor principal era administrativo (fiados,
+  historial, repuestos) — pero agregó que el cobro en sí también le
+  quita tiempo, lo cual sí conecta directo con la sección de fiados:
+  no es solo que no recuerda cuánto le deben, es que el proceso de
+  cobrar (ir, insistir, esperar) consume tiempo real. Sigue sin
   repreguntarse qué significa "atender" en concreto: ¿mucha gente
   simultánea?, ¿explicar el mismo diagnóstico varias veces?, ¿negociar
   precio? Repreguntar en la próxima visita antes de asumir una
   solución.
+
+## Sección 7 del guion — Reacción y precio
+
+> "¿Pagarías algo por esto? ¿Cuánto te parecería razonable?"
+
+- **Pagaría entre $7.000 y $20.000, hasta $30.000 como tope.** Es la
+  respuesta directa a la pregunta de precio — no confundir con el
+  rango de mano de obra de la sección 4, que es el mismo número pero
+  para otra cosa (lo que él cobra a sus clientes por ir a buscar un
+  repuesto). Este es lo que él pagaría por usar la app. Buena señal:
+  dio un número concreto sin que se lo anclara. Falta confirmar si es
+  mensual o por otro período — el guion no lo especificó al preguntar
+  y no quedó registrado en el chat.
 
 ## Fuera del guion — temas que él sacó espontáneos
 
@@ -102,8 +119,11 @@ cuenta, lo cual en general es buena señal de que le importan de
 verdad.
 
 - **Estado del vehículo por fotos** (construido). Foto de cada costado
-  y del tablero al ingresar el auto — evidencia de en qué estado
-  llegó. Conectado con uploadthing, subida real de imágenes desde el
+  y del tablero (panel sinóptico — luces e indicadores) al ingresar el
+  auto. El motivo concreto: dejar constancia de cómo llegó el auto
+  para que, si el cliente reclama después por una luz de advertencia o
+  un daño que ya traía, la foto lo respalde en vez de discutir de
+  memoria. Conectado con uploadthing, subida real de imágenes desde el
   formulario de "Abrir orden".
 
 - **"Eso sí, IA operacional"** (construido: primera versión, solo
@@ -176,14 +196,15 @@ verdad.
 | 2. Historial del auto | No hay nota directa — falta confirmar si se preguntó | Historial por patente ya existía antes de la visita |
 | 3. Fiados y cobro | Sí, con fuerza ("la memoria") | Antigüedad de deuda visible en Pagos |
 | 4. Repuestos e inventario | Sí | Fotos como evidencia, cargo de traslado, estado "esperando repuesto" |
-| 5. El tiempo | Sí, respuesta corta ("atender clientes") | Sin construir — falta repreguntar el detalle |
+| 5. El tiempo | Sí ("atender clientes" + cobrar) | Sin construir — falta repreguntar el detalle |
 | 6. Mostrar la app | No hay registro de reacciones en el chat | — |
-| 7. Objeciones y precio | No hay nota de "pagaría $X" | — |
+| 7. Objeciones y precio | Sí — pagaría $7.000–$20.000, tope $30.000 | — |
 | 8. Cerrar | No hay nota de referidos ni seguimiento agendado | — |
 
 **Vacío más importante:** no quedó registrado nada de las secciones
-6, 7 y 8 — es decir, no sabemos qué le pareció la app al verla, si la
-usaría de verdad, ni cuánto pagaría. Esas son las preguntas que
-más deciden si el proyecto sigue. Vale la pena confirmar con Boris si
-se alcanzaron a hacer y no se anotaron, o si la visita se cortó antes
-de llegar ahí.
+6 y 8 — es decir, no sabemos qué le pareció la app al verla en el
+celular, ni si quedó algo agendado para seguimiento o referidos. La
+sección 7 (precio) sí se cubrió y con una respuesta fuerte: un número
+concreto sin ancla, $7.000–$20.000 con tope en $30.000. Vale la pena
+confirmar con Boris si la sección 6 se alcanzó a hacer y no se anotó,
+o si la visita se cortó antes de llegar ahí.
