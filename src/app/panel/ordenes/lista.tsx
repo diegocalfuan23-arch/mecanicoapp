@@ -12,6 +12,7 @@ import {
 import { ESTADOS } from "./estados";
 import { pesos, fecha } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
+import { BotonSubida } from "@/lib/subida";
 
 type Orden = {
   id: string;
@@ -19,6 +20,7 @@ type Orden = {
   sintoma: string | null;
   descripcion: string | null;
   kilometraje: number | null;
+  fotos: string[];
   estado: string;
   esperaDetalle: string | null;
   estadoPago: string;
@@ -72,6 +74,7 @@ function Abrir({
   const [vehiculoId, setVehiculoId] = useState("");
   const [kilometraje, setKilometraje] = useState("");
   const [sintoma, setSintoma] = useState("");
+  const [fotos, setFotos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -80,7 +83,7 @@ function Abrir({
     setError(null);
     setEnviando(true);
 
-    const res = await abrirOrden({ vehiculoId, kilometraje, sintoma });
+    const res = await abrirOrden({ vehiculoId, kilometraje, sintoma, fotos });
     setEnviando(false);
 
     if (res?.error) {
@@ -167,6 +170,38 @@ function Abrir({
             className={`${campoBase()} resize-y`}
           />
         </label>
+
+        <div>
+          <span className="mb-2 block text-[13px] font-medium">
+            Fotos del estado — costados y tablero
+          </span>
+          {fotos.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {fotos.map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={url}
+                  src={url}
+                  alt=""
+                  className="size-16 rounded-lg border border-border object-cover"
+                />
+              ))}
+            </div>
+          )}
+          <BotonSubida
+            endpoint="fotoVehiculo"
+            appearance={{
+              button:
+                "rounded-lg border border-border bg-transparent px-4 py-2 text-[14px] text-foreground ut-uploading:opacity-60 after:hidden",
+              allowedContent: "text-[12px] text-muted-foreground",
+            }}
+            content={{ button: "Sacar o subir fotos" }}
+            onClientUploadComplete={(res) =>
+              setFotos((actual) => [...actual, ...res.map((r) => r.ufsUrl)])
+            }
+            onUploadError={() => setError("No se pudo subir la foto.")}
+          />
+        </div>
 
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
@@ -541,6 +576,20 @@ export function ListaOrdenes({
                       </span>
                       {o.esperaDetalle}
                     </p>
+                  )}
+                  {o.fotos.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {o.fotos.map((url) => (
+                        <a key={url} href={url} target="_blank" rel="noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt="Estado del vehículo"
+                            className="size-10 rounded-md border border-border object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </div>
 

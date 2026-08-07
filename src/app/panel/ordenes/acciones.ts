@@ -23,6 +23,7 @@ export async function listarOrdenes() {
       sintoma: trabajo.sintoma,
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
+      fotos: trabajo.fotos,
       estado: trabajo.estado,
       esperaDetalle: trabajo.esperaDetalle,
       estadoPago: trabajo.estadoPago,
@@ -65,6 +66,7 @@ export async function abrirOrden(datos: {
   vehiculoId: string;
   kilometraje?: string;
   sintoma?: string;
+  fotos?: string[];
 }) {
   const tallerId = await tallerActual();
 
@@ -85,6 +87,7 @@ export async function abrirOrden(datos: {
     numero: ultimo + 1,
     sintoma: datos.sintoma?.trim() || null,
     kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
+    fotos: datos.fotos ?? [],
     estado: "ingresado",
   });
 
