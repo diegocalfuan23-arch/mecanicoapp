@@ -19,6 +19,31 @@ de decidir.
 - Es evidencia del estado en que llegó — no hay interpretación por IA
   todavía, solo la foto guardada en la orden.
 
+## Historial compartido entre talleres (idea grande, no se construye)
+
+- Al buscar una patente, Tío Lalo espera ver no solo lo que su propio
+  taller le hizo al auto, sino también reparaciones hechas en **otros
+  talleres**.
+- Esto es un cambio de arquitectura, no una función suelta: hoy los
+  datos están aislados por taller (cada `tallerId` solo ve lo suyo). Un
+  historial compartido implica decidir quién puede escribir en la
+  ficha de un auto, si un taller ve lo que otro cobró, cómo se evita
+  que alguien inserte historial falso, y consentimiento del dueño del
+  vehículo para que su historial sea visible a cualquier taller.
+- No se construye hasta pensar el modelo con calma — no es un cambio
+  de UI, es un cambio del producto (de "cuaderno digital de un taller"
+  a "historial vehicular compartido"). Vale la pena validarlo con más
+  talleres antes: ¿lo querrían todos, o solo Tío Lalo por curiosidad?
+
+## Registrar por audio (se construye: primera versión)
+
+- La idea que más le gustó: mandar un audio (mientras tiene las manos
+  ocupadas o sucias) y que quede registrado, en vez de escribir.
+- Primera versión: grabar audio, transcribirlo a texto, y ese texto
+  llena el campo de síntoma o descripción. No se le pide a la IA que
+  extraiga montos ni separe mano de obra de repuestos todavía — eso es
+  más caro de construir bien y más fácil que falle silenciosamente.
+
 ## Clientes conflictivos / de confianza (registrado, no se construye aún)
 
 - Hay clientes que se van sin pagar ("Tío Lalo no me pagó").

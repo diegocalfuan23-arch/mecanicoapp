@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { abrirOrden, cambiarEstado, cerrarOrden } from "./acciones";
 import { ESTADOS } from "./estados";
 import { pesos, fecha } from "@/lib/formato";
+import { Dictar } from "@/components/dictar";
 
 type Orden = {
   id: string;
@@ -140,9 +141,16 @@ function Abrir({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Qué reporta el cliente
-          </span>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">
+              Qué reporta el cliente
+            </span>
+            <Dictar
+              onTexto={(texto) =>
+                setSintoma((actual) => (actual ? `${actual} ${texto}` : texto))
+              }
+            />
+          </div>
           <textarea
             value={sintoma}
             onChange={(e) => setSintoma(e.target.value)}
@@ -219,9 +227,16 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       className="mt-4 rounded-lg border border-border bg-background p-4"
     >
       <label className="block">
-        <span className="mb-2 block text-[13px] font-medium">
-          Qué se hizo
-        </span>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[13px] font-medium">Qué se hizo</span>
+          <Dictar
+            onTexto={(texto) =>
+              setDescripcion((actual) =>
+                actual ? `${actual} ${texto}` : texto
+              )
+            }
+          />
+        </div>
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
