@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { buscarVehiculos } from "./acciones";
+import { Dictar } from "@/components/dictar";
 
 type Resultado = {
   id: string;
@@ -20,6 +21,31 @@ export function Buscador() {
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [buscando, empezarBusqueda] = useTransition();
   const [buscoAlgo, setBuscoAlgo] = useState(false);
+
+  const [pregunta, setPregunta] = useState<string | null>(null);
+  const [respuesta, setRespuesta] = useState<string | null>(null);
+  const [preguntando, setPreguntando] = useState(false);
+
+  async function preguntar(texto: string) {
+    setPregunta(texto);
+    setRespuesta(null);
+    setPreguntando(true);
+    setConsulta("");
+
+    try {
+      const res = await fetch("/api/asistente", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pregunta: texto }),
+      });
+      const datos = await res.json();
+      setRespuesta(res.ok ? datos.respuesta : `No se pudo responder: ${datos.error}`);
+    } catch {
+      setRespuesta("No se pudo conectar con el asistente.");
+    } finally {
+      setPreguntando(false);
+    }
+  }
 
   useEffect(() => {
     const q = consulta.trim();
@@ -43,7 +69,36 @@ export function Buscador() {
 
   return (
     <>
-      <div className="relative">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-[13px] text-muted-foreground">
+          O pregunta directo: &quot;¿cuánto debe la BXFS19?&quot;
+        </span>
+        <Dictar etiqueta="Preguntar" onTexto={preguntar} />
+      </div>
+
+      {(preguntando || respuesta) && (
+        <div className="mt-4 rounded-xl border border-border bg-card p-6">
+          <p className="text-[13px] text-muted-foreground">{pregunta}</p>
+          {preguntando ? (
+            <p className="mt-2 text-[15px] text-muted-foreground">
+              Buscando…
+            </p>
+          ) : (
+            <p className="mt-2 text-[15px]">{respuesta}</p>
+          )}
+          <button
+            onClick={() => {
+              setRespuesta(null);
+              setPregunta(null);
+            }}
+            className="mt-4 text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      <div className="relative mt-4">
         <svg
           viewBox="0 0 20 20"
           className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"
