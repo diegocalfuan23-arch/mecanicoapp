@@ -157,6 +157,7 @@ export async function fichaVehiculo(vehiculoId: string) {
       kilometraje: trabajo.kilometraje,
       estado: trabajo.estado,
       fecha: trabajo.fecha,
+      fotos: trabajo.fotos,
       tallerNombre: user.taller,
       esPropio: sql<boolean>`${trabajo.tallerId} = ${tallerId}`,
       estadoPago: verMontos ? trabajo.estadoPago : sql<string | null>`null`,

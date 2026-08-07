@@ -216,6 +216,27 @@ export default async function FichaVehiculo({
                   )
                 )}
 
+                {t.fotos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {t.fotos.map((url) => (
+                      <a
+                        key={url}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Ver la foto completa"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt="Estado del vehículo al ingresar"
+                          className="size-16 rounded-lg border border-border object-cover transition-opacity hover:opacity-80"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 {t.total !== null && t.total > 0 && (
                   <p className="mt-2 text-[14px] text-muted-foreground">
                     {pesos(t.total)}
