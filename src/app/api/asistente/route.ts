@@ -3,7 +3,11 @@ import { headers } from "next/headers";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { buscarVehiculos, fichaVehiculo } from "@/app/panel/historial/acciones";
-import { pesos } from "@/lib/formato";
+import { listarVehiculos } from "@/app/panel/vehiculos/acciones";
+import { listarOrdenes } from "@/app/panel/ordenes/acciones";
+import { listarDeudas } from "@/app/panel/pagos/acciones";
+import { listarPropietarios } from "@/app/panel/propietarios/acciones";
+import { pesos, fecha as formatoFecha } from "@/lib/formato";
 
 /**
  * Preguntas por voz sobre datos que ya existen — "cuánto debe la BXFS19",
@@ -47,6 +51,50 @@ const HERRAMIENTAS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         },
         required: ["vehiculoId"],
       },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "listar_vehiculos",
+      description:
+        "Todos los autos registrados en el taller. Úsala cuando pregunten " +
+        "'qué autos tengo', 'cuántos vehículos hay' o pidan el listado " +
+        "completo, sin un término de búsqueda.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "listar_ordenes",
+      description:
+        "Todas las órdenes de trabajo del taller con su estado (ingresado, " +
+        "en proceso, esperando repuesto, terminado, entregado). Úsala para " +
+        "'qué trabajos tengo', 'qué autos están en el taller', 'qué hay " +
+        "pendiente'.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "listar_deudas",
+      description:
+        "Los trabajos que quedaron sin pagar del todo, con cuánto debe cada " +
+        "uno. Úsala para 'quién me debe', 'cuánto me deben', 'qué fiados " +
+        "tengo'.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "listar_propietarios",
+      description:
+        "Los dueños registrados, con cuántos autos tiene cada uno y cuánto " +
+        "debe. Úsala para 'qué clientes tengo', 'cuántos clientes hay'.",
+      parameters: { type: "object", properties: {} },
     },
   },
 ];
@@ -120,6 +168,72 @@ async function ejecutar(nombre: string, args: Record<string, string>) {
     return armarFicha(args.vehiculoId);
   }
 
+  if (nombre === "listar_vehiculos") {
+    const autos = await listarVehiculos();
+    return {
+      cuantos: autos.length,
+      vehiculos: autos.map((v) => ({
+        patente: v.patente,
+        marca: v.marca,
+        modelo: v.modelo,
+        anio: v.anio,
+        color: v.color,
+        tipo: v.tipo,
+        kilometraje: v.kilometrajeInicial,
+        propietario: v.propietario,
+      })),
+    };
+  }
+
+  if (nombre === "listar_ordenes") {
+    const ordenes = await listarOrdenes();
+    return {
+      cuantas: ordenes.length,
+      ordenes: ordenes.map((o) => ({
+        numero: `OT-${o.numero}`,
+        patente: o.patente,
+        marca: o.marca,
+        modelo: o.modelo,
+        propietario: o.propietario,
+        estado: o.estado,
+        sintoma: o.sintoma,
+        descripcion: o.descripcion,
+        fecha: formatoFecha(o.fecha),
+        total: o.total > 0 ? pesos(o.total) : null,
+        estadoPago: o.estadoPago,
+      })),
+    };
+  }
+
+  if (nombre === "listar_deudas") {
+    const deudas = await listarDeudas();
+    const total = deudas.reduce((s, d) => s + (d.total - d.abonado), 0);
+    return {
+      cuantas: deudas.length,
+      totalPorCobrar: pesos(total),
+      deudas: deudas.map((d) => ({
+        patente: d.patente,
+        propietario: d.propietario,
+        descripcion: d.descripcion,
+        debe: pesos(d.total - d.abonado),
+        fecha: formatoFecha(d.fecha),
+      })),
+    };
+  }
+
+  if (nombre === "listar_propietarios") {
+    const duenos = await listarPropietarios();
+    return {
+      cuantos: duenos.length,
+      propietarios: duenos.map((p) => ({
+        nombre: p.nombre,
+        telefono: p.telefono,
+        autos: p.autos,
+        debe: p.deuda > 0 ? pesos(p.deuda) : null,
+      })),
+    };
+  }
+
   return { error: "Herramienta desconocida." };
 }
 
@@ -158,10 +272,16 @@ export async function POST(req: Request) {
       role: "system",
       content:
         "Eres el asistente de un taller mecánico chileno. Respondes preguntas " +
-        "sobre vehículos, historial y deudas usando las herramientas " +
+        "sobre vehículos, historial, órdenes y deudas usando las herramientas " +
         "disponibles. Nunca inventes datos que no vengan de una herramienta. " +
-        "Si buscar_vehiculo devuelve varios resultados, pide precisar la " +
-        "patente en vez de adivinar cuál. Responde corto y directo, sin " +
+        "Si te piden un listado ('qué autos tengo', 'quién me debe', 'qué " +
+        "trabajos hay'), usa las herramientas de listar en vez de decir que " +
+        "no puedes: sí tienes acceso a todo el taller. Cuando el listado sea " +
+        "largo, di el total primero y después enuméralos hablando, en frases " +
+        "corridas separadas por punto seguido — nunca con números al " +
+        "principio de línea ni viñetas, porque esto se escucha en voz alta " +
+        "y queda ilegible. Si buscar_vehiculo devuelve varios resultados, pide precisar " +
+        "la patente en vez de adivinar cuál. Responde corto y directo, sin " +
         "rodeos — el mecánico lo está escuchando mientras trabaja, y tu " +
         "respuesta también se lee en voz alta. Por eso: nada de markdown, " +
         "listas con guiones ni asteriscos; frases habladas. Los montos " +
