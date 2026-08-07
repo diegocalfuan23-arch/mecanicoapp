@@ -18,7 +18,10 @@ const HERRAMIENTAS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: "buscar_vehiculo",
       description:
-        "Busca vehículos por patente, marca, modelo o nombre del dueño. Úsala primero si no tienes el id del vehículo.",
+        "Busca vehículos por patente, marca, modelo o nombre del dueño. " +
+        "Si encuentra uno solo, ya devuelve su ficha completa (kilometraje, " +
+        "color, motor, VIN, deuda, últimos trabajos): no hace falta llamar " +
+        "a ficha_vehiculo después.",
       parameters: {
         type: "object",
         properties: {
@@ -48,45 +51,73 @@ const HERRAMIENTAS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   },
 ];
 
+async function armarFicha(vehiculoId: string) {
+  const ficha = await fichaVehiculo(vehiculoId);
+  if (!ficha) return { error: "No se encontró ese vehículo." };
+
+  return {
+    patente: ficha.datos.patente,
+    marca: ficha.datos.marca,
+    modelo: ficha.datos.modelo,
+    anio: ficha.datos.anio,
+    color: ficha.datos.color,
+    tipo: ficha.datos.tipo,
+    motor: ficha.datos.motor,
+    vin: ficha.datos.vin,
+    procedencia: ficha.datos.procedencia,
+    propietario: ficha.datos.propietario,
+    telefono: ficha.datos.telefono,
+    copropietario: ficha.datos.copropietario,
+    kilometrajeInicial: ficha.datos.kilometrajeInicial,
+    notas: ficha.datos.notas,
+    visitas: ficha.trabajos.length,
+    totalGastado: ficha.gastado !== null ? pesos(ficha.gastado) : null,
+    deudaActual: ficha.debe !== null ? pesos(ficha.debe) : null,
+    nota: ficha.verMontos
+      ? undefined
+      : "Este vehículo tiene historial en otro taller que no autorizó compartir montos: no menciones plata, solo qué se hizo.",
+    trabajos: ficha.trabajos.map((t) => ({
+      fecha: t.fecha,
+      kilometraje: t.kilometraje,
+      estado: t.estado,
+      sintoma: t.sintoma,
+      descripcion: t.descripcion,
+      total: t.total !== null ? pesos(t.total) : null,
+      estadoPago: t.estadoPago,
+      taller: t.esPropio ? null : t.tallerNombre,
+    })),
+  };
+}
+
 async function ejecutar(nombre: string, args: Record<string, string>) {
   if (nombre === "buscar_vehiculo") {
     const resultados = await buscarVehiculos(args.consulta);
-    return resultados.map((v) => ({
-      id: v.id,
-      patente: v.patente,
-      marca: v.marca,
-      modelo: v.modelo,
-      anio: v.anio,
-      propietario: v.propietario,
-      visitas: v.visitas,
-    }));
+
+    if (resultados.length === 0) return { encontrados: 0 };
+
+    // Con un solo resultado se devuelve la ficha completa: si no, el
+    // modelo se queda con estos campos sueltos y responde "no tengo ese
+    // dato" en vez de dar el segundo paso a ficha_vehiculo.
+    if (resultados.length === 1) {
+      return { encontrados: 1, vehiculo: await armarFicha(resultados[0].id) };
+    }
+
+    return {
+      encontrados: resultados.length,
+      vehiculos: resultados.map((v) => ({
+        id: v.id,
+        patente: v.patente,
+        marca: v.marca,
+        modelo: v.modelo,
+        anio: v.anio,
+        propietario: v.propietario,
+        visitas: v.visitas,
+      })),
+    };
   }
 
   if (nombre === "ficha_vehiculo") {
-    const ficha = await fichaVehiculo(args.vehiculoId);
-    if (!ficha) return { error: "No se encontró ese vehículo." };
-
-    return {
-      patente: ficha.datos.patente,
-      marca: ficha.datos.marca,
-      modelo: ficha.datos.modelo,
-      propietario: ficha.datos.propietario,
-      kilometrajeInicial: ficha.datos.kilometrajeInicial,
-      visitas: ficha.trabajos.length,
-      totalGastado: ficha.gastado !== null ? pesos(ficha.gastado) : null,
-      deudaActual: ficha.debe !== null ? pesos(ficha.debe) : null,
-      nota: ficha.verMontos
-        ? undefined
-        : "Este vehículo tiene historial en otro taller que no autorizó compartir montos: no menciones plata, solo qué se hizo.",
-      ultimosTrabajos: ficha.trabajos.slice(0, 5).map((t) => ({
-        fecha: t.fecha,
-        sintoma: t.sintoma,
-        descripcion: t.descripcion,
-        total: t.total !== null ? pesos(t.total) : null,
-        estadoPago: t.estadoPago,
-        taller: t.esPropio ? null : t.tallerNombre,
-      })),
-    };
+    return armarFicha(args.vehiculoId);
   }
 
   return { error: "Herramienta desconocida." };
@@ -105,8 +136,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { pregunta } = await req.json();
-  if (!pregunta || typeof pregunta !== "string") {
+  const cuerpo = await req.json();
+  // Acepta el historial de la conversación para que el asistente entienda
+  // "¿y cuánto debe?" después de haber preguntado por un auto.
+  const conversacion: { rol: string; texto: string }[] = Array.isArray(
+    cuerpo.conversacion
+  )
+    ? cuerpo.conversacion
+    : cuerpo.pregunta
+      ? [{ rol: "usuario", texto: cuerpo.pregunta }]
+      : [];
+
+  if (conversacion.length === 0) {
     return NextResponse.json({ error: "Falta la pregunta." }, { status: 400 });
   }
 
@@ -117,17 +158,23 @@ export async function POST(req: Request) {
       role: "system",
       content:
         "Eres el asistente de un taller mecánico chileno. Respondes preguntas " +
-        "cortas sobre vehículos, historial y deudas usando las herramientas " +
+        "sobre vehículos, historial y deudas usando las herramientas " +
         "disponibles. Nunca inventes datos que no vengan de una herramienta. " +
-        "Si buscar_vehiculo devuelve más de un resultado, pide precisar la " +
-        "patente en vez de adivinar cuál. Responde en 1-2 frases, directo, " +
-        "sin rodeos — el mecánico lo está escuchando mientras trabaja. " +
+        "Si buscar_vehiculo devuelve varios resultados, pide precisar la " +
+        "patente en vez de adivinar cuál. Responde corto y directo, sin " +
+        "rodeos — el mecánico lo está escuchando mientras trabaja, y tu " +
+        "respuesta también se lee en voz alta. Por eso: nada de markdown, " +
+        "listas con guiones ni asteriscos; frases habladas. Los montos " +
+        "dilos en palabras naturales ('cuarenta y cinco mil pesos'). " +
         "Si un trabajo trae 'taller' con un nombre, dilo explícitamente " +
         "('en [taller]...') porque no lo hizo el taller que pregunta. Si " +
-        "un monto viene null, o si ficha_vehiculo trae 'nota', no des " +
-        "cifras — di que ese taller no compartió los montos.",
+        "un monto viene null, o si viene 'nota', no des cifras — di que " +
+        "ese taller no compartió los montos.",
     },
-    { role: "user", content: pregunta },
+    ...conversacion.map((m) => ({
+      role: m.rol === "usuario" ? ("user" as const) : ("assistant" as const),
+      content: m.texto,
+    })),
   ];
 
   // Hasta 4 vueltas de herramientas por si necesita buscar y luego

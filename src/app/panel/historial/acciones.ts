@@ -33,7 +33,22 @@ export async function buscarVehiculos(
   const q = consulta.trim();
   if (!q) return [];
 
-  const patron = `%${q}%`;
+  // Cada palabra debe aparecer en algún campo, no la frase completa en
+  // uno solo: así "nissan qashqai" encuentra el auto con marca Nissan y
+  // modelo Qashqai, que con un solo ilike de la frase entera no calzaba.
+  const palabras = q.split(/\s+/).filter(Boolean).slice(0, 5);
+  const calza = (palabra: string) => {
+    const patron = `%${palabra}%`;
+    return or(
+      ilike(vehiculo.patente, patron),
+      ilike(vehiculo.vin, patron),
+      ilike(vehiculo.marca, patron),
+      ilike(vehiculo.modelo, patron),
+      ilike(vehiculo.color, patron),
+      ilike(vehiculo.tipo, patron),
+      ilike(cliente.nombre, patron)
+    );
+  };
 
   const propios = await db
     .select({
@@ -49,18 +64,7 @@ export async function buscarVehiculos(
     .from(vehiculo)
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
-    .where(
-      and(
-        eq(vehiculo.tallerId, tallerId),
-        or(
-          ilike(vehiculo.patente, patron),
-          ilike(vehiculo.vin, patron),
-          ilike(vehiculo.marca, patron),
-          ilike(vehiculo.modelo, patron),
-          ilike(cliente.nombre, patron)
-        )
-      )
-    )
+    .where(and(eq(vehiculo.tallerId, tallerId), ...palabras.map(calza)))
     .groupBy(vehiculo.id, cliente.nombre)
     .orderBy(vehiculo.patente)
     .limit(20);
