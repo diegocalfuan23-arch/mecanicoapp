@@ -3,7 +3,6 @@
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { buscarVehiculos, type ResultadoBusqueda } from "./acciones";
-import { ChatAsistente } from "@/components/chat-asistente";
 
 type Resultado = ResultadoBusqueda;
 
@@ -35,9 +34,7 @@ export function Buscador() {
 
   return (
     <>
-      <ChatAsistente />
-
-      <div className="relative mt-8">
+      <div className="relative">
         <svg
           viewBox="0 0 20 20"
           className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"

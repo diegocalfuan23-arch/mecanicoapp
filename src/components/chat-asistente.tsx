@@ -80,11 +80,7 @@ export function ChatAsistente() {
 
   return (
     <div className="rounded-xl border border-border bg-card">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-6">
-        <span className="text-[13px] text-muted-foreground">
-          Pregunta por un auto: patente, kilometraje, qué se le hizo, cuánto
-          debe.
-        </span>
+      <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border px-4 py-4 sm:px-6">
         <button
           onClick={() => {
             setVozActiva(!vozActiva);
@@ -96,8 +92,15 @@ export function ChatAsistente() {
         </button>
       </div>
 
+      {mensajes.length === 0 && (
+        <p className="px-4 py-8 text-center text-[15px] text-muted-foreground sm:px-6">
+          Por ejemplo: «¿cuánto debe la BXFS19?» o «¿qué le hicimos al
+          Qashqai?»
+        </p>
+      )}
+
       {mensajes.length > 0 && (
-        <ul className="flex max-h-[400px] flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
+        <ul className="flex max-h-[55vh] min-h-60 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
           {mensajes.map((m, i) => (
             <li
               key={i}
