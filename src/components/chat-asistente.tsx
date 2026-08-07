@@ -93,24 +93,37 @@ export function ChatAsistente() {
       </div>
 
       {mensajes.length === 0 && (
-        <p className="px-4 py-8 text-center text-[15px] text-muted-foreground sm:px-6">
-          Por ejemplo: «¿cuánto debe la BXFS19?» o «¿qué le hicimos al
-          Qashqai?»
-        </p>
+        <div className="flex min-h-60 flex-col items-center justify-center px-4 py-8 text-center sm:px-6">
+          <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
+            ¿Cuánto debe la BXFS19?
+          </p>
+          <p className="mt-4 text-[13px] text-muted-foreground">
+            Pregunta por patente, kilometraje, qué se le hizo o cuánto debe.
+          </p>
+        </div>
       )}
 
       {mensajes.length > 0 && (
         <ul className="flex max-h-[55vh] min-h-60 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
-          {mensajes.map((m, i) => (
+          {mensajes.map((m, i) => {
+            // La última respuesta es lo que el mecánico vino a leer: va
+            // grande. Las anteriores bajan a tamaño de cuerpo para que no
+            // compitan con ella.
+            const esUltima = i === mensajes.length - 1;
+            const destacada = m.rol === "asistente" && esUltima;
+
+            return (
             <li
               key={i}
               className={m.rol === "usuario" ? "text-right" : "text-left"}
             >
               <div
-                className={`inline-block max-w-[85%] rounded-xl px-4 py-2 text-[15px] ${
+                className={`inline-block max-w-[85%] rounded-xl px-4 py-2 ${
                   m.rol === "usuario"
-                    ? "bg-foreground/10 text-foreground"
-                    : "bg-background"
+                    ? "bg-foreground/10 text-[15px] text-foreground"
+                    : destacada
+                      ? "bg-background text-2xl leading-snug font-medium"
+                      : "bg-background text-[15px]"
                 }`}
               >
                 {m.texto}
@@ -118,13 +131,14 @@ export function ChatAsistente() {
               {m.rol === "asistente" && (
                 <button
                   onClick={() => reproducir(m.texto)}
-                  className="mt-1 block text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                  className="mt-2 block text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
                 >
                   Escuchar
                 </button>
               )}
             </li>
-          ))}
+            );
+          })}
           {pensando && (
             <li className="text-[15px] text-muted-foreground">Buscando…</li>
           )}
