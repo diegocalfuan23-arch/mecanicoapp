@@ -34,6 +34,7 @@ export type DatosVehiculo = {
   copropietario?: string;
   copropietarioTelefono?: string;
   primeraVez: boolean;
+  compartirMontos: boolean;
   notas?: string;
 };
 
@@ -58,6 +59,7 @@ export async function listarVehiculos() {
       copropietarioTelefono: vehiculo.copropietarioTelefono,
       notas: vehiculo.notas,
       primeraVez: vehiculo.primeraVez,
+      compartirMontos: vehiculo.compartirMontos,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
     })
@@ -136,6 +138,7 @@ export async function actualizarVehiculo(
       copropietario: datos.copropietario?.trim() || null,
       copropietarioTelefono: datos.copropietarioTelefono?.trim() || null,
       primeraVez: datos.primeraVez,
+      compartirMontos: datos.compartirMontos,
       notas: datos.notas?.trim() || null,
       updatedAt: new Date(),
     })
@@ -239,6 +242,7 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
     copropietario: datos.copropietario?.trim() || null,
     copropietarioTelefono: datos.copropietarioTelefono?.trim() || null,
     primeraVez: datos.primeraVez,
+    compartirMontos: datos.compartirMontos,
     notas: datos.notas?.trim() || null,
   });
 

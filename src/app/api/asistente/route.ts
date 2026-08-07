@@ -73,14 +73,18 @@ async function ejecutar(nombre: string, args: Record<string, string>) {
       propietario: ficha.datos.propietario,
       kilometrajeInicial: ficha.datos.kilometrajeInicial,
       visitas: ficha.trabajos.length,
-      totalGastado: pesos(ficha.gastado),
-      deudaActual: pesos(ficha.debe),
+      totalGastado: ficha.gastado !== null ? pesos(ficha.gastado) : null,
+      deudaActual: ficha.debe !== null ? pesos(ficha.debe) : null,
+      nota: ficha.verMontos
+        ? undefined
+        : "Este vehículo tiene historial en otro taller que no autorizó compartir montos: no menciones plata, solo qué se hizo.",
       ultimosTrabajos: ficha.trabajos.slice(0, 5).map((t) => ({
         fecha: t.fecha,
         sintoma: t.sintoma,
         descripcion: t.descripcion,
-        total: pesos(t.total),
+        total: t.total !== null ? pesos(t.total) : null,
         estadoPago: t.estadoPago,
+        taller: t.esPropio ? null : t.tallerNombre,
       })),
     };
   }
@@ -117,7 +121,11 @@ export async function POST(req: Request) {
         "disponibles. Nunca inventes datos que no vengan de una herramienta. " +
         "Si buscar_vehiculo devuelve más de un resultado, pide precisar la " +
         "patente en vez de adivinar cuál. Responde en 1-2 frases, directo, " +
-        "sin rodeos — el mecánico lo está escuchando mientras trabaja.",
+        "sin rodeos — el mecánico lo está escuchando mientras trabaja. " +
+        "Si un trabajo trae 'taller' con un nombre, dilo explícitamente " +
+        "('en [taller]...') porque no lo hizo el taller que pregunta. Si " +
+        "un monto viene null, o si ficha_vehiculo trae 'nota', no des " +
+        "cifras — di que ese taller no compartió los montos.",
     },
     { role: "user", content: pregunta },
   ];

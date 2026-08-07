@@ -119,12 +119,20 @@ export const vehiculo = pgTable(
     // Primera vez que entra al taller
     primeraVez: boolean("primera_vez").notNull().default(true),
 
+    // El dueño autorizó que otros talleres vean los MONTOS del historial
+    // de este auto si lo buscan por patente (síntoma/descripción/qué se
+    // cambió ya se ven sin esto). Se pide al crear/editar la ficha, no
+    // se vuelve a preguntar.
+    compartirMontos: boolean("compartir_montos").notNull().default(false),
+
     notas: text("notas"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("vehiculo_patente_idx").on(t.tallerId, t.patente),
+    // Sin tallerId: para cruzar la misma patente entre distintos talleres.
+    index("vehiculo_patente_global_idx").on(t.patente),
     index("vehiculo_vin_idx").on(t.tallerId, t.vin),
     index("vehiculo_propietario_idx").on(t.propietarioId),
   ]

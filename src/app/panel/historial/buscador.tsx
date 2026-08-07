@@ -2,19 +2,10 @@
 
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { buscarVehiculos } from "./acciones";
+import { buscarVehiculos, type ResultadoBusqueda } from "./acciones";
 import { Dictar } from "@/components/dictar";
 
-type Resultado = {
-  id: string;
-  patente: string;
-  marca: string | null;
-  modelo: string | null;
-  anio: number | null;
-  color: string | null;
-  propietario: string | null;
-  visitas: number;
-};
+type Resultado = ResultadoBusqueda;
 
 export function Buscador() {
   const [consulta, setConsulta] = useState("");
@@ -149,13 +140,18 @@ export function Buscador() {
                 className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card px-6 py-4 transition-colors hover:border-primary/40"
               >
                 <div>
-                  <div className="flex flex-wrap items-baseline gap-x-4">
+                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                     <span className="font-mono text-lg font-medium">
                       {v.patente}
                     </span>
                     <span className="text-muted-foreground">
                       {[v.marca, v.modelo, v.anio].filter(Boolean).join(" ")}
                     </span>
+                    {!v.propio && (
+                      <span className="rounded-full bg-foreground/10 px-2 py-1 text-[12px] font-medium">
+                        Otro taller
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-[13px] text-muted-foreground">
                     {v.propietario ?? "Sin dueño registrado"}
