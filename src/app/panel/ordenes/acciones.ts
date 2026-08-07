@@ -24,6 +24,7 @@ export async function listarOrdenes() {
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
       estado: trabajo.estado,
+      esperaDetalle: trabajo.esperaDetalle,
       estadoPago: trabajo.estadoPago,
       total: trabajo.total,
       abonado: trabajo.abonado,
@@ -100,6 +101,48 @@ export async function cambiarEstado(ordenId: string, estado: string) {
     .set({
       estado,
       fechaEntrega: estado === "entregado" ? new Date() : null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true };
+}
+
+/**
+ * El auto se va del taller a la espera de un repuesto (típico en
+ * importaciones): queda visible en la lista pero marcado como que no
+ * está físicamente ahí, con el detalle de qué se pidió.
+ */
+export async function esperarRepuesto(ordenId: string, detalle: string) {
+  const tallerId = await tallerActual();
+
+  if (!detalle.trim()) {
+    return { error: "Escribe qué repuesto se está esperando." };
+  }
+
+  await db
+    .update(trabajo)
+    .set({
+      estado: "esperando_repuesto",
+      esperaDetalle: detalle.trim(),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true };
+}
+
+/** El repuesto llegó y el auto vuelve al taller a terminar el trabajo. */
+export async function retomarTrabajo(ordenId: string) {
+  const tallerId = await tallerActual();
+
+  await db
+    .update(trabajo)
+    .set({
+      estado: "en_proceso",
+      esperaDetalle: null,
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));

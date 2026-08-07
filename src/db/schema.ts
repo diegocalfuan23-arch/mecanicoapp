@@ -150,9 +150,12 @@ export const trabajo = pgTable(
     descripcion: text("descripcion"),
     kilometraje: integer("kilometraje"),
 
-    // ingresado · en_proceso · terminado · entregado
+    // ingresado · en_proceso · esperando_repuesto · terminado · entregado
     estado: text("estado").notNull().default("ingresado"),
     fechaEntrega: timestamp("fecha_entrega"),
+    // Qué se está esperando y por qué el auto no está en el taller
+    // (ej: "amortiguadores, pieza importada, llega en 10 días").
+    esperaDetalle: text("espera_detalle"),
 
     // En pesos, sin decimales
     manoObra: integer("mano_obra").notNull().default(0),

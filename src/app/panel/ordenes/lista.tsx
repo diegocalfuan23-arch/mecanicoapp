@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { abrirOrden, cambiarEstado, cerrarOrden } from "./acciones";
+import {
+  abrirOrden,
+  cambiarEstado,
+  cerrarOrden,
+  esperarRepuesto,
+  retomarTrabajo,
+} from "./acciones";
 import { ESTADOS } from "./estados";
 import { pesos, fecha } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
@@ -14,6 +20,7 @@ type Orden = {
   descripcion: string | null;
   kilometraje: number | null;
   estado: string;
+  esperaDetalle: string | null;
   estadoPago: string;
   total: number;
   abonado: number;
@@ -37,6 +44,7 @@ type VehiculoOpcion = {
 const COLOR_ESTADO: Record<string, string> = {
   ingresado: "bg-muted text-muted-foreground",
   en_proceso: "bg-foreground/10 text-foreground",
+  esperando_repuesto: "border border-dashed border-foreground/30 text-foreground",
   terminado: "bg-foreground/10 text-foreground",
   entregado: "bg-muted text-muted-foreground",
 };
@@ -327,6 +335,79 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   );
 }
 
+/** El auto se va del taller: pide qué repuesto se está esperando. */
+function EsperarRepuesto({
+  ordenId,
+  onListo,
+}: {
+  ordenId: string;
+  onListo: () => void;
+}) {
+  const router = useRouter();
+  const [detalle, setDetalle] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  async function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setEnviando(true);
+
+    const res = await esperarRepuesto(ordenId, detalle);
+    setEnviando(false);
+
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    onListo();
+    router.refresh();
+  }
+
+  return (
+    <form
+      onSubmit={enviar}
+      className="mt-4 rounded-lg border border-border bg-background p-4"
+    >
+      <label className="block">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[13px] font-medium">
+            Qué se está esperando
+          </span>
+          <Dictar onTexto={(texto) => setDetalle((a) => (a ? `${a} ${texto}` : texto))} />
+        </div>
+        <textarea
+          value={detalle}
+          onChange={(e) => setDetalle(e.target.value)}
+          placeholder="Amortiguadores traseros, importados, llegan en 10 días"
+          rows={2}
+          autoFocus
+          className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+        />
+      </label>
+
+      {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
+
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row">
+        <button
+          type="submit"
+          disabled={enviando}
+          className="rounded-lg bg-foreground px-6 py-2 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {enviando ? "Guardando…" : "El auto se va del taller"}
+        </button>
+        <button
+          type="button"
+          onClick={onListo}
+          className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export function ListaOrdenes({
   ordenes,
   vehiculos,
@@ -337,6 +418,8 @@ export function ListaOrdenes({
   const router = useRouter();
   const [abriendo, setAbriendo] = useState(false);
   const [cerrando, setCerrando] = useState<string | null>(null);
+  const [esperando, setEsperando] = useState<string | null>(null);
+  const [retomando, setRetomando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("abiertas");
 
   const visibles =
@@ -346,6 +429,13 @@ export function ListaOrdenes({
 
   async function avanzar(id: string, estado: string) {
     await cambiarEstado(id, estado);
+    router.refresh();
+  }
+
+  async function volvio(id: string) {
+    setRetomando(id);
+    await retomarTrabajo(id);
+    setRetomando(null);
     router.refresh();
   }
 
@@ -444,6 +534,14 @@ export function ListaOrdenes({
                       {o.descripcion}
                     </p>
                   )}
+                  {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                    <p className="text-[15px]">
+                      <span className="text-muted-foreground">
+                        El auto no está aquí, esperando:{" "}
+                      </span>
+                      {o.esperaDetalle}
+                    </p>
+                  )}
                 </div>
 
                 <p className="mt-4 text-[13px] text-muted-foreground">
@@ -475,6 +573,25 @@ export function ListaOrdenes({
                       className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
                     >
                       Empezar
+                    </button>
+                  )}
+                  {(o.estado === "ingresado" || o.estado === "en_proceso") && (
+                    <button
+                      onClick={() =>
+                        setEsperando(esperando === o.id ? null : o.id)
+                      }
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    >
+                      Falta repuesto
+                    </button>
+                  )}
+                  {o.estado === "esperando_repuesto" && (
+                    <button
+                      onClick={() => volvio(o.id)}
+                      disabled={retomando === o.id}
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
+                    >
+                      {retomando === o.id ? "Guardando…" : "Volvió el auto"}
                     </button>
                   )}
                   {(o.estado === "ingresado" || o.estado === "en_proceso") && (
@@ -511,6 +628,12 @@ export function ListaOrdenes({
 
                 {editando && (
                   <Cerrar orden={o} onListo={() => setCerrando(null)} />
+                )}
+                {esperando === o.id && (
+                  <EsperarRepuesto
+                    ordenId={o.id}
+                    onListo={() => setEsperando(null)}
+                  />
                 )}
               </li>
             );

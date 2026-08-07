@@ -6,6 +6,7 @@ import { pesos, fecha } from "@/lib/formato";
 const ESTADO_TEXTO: Record<string, string> = {
   ingresado: "Ingresado",
   en_proceso: "En proceso",
+  esperando_repuesto: "Esperando repuesto",
   terminado: "Terminado",
   entregado: "Entregado",
 };
