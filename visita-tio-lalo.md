@@ -1,0 +1,80 @@
+# Visita a Tío Lalo — 2026-08-06
+
+Notas en crudo de la conversación, agrupadas. Lo que se construye esta
+semana está marcado; el resto queda para validar con más talleres antes
+de decidir.
+
+## Cobro por ir a buscar repuestos (se construye esta semana)
+
+- Se compra el repuesto y se deja la boleta pegada en la ficha del
+  vehículo.
+- Se cobra un cargo adicional por el viaje a comprar: al menos el
+  pasaje, o un porcentaje razonable sobre el valor de la compra.
+- Rango de cobro por mano de obra: $7.000–$20.000. Se suma el IVA al
+  cobrar.
+
+## Estado del vehículo por fotos (se construye esta semana)
+
+- Foto de cada costado del auto y del tablero al ingresar el vehículo.
+- Es evidencia del estado en que llegó — no hay interpretación por IA
+  todavía, solo la foto guardada en la orden.
+
+## Clientes conflictivos / de confianza (registrado, no se construye aún)
+
+- Hay clientes que se van sin pagar ("Tío Lalo no me pagó").
+- Hay clientes de confianza que pagan deudas viejas que él ya había
+  olvidado.
+- Hoy esto vive solo en su memoria. Podría ser una marca en la ficha
+  del cliente, pero falta validar cómo lo usaría de verdad.
+
+## Reparaciones compartidas (registrado, sin definir)
+
+- Mencionó que a veces el costo de una reparación se divide. No quedó
+  claro entre quién (¿otro taller?, ¿el cliente y un tercero?). Preguntar
+  el caso concreto la próxima vez antes de diseñar nada.
+
+## Importaciones (registrado)
+
+- Cuando el repuesto es de importación, pide que se cancele lo anterior
+  primero. Suena a una condición de pago distinta para pedidos
+  especiales — no es el flujo normal.
+
+## Lo que más tiempo le quita: atender clientes
+
+- No fue repuestos, no fue papeleo. Fue "atender clientes".
+- Contradice la suposición inicial de que el dolor principal era
+  administrativo. Vale la pena repreguntar esto en la próxima visita:
+  ¿atender = mucha gente simultánea, explicar el mismo diagnóstico
+  varias veces, negociar precio?
+
+## Reportes de plata (registrado, no se construye aún)
+
+- Quiere ver ganancias, gastos e ingresos por semana y por mes.
+- División entre costo de insumos y mano de obra.
+- Ya existe la data en la base (trabajo.mano_obra, trabajo.repuestos),
+  falta la pantalla de resumen. Candidato natural para la próxima
+  iteración.
+
+## Calidad de repuestos (registrado)
+
+- Pide repuestos que no sean de la peor calidad — no necesariamente el
+  más barato. Podría ser una preferencia en la ficha del cliente o del
+  vehículo ("no usar repuestos genéricos"), pero es de baja prioridad.
+
+## Reputación de talleres (fuera de alcance)
+
+- "Hay talleres que son chantas" — quiere poder calificar talleres.
+- Esto es un producto distinto (marketplace/reputación entre talleres),
+  no una función del MVP de un taller individual. No se construye.
+
+## Múltiples usuarios (registrado, arquitectura a futuro)
+
+- El taller no es solo él. Hoy la cuenta es de un único usuario
+  (better-auth, sin roles). Cuando se valide que hace falta, es cambio
+  de modelo de datos, no una pantalla suelta.
+
+## Medición de tiempo de trabajo (registrado)
+
+- Comentó que muchos mecánicos miden cuánto se demoran en cada trabajo.
+  No quedó claro si es algo que él quiere para su taller o una
+  observación general del rubro. Repreguntar.

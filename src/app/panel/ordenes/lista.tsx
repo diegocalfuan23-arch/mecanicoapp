@@ -180,11 +180,15 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [manoObra, setManoObra] = useState("");
   const [repuestos, setRepuestos] = useState("");
+  const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  const total = (Number(manoObra) || 0) + (Number(repuestos) || 0);
+  const total =
+    (Number(manoObra) || 0) +
+    (Number(repuestos) || 0) +
+    (Number(cargoTraslado) || 0);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -196,6 +200,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       descripcion,
       manoObra,
       repuestos,
+      cargoTraslado,
       estadoPago,
     });
     setEnviando(false);
@@ -227,7 +232,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
         />
       </label>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
             Mano de obra
@@ -248,6 +253,20 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             value={repuestos}
             onChange={(e) => setRepuestos(e.target.value.replace(/\D/g, ""))}
             placeholder="80000"
+            inputMode="numeric"
+            className={`${campoBase()} bg-card`}
+          />
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-[13px] font-medium">
+            Cargo por ir a comprar
+          </span>
+          <input
+            value={cargoTraslado}
+            onChange={(e) =>
+              setCargoTraslado(e.target.value.replace(/\D/g, ""))
+            }
+            placeholder="3000"
             inputMode="numeric"
             className={`${campoBase()} bg-card`}
           />

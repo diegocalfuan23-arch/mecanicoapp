@@ -157,7 +157,15 @@ export const trabajo = pgTable(
     // En pesos, sin decimales
     manoObra: integer("mano_obra").notNull().default(0),
     repuestos: integer("repuestos").notNull().default(0),
+    // Ir a comprar el repuesto tiene costo aparte: al menos el pasaje,
+    // o un porcentaje del valor de la compra si es más lejos.
+    cargoTraslado: integer("cargo_traslado").notNull().default(0),
     total: integer("total").notNull().default(0),
+
+    // URLs de las fotos del auto al ingresar: estado y tablero.
+    // Quedan preparadas para cuando se conecte el almacenamiento de
+    // archivos; por ahora la columna existe pero no se llena desde la UI.
+    fotos: text("fotos").array().notNull().default([]),
 
     // pagado · fiado · abonado
     estadoPago: text("estado_pago").notNull().default("pagado"),

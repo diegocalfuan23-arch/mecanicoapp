@@ -200,6 +200,8 @@ export default async function FichaVehiculo({
                         {" "}
                         · mano de obra {pesos(t.manoObra)} · repuestos{" "}
                         {pesos(t.repuestos)}
+                        {t.cargoTraslado > 0 &&
+                          ` · traslado ${pesos(t.cargoTraslado)}`}
                       </span>
                     )}
                     {t.estadoPago !== "pagado" && (

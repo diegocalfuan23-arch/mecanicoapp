@@ -114,13 +114,15 @@ export async function cerrarOrden(datos: {
   descripcion: string;
   manoObra: string;
   repuestos: string;
+  cargoTraslado: string;
   estadoPago: string;
 }) {
   const tallerId = await tallerActual();
 
   const manoObra = Number(datos.manoObra) || 0;
   const repuestos = Number(datos.repuestos) || 0;
-  const total = manoObra + repuestos;
+  const cargoTraslado = Number(datos.cargoTraslado) || 0;
+  const total = manoObra + repuestos + cargoTraslado;
 
   if (!datos.descripcion.trim()) {
     return { error: "Escribe qué se hizo." };
@@ -132,6 +134,7 @@ export async function cerrarOrden(datos: {
       descripcion: datos.descripcion.trim(),
       manoObra,
       repuestos,
+      cargoTraslado,
       total,
       estadoPago: datos.estadoPago,
       abonado: datos.estadoPago === "pagado" ? total : 0,

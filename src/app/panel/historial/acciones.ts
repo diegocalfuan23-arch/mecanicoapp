@@ -93,6 +93,7 @@ export async function fichaVehiculo(vehiculoId: string) {
       estadoPago: trabajo.estadoPago,
       manoObra: trabajo.manoObra,
       repuestos: trabajo.repuestos,
+      cargoTraslado: trabajo.cargoTraslado,
       total: trabajo.total,
       abonado: trabajo.abonado,
       fecha: trabajo.fecha,
