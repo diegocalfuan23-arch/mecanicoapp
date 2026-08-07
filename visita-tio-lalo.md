@@ -186,6 +186,25 @@ verdad.
   cobro de mano de obra o para el precio del servicio de la app misma
   — no quedó claro cuál de los dos. Repreguntar en la próxima visita.
 
+## Sección 6 y 8 del guion — Reacción a la demo y cierre
+
+> "¿Qué te pareció? ¿Esto lo usarías de verdad?" / "¿Te puedo escribir
+> en dos semanas para ver cómo te fue?"
+
+- **La vio y le gustó.** No quedó detalle de qué específicamente le
+  llamó la atención o qué le sobró/faltó — vale la pena preguntárselo
+  en la próxima visita, con más precisión que un "le gustó" general,
+  porque esa era justo la parte del guion pensada para sacar objeciones
+  concretas ("¿qué le sobra, qué le falta?").
+
+- **Quedaron en que la prueba.** Se le aclaró explícitamente que
+  todavía es una demo — importante: no se prometió fecha de nada, tal
+  como sugería el guion en el cierre.
+
+- **Seguimiento agendado: volver en 2 semanas** (≈ 20 de agosto de
+  2026). Esto reemplaza el hueco de la sección 8 — sí hubo cierre con
+  fecha concreta, solo faltaba registrarlo.
+
 ---
 
 ## Cobertura del guion
@@ -197,14 +216,17 @@ verdad.
 | 3. Fiados y cobro | Sí, con fuerza ("la memoria") | Antigüedad de deuda visible en Pagos |
 | 4. Repuestos e inventario | Sí | Fotos como evidencia, cargo de traslado, estado "esperando repuesto" |
 | 5. El tiempo | Sí ("atender clientes" + cobrar) | Sin construir — falta repreguntar el detalle |
-| 6. Mostrar la app | No hay registro de reacciones en el chat | — |
+| 6. Mostrar la app | Sí — la vio, le gustó (sin detalle de qué) | — |
 | 7. Objeciones y precio | Sí — pagaría $7.000–$20.000, tope $30.000 | — |
-| 8. Cerrar | No hay nota de referidos ni seguimiento agendado | — |
+| 8. Cerrar | Sí — quedó en probarla, seguimiento en ~2 semanas (20-08-2026) | — |
 
-**Vacío más importante:** no quedó registrado nada de las secciones
-6 y 8 — es decir, no sabemos qué le pareció la app al verla en el
-celular, ni si quedó algo agendado para seguimiento o referidos. La
-sección 7 (precio) sí se cubrió y con una respuesta fuerte: un número
-concreto sin ancla, $7.000–$20.000 con tope en $30.000. Vale la pena
-confirmar con Boris si la sección 6 se alcanzó a hacer y no se anotó,
-o si la visita se cortó antes de llegar ahí.
+**Guion cubierto casi completo.** Solo queda un vacío real: la
+sección 2 (historial del auto) no tiene nota directa en el chat de
+Boris — falta confirmar si se preguntó y la respuesta no se anotó, o
+si se saltó. El resto de las secciones tiene respuesta.
+
+**Para la próxima visita (≈ 20-08-2026):** el guion original ya sirvió
+para esto; conviene profundizar donde quedó corto —
+qué le gustó específicamente de la demo (no solo "le gustó"), qué le
+sobra o falta, y repreguntar el detalle de "atender clientes" y
+"reparaciones compartidas", que siguen sin aclarar.
