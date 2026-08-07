@@ -244,3 +244,34 @@ export const abono = pgTable(
   },
   (t) => [index("abono_trabajo_idx").on(t.trabajoId)]
 );
+
+/** Cada conversación con el asistente, para poder retomarla después. */
+export const conversacion = pgTable(
+  "conversacion",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Se arma con la primera pregunta, para reconocerla en la lista
+    titulo: text("titulo").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("conversacion_taller_idx").on(t.tallerId, t.updatedAt)]
+);
+
+export const mensaje = pgTable(
+  "mensaje",
+  {
+    id: text("id").primaryKey(),
+    conversacionId: text("conversacion_id")
+      .notNull()
+      .references(() => conversacion.id, { onDelete: "cascade" }),
+    // usuario · asistente
+    rol: text("rol").notNull(),
+    texto: text("texto").notNull(),
+    fecha: timestamp("fecha").notNull().defaultNow(),
+  },
+  (t) => [index("mensaje_conversacion_idx").on(t.conversacionId, t.fecha)]
+);

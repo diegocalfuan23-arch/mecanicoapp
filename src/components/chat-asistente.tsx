@@ -2,25 +2,59 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Dictar } from "@/components/dictar";
+import {
+  guardarIntercambio,
+  leerConversacion,
+  borrarConversacion,
+} from "@/app/panel/asistente/acciones";
 
 type Mensaje = { rol: "usuario" | "asistente"; texto: string };
+type Conversacion = { id: string; titulo: string; updatedAt: Date };
 
 /**
  * Conversación con el asistente del taller: se puede escribir o dictar, y
  * cada respuesta se lee en voz alta para que el mecánico la escuche con
- * las manos ocupadas.
+ * las manos ocupadas. Las conversaciones quedan guardadas para retomarlas.
  */
-export function ChatAsistente() {
+export function ChatAsistente({
+  conversaciones: inicial,
+}: {
+  conversaciones: Conversacion[];
+}) {
+  const [conversaciones, setConversaciones] = useState(inicial);
+  const [activa, setActiva] = useState<string | null>(null);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [entrada, setEntrada] = useState("");
   const [pensando, setPensando] = useState(false);
   const [vozActiva, setVozActiva] = useState(true);
+  const [listaAbierta, setListaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
+
+  async function abrir(id: string) {
+    setListaAbierta(false);
+    const previos = await leerConversacion(id);
+    if (!previos) return;
+    setActiva(id);
+    setMensajes(previos as Mensaje[]);
+  }
+
+  function nueva() {
+    audioRef.current?.pause();
+    setActiva(null);
+    setMensajes([]);
+    setListaAbierta(false);
+  }
+
+  async function borrar(id: string) {
+    await borrarConversacion(id);
+    setConversaciones((c) => c.filter((x) => x.id !== id));
+    if (activa === id) nueva();
+  }
 
   async function reproducir(texto: string) {
     try {
@@ -67,7 +101,28 @@ export function ChatAsistente() {
         : `No se pudo responder: ${datos.error}`;
 
       setMensajes([...conversacion, { rol: "asistente", texto: respuesta }]);
-      if (res.ok && vozActiva) reproducir(respuesta);
+
+      if (res.ok) {
+        if (vozActiva) reproducir(respuesta);
+
+        const guardado = await guardarIntercambio({
+          conversacionId: activa,
+          pregunta: limpio,
+          respuesta,
+        });
+
+        if (guardado.conversacionId && !activa) {
+          setActiva(guardado.conversacionId);
+          setConversaciones((c) => [
+            {
+              id: guardado.conversacionId,
+              titulo: limpio.length > 60 ? `${limpio.slice(0, 60)}…` : limpio,
+              updatedAt: new Date(),
+            },
+            ...c,
+          ]);
+        }
+      }
     } catch {
       setMensajes([
         ...conversacion,
@@ -78,96 +133,162 @@ export function ChatAsistente() {
     }
   }
 
-  return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border px-4 py-4 sm:px-6">
-        <button
-          onClick={() => {
-            setVozActiva(!vozActiva);
-            if (vozActiva) audioRef.current?.pause();
-          }}
-          className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
-        >
-          {vozActiva ? "Voz activada" : "Voz apagada"}
-        </button>
-      </div>
+  const Lista = () => (
+    <>
+      <button
+        onClick={nueva}
+        className="w-full rounded-lg border border-border px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
+      >
+        Nueva consulta
+      </button>
 
-      {mensajes.length === 0 && (
-        <div className="flex min-h-60 flex-col items-center justify-center px-4 py-8 text-center sm:px-6">
-          <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
-            ¿Cuánto debe la BXFS19?
-          </p>
-          <p className="mt-4 text-[13px] text-muted-foreground">
-            Pregunta por patente, kilometraje, qué se le hizo o cuánto debe.
-          </p>
+      <ul className="mt-4 flex flex-col gap-1">
+        {conversaciones.map((c) => (
+          <li key={c.id} className="group flex items-center gap-1">
+            <button
+              onClick={() => abrir(c.id)}
+              className={`min-w-0 flex-1 truncate rounded-lg px-4 py-2 text-left text-[14px] transition-colors ${
+                activa === c.id
+                  ? "bg-foreground/10 text-foreground"
+                  : "text-muted-foreground hover:bg-background hover:text-foreground"
+              }`}
+            >
+              {c.titulo}
+            </button>
+            <button
+              onClick={() => borrar(c.id)}
+              aria-label="Borrar conversación"
+              className="shrink-0 rounded-lg px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus:opacity-100"
+            >
+              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                <path
+                  d="M6 6l8 8M14 6l-8 8"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+
+  return (
+    <div className="flex h-full min-h-0 gap-8">
+      {/* Consultas anteriores: columna fija desde tablet */}
+      <aside className="hidden w-56 shrink-0 overflow-y-auto lg:block">
+        <Lista />
+      </aside>
+
+      {/* Cajón de consultas en móvil */}
+      {listaAbierta && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            aria-label="Cerrar"
+            onClick={() => setListaAbierta(false)}
+            className="absolute inset-0 bg-black/60"
+          />
+          <div className="absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-border bg-card p-4">
+            <Lista />
+          </div>
         </div>
       )}
 
-      {mensajes.length > 0 && (
-        <ul className="flex max-h-[55vh] min-h-60 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-6">
-          {mensajes.map((m, i) => {
-            // La última respuesta es lo que el mecánico vino a leer: va
-            // grande. Las anteriores bajan a tamaño de cuerpo para que no
-            // compitan con ella.
-            const esUltima = i === mensajes.length - 1;
-            const destacada = m.rol === "asistente" && esUltima;
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
+          <button
+            onClick={() => setListaAbierta(true)}
+            className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card lg:hidden"
+          >
+            Consultas
+          </button>
+          <button
+            onClick={() => {
+              setVozActiva(!vozActiva);
+              if (vozActiva) audioRef.current?.pause();
+            }}
+            className="ml-auto rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card"
+          >
+            {vozActiva ? "Voz activada" : "Voz apagada"}
+          </button>
+        </div>
 
-            return (
-            <li
-              key={i}
-              className={m.rol === "usuario" ? "text-right" : "text-left"}
-            >
-              <div
-                className={`inline-block max-w-[85%] rounded-xl px-4 py-2 ${
-                  m.rol === "usuario"
-                    ? "bg-foreground/10 text-[15px] text-foreground"
-                    : destacada
-                      ? "bg-background text-2xl leading-snug font-medium"
-                      : "bg-background text-[15px]"
-                }`}
-              >
-                {m.texto}
-              </div>
-              {m.rol === "asistente" && (
-                <button
-                  onClick={() => reproducir(m.texto)}
-                  className="mt-2 block text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        {mensajes.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+            <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
+              ¿Cuánto debe la BXFS19?
+            </p>
+            <p className="mt-4 text-[13px] text-muted-foreground">
+              Pregunta por patente, kilometraje, qué se le hizo o cuánto debe.
+            </p>
+          </div>
+        ) : (
+          <ul className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-4">
+            {mensajes.map((m, i) => {
+              // La última respuesta es lo que el mecánico vino a leer: va
+              // grande. Las anteriores bajan a tamaño de cuerpo.
+              const destacada =
+                m.rol === "asistente" && i === mensajes.length - 1;
+
+              return (
+                <li
+                  key={i}
+                  className={m.rol === "usuario" ? "text-right" : "text-left"}
                 >
-                  Escuchar
-                </button>
-              )}
-            </li>
-            );
-          })}
-          {pensando && (
-            <li className="text-[15px] text-muted-foreground">Buscando…</li>
-          )}
-          <div ref={finRef} />
-        </ul>
-      )}
+                  <div
+                    className={`inline-block max-w-[85%] rounded-xl px-4 py-2 ${
+                      m.rol === "usuario"
+                        ? "bg-foreground/10 text-[15px] text-foreground"
+                        : destacada
+                          ? "bg-card text-2xl leading-snug font-medium"
+                          : "bg-card text-[15px]"
+                    }`}
+                  >
+                    {m.texto}
+                  </div>
+                  {m.rol === "asistente" && (
+                    <button
+                      onClick={() => reproducir(m.texto)}
+                      className="mt-2 block text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                    >
+                      Escuchar
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+            {pensando && (
+              <li className="text-[15px] text-muted-foreground">Buscando…</li>
+            )}
+            <div ref={finRef} />
+          </ul>
+        )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          enviar(entrada);
-        }}
-        className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-4 sm:px-6"
-      >
-        <input
-          value={entrada}
-          onChange={(e) => setEntrada(e.target.value)}
-          placeholder="Escribe tu pregunta"
-          className="min-w-0 flex-1 rounded-lg border border-border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-        />
-        <Dictar etiqueta="Hablar" onTexto={enviar} />
-        <button
-          type="submit"
-          disabled={!entrada.trim() || pensando}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            enviar(entrada);
+          }}
+          className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border pt-4"
         >
-          Enviar
-        </button>
-      </form>
+          <input
+            value={entrada}
+            onChange={(e) => setEntrada(e.target.value)}
+            placeholder="Escribe tu pregunta"
+            className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+          <Dictar etiqueta="Hablar" onTexto={enviar} />
+          <button
+            type="submit"
+            disabled={!entrada.trim() || pensando}
+            className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            Enviar
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
