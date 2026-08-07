@@ -140,8 +140,11 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
                   {d.descripcion ?? "Sin detalle del trabajo"}
                 </p>
                 <p className="mt-1 text-[13px] text-muted-foreground">
-                  {d.propietario ?? "Sin dueño registrado"} · {fecha(d.fecha)} ·
-                  hace {dias} {dias === 1 ? "día" : "días"}
+                  {d.propietario ?? "Sin dueño registrado"} · {fecha(d.fecha)}
+                  {" · "}
+                  <span className={dias > 30 ? "font-medium text-foreground" : ""}>
+                    hace {dias} {dias === 1 ? "día" : "días"}
+                  </span>
                 </p>
               </div>
 

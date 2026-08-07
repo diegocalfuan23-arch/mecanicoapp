@@ -4,14 +4,20 @@ Notas en crudo de la conversación, agrupadas. Lo que se construye esta
 semana está marcado; el resto queda para validar con más talleres antes
 de decidir.
 
-## Cobro por ir a buscar repuestos (se construye esta semana)
+## Cobro por ir a buscar repuestos (construido: campo manual)
 
 - Se compra el repuesto y se deja la boleta pegada en la ficha del
   vehículo.
 - Se cobra un cargo adicional por el viaje a comprar: al menos el
-  pasaje, o un porcentaje razonable sobre el valor de la compra.
+  pasaje, o un porcentaje sobre el valor de la compra.
 - Rango de cobro por mano de obra: $7.000–$20.000. Se suma el IVA al
   cobrar.
+- El porcentaje no es fijo: es más alto sobre repuestos baratos y más
+  bajo sobre caros (ej. 20% sobre uno de $60.000 no es el mismo % que
+  sobre uno de $1.000.000 — sería absurdo cobrar $200.000 por ir a
+  comprarlo). Él decide el monto caso a caso según su criterio, no una
+  fórmula. El campo `cargoTraslado` en "cerrar orden" ya es manual por
+  esto mismo — no se automatiza el cálculo.
 
 ## Estado del vehículo por fotos (se construye esta semana)
 
