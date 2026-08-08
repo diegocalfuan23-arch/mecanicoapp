@@ -108,7 +108,10 @@ export default async function FichaVehiculo({
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Visitas
           </span>
-          <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px]">
+          {/* Visitas y "ha gastado" van en 24: el elemento principal de
+              esta pantalla es la deuda, y con tres números de 40 ninguno
+              destacaba. */}
+          <p className="mt-2 text-2xl leading-none font-semibold">
             {trabajos.length}
           </p>
         </div>
@@ -118,7 +121,7 @@ export default async function FichaVehiculo({
               <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
                 Ha gastado
               </span>
-              <p className="mt-2 text-[30px] leading-none font-bold sm:text-[40px]">
+              <p className="mt-2 text-2xl leading-none font-semibold">
                 {pesos(gastado ?? 0)}
               </p>
             </div>
@@ -126,11 +129,17 @@ export default async function FichaVehiculo({
               <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
                 Debe
               </span>
-              <p
-                className={`mt-2 text-[30px] leading-none font-bold sm:text-[40px] ${(debe ?? 0) > 0 ? "text-acento" : ""}`}
-              >
-                {(debe ?? 0) > 0 ? pesos(debe ?? 0) : "Al día"}
-              </p>
+              {/* Solo la deuda real manda: "Al día" no es el dato que el
+                  mecánico vino a buscar, así que no ocupa los 40px. */}
+              {(debe ?? 0) > 0 ? (
+                <p className="mt-2 text-[30px] leading-none font-bold text-acento sm:text-[40px]">
+                  {pesos(debe ?? 0)}
+                </p>
+              ) : (
+                <p className="mt-2 text-2xl leading-none font-semibold text-muted-foreground">
+                  Al día
+                </p>
+              )}
             </div>
           </>
         )}
