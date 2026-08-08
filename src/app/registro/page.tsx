@@ -161,6 +161,19 @@ export default function Registro() {
         >
           {form.isSubmitting ? "Creando cuenta…" : "Crear cuenta"}
         </button>
+
+        {/* La ley pide informar antes de recoger los datos, no después. */}
+        <p className="text-center text-[13px] text-muted-foreground">
+          Al crear la cuenta aceptas cómo tratamos los datos, explicado en
+          la{" "}
+          <Link
+            href="/privacidad"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            política de privacidad
+          </Link>
+          .
+        </p>
       </form>
     </MarcoAuth>
   );

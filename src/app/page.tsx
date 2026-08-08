@@ -164,7 +164,15 @@ export default function Home() {
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
           <span>© {new Date().getFullYear()} MecanicoApp</span>
-          <span>Hecho en Chile</span>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/privacidad"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Privacidad
+            </Link>
+            <span>Hecho en Chile</span>
+          </div>
         </div>
       </footer>
     </div>

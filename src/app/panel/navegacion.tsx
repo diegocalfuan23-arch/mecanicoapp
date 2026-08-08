@@ -100,6 +100,19 @@ const SECCIONES = [
       />
     ),
   },
+  {
+    href: "/panel/cuenta",
+    texto: "Mi cuenta",
+    icono: (
+      <path
+        d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM10 2.5l1.2 1.7 2-.5.4 2 1.9.8-.9 1.9.9 1.9-1.9.8-.4 2-2-.5L10 17.5l-1.2-1.9-2 .5-.4-2-1.9-.8.9-1.9-.9-1.9 1.9-.8.4-2 2 .5L10 2.5z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    ),
+  },
 ];
 
 function Enlaces({ alNavegar }: { alNavegar?: () => void }) {
