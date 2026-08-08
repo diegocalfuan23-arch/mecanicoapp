@@ -123,7 +123,7 @@ async function armarFicha(vehiculoId: string) {
     deudaActual: ficha.debe !== null ? pesos(ficha.debe) : null,
     nota: ficha.verMontos
       ? undefined
-      : "Este vehículo tiene historial en otro taller que no autorizó compartir montos: no menciones plata, solo qué se hizo.",
+      : "Este vehículo es de otro taller: lo que cobró es secreto. No menciones plata, solo qué se hizo.",
     trabajos: ficha.trabajos.map((t) => ({
       fecha: t.fecha,
       kilometraje: t.kilometraje,
@@ -289,7 +289,7 @@ export async function POST(req: Request) {
         "Si un trabajo trae 'taller' con un nombre, dilo explícitamente " +
         "('en [taller]...') porque no lo hizo el taller que pregunta. Si " +
         "un monto viene null, o si viene 'nota', no des cifras — di que " +
-        "ese taller no compartió los montos.",
+        "lo que cobró el otro taller no se comparte.",
     },
     ...conversacion.map((m) => ({
       role: m.rol === "usuario" ? ("user" as const) : ("assistant" as const),

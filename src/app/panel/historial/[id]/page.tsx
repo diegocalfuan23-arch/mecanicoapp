@@ -53,8 +53,8 @@ export default async function FichaVehiculo({
 
       {!esPropio && (
         <p className="mt-4 text-[13px] text-muted-foreground">
-          Viendo historial de otro taller
-          {!verMontos && " — sin montos, ese taller no los compartió"}.
+          Viendo historial de otro taller — se ve qué se le hizo, no lo que
+          se cobró.
         </p>
       )}
 

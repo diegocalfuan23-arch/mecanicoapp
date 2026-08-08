@@ -74,7 +74,6 @@ export type VehiculoEditable = {
   copropietarioTelefono: string | null;
   notas: string | null;
   primeraVez: boolean;
-  compartirMontos: boolean;
   propietario: string | null;
   propietarioTelefono: string | null;
 };
@@ -112,7 +111,6 @@ export function FormularioVehiculo({
       copropietario: texto(vehiculo?.copropietario),
       copropietarioTelefono: texto(vehiculo?.copropietarioTelefono),
       primeraVez: vehiculo?.primeraVez ?? true,
-      compartirMontos: vehiculo?.compartirMontos ?? false,
       notas: texto(vehiculo?.notas),
     },
     validationSchema: esquema,
@@ -273,19 +271,6 @@ export function FormularioVehiculo({
           className="size-4 accent-primary"
         />
         <span className="text-[15px]">Primera vez en el taller</span>
-      </label>
-
-      <label className="flex items-center gap-4 rounded-lg border border-border bg-background px-4 py-4">
-        <input
-          type="checkbox"
-          name="compartirMontos"
-          checked={form.values.compartirMontos}
-          onChange={form.handleChange}
-          className="size-4 accent-primary"
-        />
-        <span className="text-[15px]">
-          Autorizo mostrar los montos de este auto a otros talleres
-        </span>
       </label>
 
       {campo("notas", "Notas", { placeholder: "Lo que quieras recordar" })}

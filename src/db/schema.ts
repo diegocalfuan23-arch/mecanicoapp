@@ -119,10 +119,9 @@ export const vehiculo = pgTable(
     // Primera vez que entra al taller
     primeraVez: boolean("primera_vez").notNull().default(true),
 
-    // El dueño autorizó que otros talleres vean los MONTOS del historial
-    // de este auto si lo buscan por patente (síntoma/descripción/qué se
-    // cambió ya se ven sin esto). Se pide al crear/editar la ficha, no
-    // se vuelve a preguntar.
+    // Sin uso: lo que cobra un taller es secreto y no se comparte nunca,
+    // así que no hay nada que autorizar. La columna queda por si algún
+    // día se decide lo contrario, pero el código ya no la lee.
     compartirMontos: boolean("compartir_montos").notNull().default(false),
 
     notas: text("notas"),

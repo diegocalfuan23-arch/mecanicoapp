@@ -108,11 +108,12 @@ export async function buscarVehiculos(
 }
 
 /**
- * Ficha completa del vehículo. Ya no filtra por tallerId: es lo que
- * habilita ver el historial de un vehículo de otro taller. El control de
- * qué se expone pasa a `verMontos` — sin autorización del dueño se ven
- * fecha, síntoma, descripción y qué se cambió, pero nunca montos ni el
- * estado de pago.
+ * Ficha completa del vehículo. No filtra por tallerId: es lo que habilita
+ * ver el historial de un vehículo de otro taller.
+ *
+ * Lo que cobró otro taller es secreto y no se comparte nunca. De un
+ * vehículo ajeno se ve qué se hizo (fecha, síntoma, descripción, fotos)
+ * pero jamás los montos ni el estado de pago.
  */
 export async function fichaVehiculo(vehiculoId: string) {
   const tallerId = await tallerActual();
@@ -134,7 +135,6 @@ export async function fichaVehiculo(vehiculoId: string) {
       copropietario: vehiculo.copropietario,
       copropietarioTelefono: vehiculo.copropietarioTelefono,
       notas: vehiculo.notas,
-      compartirMontos: vehiculo.compartirMontos,
       propietario: cliente.nombre,
       telefono: cliente.telefono,
       esPropio: sql<boolean>`${vehiculo.tallerId} = ${tallerId}`,
@@ -146,7 +146,8 @@ export async function fichaVehiculo(vehiculoId: string) {
 
   if (!datos) return null;
 
-  const verMontos = datos.esPropio || datos.compartirMontos;
+  // Los montos son solo del taller dueño de la ficha.
+  const verMontos = datos.esPropio;
 
   const trabajos = await db
     .select({
