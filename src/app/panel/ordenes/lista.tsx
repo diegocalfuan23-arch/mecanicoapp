@@ -13,6 +13,7 @@ import { ESTADOS } from "./estados";
 import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
+import { Selector } from "@/components/ui/selector";
 
 type Orden = {
   id: string;
@@ -119,24 +120,25 @@ function Abrir({
       </p>
 
       <form onSubmit={enviar} className="mt-6 flex flex-col gap-4">
-        <label className="block">
+        <div>
           <span className="mb-2 block text-[13px] font-medium">Vehículo</span>
-          <select
+          <Selector
             value={vehiculoId}
-            onChange={(e) => setVehiculoId(e.target.value)}
+            onChange={setVehiculoId}
             autoFocus
-            className={campoBase()}
-          >
-            <option value="">Elige el vehículo</option>
-            {vehiculos.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.patente}
-                {v.marca ? ` · ${v.marca} ${v.modelo ?? ""}` : ""}
-                {v.propietario ? ` · ${v.propietario}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+            placeholder="Elige el vehículo"
+            opciones={vehiculos.map((v) => ({
+              valor: v.id,
+              texto: [
+                v.patente,
+                v.marca ? `${v.marca} ${v.modelo ?? ""}`.trim() : null,
+                v.propietario,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            }))}
+          />
+        </div>
 
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
@@ -297,17 +299,18 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             className={`${campoBase()} bg-card`}
           />
         </label>
-        <label className="block">
+        <div>
           <span className="mb-2 block text-[13px] font-medium">Pago</span>
-          <select
+          <Selector
             value={estadoPago}
-            onChange={(e) => setEstadoPago(e.target.value)}
-            className={`${campoBase()} bg-card`}
-          >
-            <option value="pagado">Pagado</option>
-            <option value="fiado">Fiado</option>
-          </select>
-        </label>
+            onChange={setEstadoPago}
+            className="bg-card"
+            opciones={[
+              { valor: "pagado", texto: "Pagado" },
+              { valor: "fiado", texto: "Fiado" },
+            ]}
+          />
+        </div>
       </div>
 
       {total > 0 && (

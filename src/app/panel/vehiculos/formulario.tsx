@@ -6,6 +6,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { guardarVehiculo, actualizarVehiculo } from "./acciones";
 import { miles, soloDigitos } from "@/lib/formato";
+import { Selector } from "@/components/ui/selector";
 
 const TIPOS = [
   "Sedán",
@@ -180,22 +181,15 @@ export function FormularioVehiculo({
     etiqueta: string,
     opciones: string[]
   ) => (
-    <label className="block">
+    <div>
       <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
-      <select
-        name={name}
+      <Selector
         value={form.values[name] as string}
-        onChange={form.handleChange}
-        className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[15px] transition-colors outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-      >
-        <option value="">Sin especificar</option>
-        {opciones.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-    </label>
+        onChange={(v) => form.setFieldValue(name, v)}
+        placeholder="Sin especificar"
+        opciones={opciones.map((o) => ({ valor: o, texto: o }))}
+      />
+    </div>
   );
 
   return (

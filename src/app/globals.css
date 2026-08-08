@@ -67,23 +67,6 @@
   body {
     @apply bg-background text-foreground;
   }
-
-  /* La lista desplegable de un select la pinta el sistema operativo, y
-     por defecto resalta la opción en azul — un color ajeno a la paleta.
-     Estas reglas la traen al tema; el soporte varía según navegador,
-     pero donde no aplica queda el comportamiento nativo de siempre. */
-  select {
-    accent-color: var(--primary);
-  }
-  select option {
-    background-color: var(--card);
-    color: var(--card-foreground);
-  }
-  select option:checked,
-  select option:hover {
-    background-color: var(--secondary);
-    color: var(--foreground);
-  }
 }
 
 @utility scroll-discreto {
