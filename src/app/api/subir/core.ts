@@ -8,7 +8,9 @@ const f = createUploadthing();
 export const rutasSubida = {
   /** Fotos del vehículo al ingresar: costados y tablero. */
   fotoVehiculo: f({
-    image: { maxFileSize: "4MB", maxFileCount: 6 },
+    // 12: los cuatro costados, el tablero y detalles de golpes previos,
+    // con margen para repetir alguna que salió movida.
+    image: { maxFileSize: "8MB", maxFileCount: 12 },
   })
     .middleware(async () => {
       const sesion = await auth.api.getSession({ headers: await headers() });

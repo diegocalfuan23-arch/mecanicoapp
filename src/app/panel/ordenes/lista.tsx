@@ -12,7 +12,7 @@ import {
 import { ESTADOS } from "./estados";
 import { pesos, fecha } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
-import { BotonSubida } from "@/lib/subida";
+import { FotosVehiculo } from "@/components/fotos-vehiculo";
 
 type Orden = {
   id: string;
@@ -171,37 +171,7 @@ function Abrir({
           />
         </label>
 
-        <div>
-          <span className="mb-2 block text-[13px] font-medium">
-            Fotos del estado — costados y tablero
-          </span>
-          {fotos.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {fotos.map((url) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={url}
-                  src={url}
-                  alt=""
-                  className="size-16 rounded-lg border border-border object-cover"
-                />
-              ))}
-            </div>
-          )}
-          <BotonSubida
-            endpoint="fotoVehiculo"
-            appearance={{
-              button:
-                "rounded-lg border border-border bg-transparent px-4 py-2 text-[14px] text-foreground ut-uploading:opacity-60 after:hidden",
-              allowedContent: "text-[12px] text-muted-foreground",
-            }}
-            content={{ button: "Sacar o subir fotos" }}
-            onClientUploadComplete={(res) =>
-              setFotos((actual) => [...actual, ...res.map((r) => r.ufsUrl)])
-            }
-            onUploadError={() => setError("No se pudo subir la foto.")}
-          />
-        </div>
+        <FotosVehiculo fotos={fotos} onCambio={setFotos} onError={setError} />
 
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
