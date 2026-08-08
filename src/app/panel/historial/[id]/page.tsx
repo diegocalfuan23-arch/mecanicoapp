@@ -68,42 +68,45 @@ export default async function FichaVehiculo({
         </span>
       </div>
 
-      {/* Dueño */}
-      <div className="mt-4 rounded-xl border border-border bg-card p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-              Dueño
-            </span>
-            <p className="mt-1 text-[15px]">
-              {datos.propietario ?? "Sin dueño registrado"}
-            </p>
-            {datos.copropietario && (
-              <p className="mt-1 text-[14px] text-muted-foreground">
-                También retira: {datos.copropietario}
-                {datos.copropietarioTelefono
-                  ? ` · ${datos.copropietarioTelefono}`
-                  : ""}
+      {/* Resumen: dueño y cifras en una sola fila. Sin montos (vehículo
+          ajeno) quedan dos columnas en vez de tarjetas apiladas que
+          desperdician la pantalla completa. */}
+      <div
+        className={`mt-4 grid gap-4 ${verMontos ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2"}`}
+      >
+        <div
+          className={`rounded-xl border border-border bg-card p-6 ${verMontos ? "sm:col-span-2" : ""}`}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
+                Dueño
+              </span>
+              <p className="mt-2 text-[15px]">
+                {datos.propietario ?? "Sin dueño registrado"}
               </p>
+              {datos.copropietario && (
+                <p className="mt-1 text-[14px] text-muted-foreground">
+                  También retira: {datos.copropietario}
+                  {datos.copropietarioTelefono
+                    ? ` · ${datos.copropietarioTelefono}`
+                    : ""}
+                </p>
+              )}
+            </div>
+            {datos.telefono && (
+              <a
+                href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+              >
+                Escribirle
+              </a>
             )}
           </div>
-          {datos.telefono && (
-            <a
-              href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-            >
-              Escribirle
-            </a>
-          )}
         </div>
-      </div>
 
-      {/* Resumen */}
-      <div
-        className={`mt-4 grid gap-4 ${verMontos ? "sm:grid-cols-3" : "sm:grid-cols-1"}`}
-      >
         <div className="rounded-xl border border-border bg-card p-6">
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Visitas
@@ -125,7 +128,7 @@ export default async function FichaVehiculo({
                 {pesos(gastado ?? 0)}
               </p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-6 sm:col-span-2 lg:col-span-1">
               <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
                 Debe
               </span>
