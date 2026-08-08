@@ -149,7 +149,10 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
               </div>
 
               <div className="text-right">
-                <p className="text-2xl font-bold">{pesos(saldo)}</p>
+                {/* 18 y no 24: el elemento principal de esta pantalla es
+                    el total de arriba, y con cinco montos grandes en la
+                    lista ninguno destacaba. */}
+                <p className="text-lg font-semibold">{pesos(saldo)}</p>
                 {d.abonado > 0 && (
                   <p className="text-[13px] text-muted-foreground">
                     de {pesos(d.total)}
@@ -165,10 +168,12 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
               >
                 Abonar
               </button>
+              {/* Con borde y no sólido: repetido en cada fila, un botón
+                  sólido pesaba más que el total de la pantalla. */}
               <button
                 onClick={() => saldar(d.id)}
                 disabled={saldando === d.id}
-                className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="rounded-lg border border-border px-4 py-2 text-[14px] font-medium transition-colors hover:bg-background disabled:opacity-60"
               >
                 {saldando === d.id ? "Guardando…" : "Marcar pagado"}
               </button>
