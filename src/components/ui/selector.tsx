@@ -26,8 +26,13 @@ export function Selector({
 }) {
   return (
     <Select.Root
-      value={value}
+      // null y no "": base-ui trata la cadena vacía como un valor
+      // elegido y no mostraría el placeholder.
+      value={value || null}
       onValueChange={(v) => onChange((v as string) ?? "")}
+      // Sin `items`, Select.Value muestra el valor crudo — el id del
+      // vehículo en vez de su patente.
+      items={opciones.map((o) => ({ value: o.valor, label: o.texto }))}
     >
       <Select.Trigger
         autoFocus={autoFocus}
