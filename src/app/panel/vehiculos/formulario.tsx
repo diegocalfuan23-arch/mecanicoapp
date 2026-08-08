@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { guardarVehiculo, actualizarVehiculo } from "./acciones";
+import { miles, soloDigitos } from "@/lib/formato";
 
 const TIPOS = [
   "Sedán",
@@ -135,21 +136,33 @@ export function FormularioVehiculo({
   const err = (campo: keyof typeof form.values) =>
     form.touched[campo] ? (form.errors[campo] as string | undefined) : undefined;
 
+  /**
+   * `conMiles` muestra 3.020.220 mientras se escribe pero guarda los
+   * dígitos pelados. No aplica al año, que no lleva separador.
+   */
   const campo = (
     name: keyof typeof form.values,
     etiqueta: string,
-    extra?: React.InputHTMLAttributes<HTMLInputElement>
-  ) => (
+    extra?: React.InputHTMLAttributes<HTMLInputElement> & { conMiles?: boolean }
+  ) => {
+    const { conMiles, ...props } = extra ?? {};
+    const valor = form.values[name] as string;
+
+    return (
     <div>
       <label className="block">
         <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
         <input
           name={name}
-          value={form.values[name] as string}
-          onChange={form.handleChange}
+          value={conMiles ? miles(valor) : valor}
+          onChange={(e) =>
+            conMiles
+              ? form.setFieldValue(name, soloDigitos(e.target.value))
+              : form.handleChange(e)
+          }
           onBlur={form.handleBlur}
           aria-invalid={!!err(name)}
-          {...extra}
+          {...props}
           className={`w-full rounded-lg border bg-background px-4 py-2 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
             err(name)
               ? "border-destructive/70 focus:border-destructive focus:ring-destructive/30"
@@ -161,7 +174,8 @@ export function FormularioVehiculo({
         <p className="mt-2 text-[12px] text-destructive">{err(name)}</p>
       )}
     </div>
-  );
+    );
+  };
 
   const selector = (
     name: keyof typeof form.values,
@@ -214,7 +228,8 @@ export function FormularioVehiculo({
           })}
           {selector("procedencia", "Procedencia", PROCEDENCIAS)}
           {campo("kilometrajeInicial", "Kilometraje", {
-            placeholder: "125000",
+            conMiles: true,
+            placeholder: "125.000",
             inputMode: "numeric",
           })}
         </div>

@@ -10,7 +10,7 @@ import {
   retomarTrabajo,
 } from "./acciones";
 import { ESTADOS } from "./estados";
-import { pesos, fecha } from "@/lib/formato";
+import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
 
@@ -143,9 +143,9 @@ function Abrir({
             Kilometraje de entrada
           </span>
           <input
-            value={kilometraje}
-            onChange={(e) => setKilometraje(e.target.value.replace(/\D/g, ""))}
-            placeholder="128500"
+            value={miles(kilometraje)}
+            onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
+            placeholder="128.500"
             inputMode="numeric"
             className={campoBase()}
           />
@@ -266,9 +266,9 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             Mano de obra
           </span>
           <input
-            value={manoObra}
-            onChange={(e) => setManoObra(e.target.value.replace(/\D/g, ""))}
-            placeholder="45000"
+            value={miles(manoObra)}
+            onChange={(e) => setManoObra(soloDigitos(e.target.value))}
+            placeholder="45.000"
             inputMode="numeric"
             className={`${campoBase()} bg-card`}
           />
@@ -278,9 +278,9 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             Repuestos
           </span>
           <input
-            value={repuestos}
-            onChange={(e) => setRepuestos(e.target.value.replace(/\D/g, ""))}
-            placeholder="80000"
+            value={miles(repuestos)}
+            onChange={(e) => setRepuestos(soloDigitos(e.target.value))}
+            placeholder="80.000"
             inputMode="numeric"
             className={`${campoBase()} bg-card`}
           />
@@ -290,11 +290,9 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             Cargo por ir a comprar
           </span>
           <input
-            value={cargoTraslado}
-            onChange={(e) =>
-              setCargoTraslado(e.target.value.replace(/\D/g, ""))
-            }
-            placeholder="3000"
+            value={miles(cargoTraslado)}
+            onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
+            placeholder="3.000"
             inputMode="numeric"
             className={`${campoBase()} bg-card`}
           />

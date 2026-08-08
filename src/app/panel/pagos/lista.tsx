@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrarAbono, saldarTrabajo } from "./acciones";
-import { pesos, fecha } from "@/lib/formato";
+import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
 
 type Deuda = {
   id: string;
@@ -63,8 +63,8 @@ function Abonar({
       </p>
       <div className="mt-4 flex flex-col gap-4 sm:flex-row">
         <input
-          value={monto}
-          onChange={(e) => setMonto(e.target.value.replace(/\D/g, ""))}
+          value={miles(monto)}
+          onChange={(e) => setMonto(soloDigitos(e.target.value))}
           placeholder="Monto abonado"
           inputMode="numeric"
           autoFocus
