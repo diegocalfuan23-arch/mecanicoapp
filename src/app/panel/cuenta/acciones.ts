@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { eq, inArray } from "drizzle-orm";
+import { UTApi } from "uploadthing/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import {
@@ -89,10 +90,19 @@ export async function exportarMisDatos() {
   };
 }
 
+/** La URL es https://<appId>.ufs.sh/f/<key>: la key es el último tramo. */
+function claveDeFoto(url: string) {
+  return url.split("/").pop() ?? "";
+}
+
 /**
  * Derecho de supresión (ley 21.719). Borra el usuario; las claves
  * foráneas están en cascada, así que arrastra clientes, vehículos,
  * trabajos, abonos, conversaciones y mensajes.
+ *
+ * Las fotos viven fuera de la base, en UploadThing, y hay que borrarlas
+ * aparte: si solo se borra la fila, el archivo queda accesible por su
+ * URL y la supresión no sería real.
  *
  * Pide el correo escrito a mano: es irreversible y no puede pasar por
  * un clic accidental.
@@ -104,6 +114,28 @@ export async function eliminarMiCuenta(correoEscrito: string) {
     correoEscrito.trim().toLowerCase() !== sesion.user.email.toLowerCase()
   ) {
     return { error: "El correo no coincide con el de tu cuenta." };
+  }
+
+  const conFotos = await db
+    .select({ fotos: trabajo.fotos })
+    .from(trabajo)
+    .where(eq(trabajo.tallerId, sesion.user.id));
+
+  const claves = conFotos
+    .flatMap((t) => t.fotos)
+    .map(claveDeFoto)
+    .filter(Boolean);
+
+  if (claves.length > 0) {
+    try {
+      await new UTApi().deleteFiles(claves);
+    } catch {
+      // Si UploadThing falla no se aborta el borrado: dejar la cuenta a
+      // medio eliminar sería peor. Queda registrado para revisarlo.
+      console.error(
+        `No se pudieron borrar ${claves.length} fotos del taller ${sesion.user.id}`
+      );
+    }
   }
 
   await db.delete(user).where(eq(user.id, sesion.user.id));

@@ -121,7 +121,8 @@ export default function Privacidad() {
             Desde <strong className="text-foreground">Mi cuenta</strong>{" "}
             puedes descargar todo lo que guardamos y eliminar tu cuenta con
             todos sus datos, sin pedírselo a nadie. El borrado es inmediato
-            y definitivo.
+            y definitivo: se eliminan los registros y también las fotos
+            guardadas en el servicio de almacenamiento.
           </p>
           <p className="mt-2 text-muted-foreground">
             Si eres dueño de un auto registrado por un taller y quieres que
