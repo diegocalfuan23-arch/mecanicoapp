@@ -119,10 +119,12 @@ export const vehiculo = pgTable(
     // Primera vez que entra al taller
     primeraVez: boolean("primera_vez").notNull().default(true),
 
-    // Sin uso: lo que cobra un taller es secreto y no se comparte nunca,
-    // así que no hay nada que autorizar. La columna queda por si algún
-    // día se decide lo contrario, pero el código ya no la lee.
-    compartirMontos: boolean("compartir_montos").notNull().default(false),
+    // El dueño del auto autorizó que otros talleres vean el historial de
+    // reparaciones de su vehículo. Sin esto no se comparte nada: la ley
+    // 21.719 exige consentimiento del titular de los datos, y el dueño
+    // del auto es el titular aunque el usuario de la app sea el taller.
+    comparteHistorial: boolean("comparte_historial").notNull().default(false),
+    consentimientoFecha: timestamp("consentimiento_fecha"),
 
     notas: text("notas"),
     createdAt: timestamp("created_at").notNull().defaultNow(),

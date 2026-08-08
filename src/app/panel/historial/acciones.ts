@@ -94,6 +94,9 @@ export async function buscarVehiculos(
       .where(
         and(
           ne(vehiculo.tallerId, tallerId),
+          // Sin el consentimiento del dueño el auto no aparece siquiera
+          // en la búsqueda de otro taller.
+          eq(vehiculo.comparteHistorial, true),
           sql`upper(replace(replace(${vehiculo.patente}, ' ', ''), '-', '')) = ${patenteLimpia}`
         )
       )
@@ -111,9 +114,10 @@ export async function buscarVehiculos(
  * Ficha completa del vehículo. No filtra por tallerId: es lo que habilita
  * ver el historial de un vehículo de otro taller.
  *
- * Lo que cobró otro taller es secreto y no se comparte nunca. De un
- * vehículo ajeno se ve qué se hizo (fecha, síntoma, descripción, fotos)
- * pero jamás los montos ni el estado de pago.
+ * Dos reglas distintas protegen cosas distintas:
+ * - El dueño del auto debe haber autorizado que se comparta (ley 21.719,
+ *   él es el titular de los datos aunque el usuario sea el taller).
+ * - Lo que cobró otro taller es secreto siempre, eso protege al taller.
  */
 export async function fichaVehiculo(vehiculoId: string) {
   const tallerId = await tallerActual();
@@ -137,6 +141,7 @@ export async function fichaVehiculo(vehiculoId: string) {
       notas: vehiculo.notas,
       propietario: cliente.nombre,
       telefono: cliente.telefono,
+      comparteHistorial: vehiculo.comparteHistorial,
       esPropio: sql<boolean>`${vehiculo.tallerId} = ${tallerId}`,
     })
     .from(vehiculo)
@@ -145,6 +150,11 @@ export async function fichaVehiculo(vehiculoId: string) {
     .limit(1);
 
   if (!datos) return null;
+
+  // Sin consentimiento del dueño, un taller ajeno no ve nada de este
+  // auto — ni con el enlace directo. Se responde igual que si no
+  // existiera, para no revelar que la ficha está ahí.
+  if (!datos.esPropio && !datos.comparteHistorial) return null;
 
   // Los montos son solo del taller dueño de la ficha.
   const verMontos = datos.esPropio;

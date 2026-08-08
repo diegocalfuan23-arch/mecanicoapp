@@ -230,3 +230,20 @@ para esto; conviene profundizar donde quedó corto —
 qué le gustó específicamente de la demo (no solo "le gustó"), qué le
 sobra o falta, y repreguntar el detalle de "atender clientes" y
 "reparaciones compartidas", que siguen sin aclarar.
+
+Preguntas concretas que quedaron abiertas:
+
+1. **¿La usó?** Antes que cualquier otra cosa. Si no la abrió, esa es
+   la información más valiosa de toda la visita y ninguna función
+   nueva la reemplaza.
+2. **Inventario** — dijo que no lleva stock y compra sobre la marcha,
+   pero después pidió inventario. Preguntar directo: ¿qué querría ver
+   ahí? ¿Cuánto le costó cada repuesto que compró, para saber qué
+   cobrar? ¿O saber qué tiene guardado en el taller? Son dos cosas
+   distintas y solo una es un inventario.
+3. **"Atender clientes"** — la respuesta a la pregunta más importante
+   del guion quedó en dos palabras. ¿Es mucha gente a la vez?
+   ¿Explicar el mismo diagnóstico varias veces? ¿Negociar precio?
+4. **Reparaciones compartidas** — ¿entre quién se divide el costo?
+5. **"No se puede cobrar menos que otras aplicaciones"** — ¿cuáles
+   aplicaciones? No sabemos con qué se compara.

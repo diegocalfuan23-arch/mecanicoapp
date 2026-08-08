@@ -75,6 +75,7 @@ export type VehiculoEditable = {
   copropietarioTelefono: string | null;
   notas: string | null;
   primeraVez: boolean;
+  comparteHistorial: boolean;
   propietario: string | null;
   propietarioTelefono: string | null;
 };
@@ -112,6 +113,7 @@ export function FormularioVehiculo({
       copropietario: texto(vehiculo?.copropietario),
       copropietarioTelefono: texto(vehiculo?.copropietarioTelefono),
       primeraVez: vehiculo?.primeraVez ?? true,
+      comparteHistorial: vehiculo?.comparteHistorial ?? false,
       notas: texto(vehiculo?.notas),
     },
     validationSchema: esquema,
@@ -266,6 +268,27 @@ export function FormularioVehiculo({
         />
         <span className="text-[15px]">Primera vez en el taller</span>
       </label>
+
+      <div className="rounded-lg border border-border bg-background px-4 py-4">
+        <label className="flex items-start gap-4">
+          <input
+            type="checkbox"
+            name="comparteHistorial"
+            checked={form.values.comparteHistorial}
+            onChange={form.handleChange}
+            className="mt-1 size-4 shrink-0 accent-primary"
+          />
+          <span className="text-[15px]">
+            El dueño autoriza que otros talleres vean el historial de este
+            auto
+          </span>
+        </label>
+        <p className="mt-2 text-[13px] text-muted-foreground">
+          Pregúntale antes de marcarlo. Si otro taller busca esta patente
+          verá qué se le hizo, nunca cuánto se cobró. Se puede desmarcar
+          cuando quiera.
+        </p>
+      </div>
 
       {campo("notas", "Notas", { placeholder: "Lo que quieras recordar" })}
 
