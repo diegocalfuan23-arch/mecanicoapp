@@ -1,6 +1,5 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 const f = createUploadthing();
@@ -12,8 +11,11 @@ export const rutasSubida = {
     // con margen para repetir alguna que salió movida.
     image: { maxFileSize: "8MB", maxFileCount: 12 },
   })
-    .middleware(async () => {
-      const sesion = await auth.api.getSession({ headers: await headers() });
+    // Las cabeceras salen del `req` que entrega uploadthing, no de
+    // headers() de Next: en este contexto esa función no siempre trae
+    // la cookie de sesión y getSession devolvía null aun estando dentro.
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
       if (!sesion) throw new UploadThingError("Sin sesión.");
       return { tallerId: sesion.user.id };
     })

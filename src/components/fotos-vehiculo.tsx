@@ -35,10 +35,14 @@ export function FotosVehiculo({
         setTimeout(() => camara.current?.click(), 300);
       }
     },
-    onUploadError: () => {
+    onUploadError: (e) => {
       setSubiendo(0);
       seguir.current = false;
-      onError?.("No se pudo subir la foto. Intenta de nuevo.");
+      // El detalle importa: "sin sesión" y "archivo muy grande" se
+      // arreglan distinto, y con un mensaje genérico no hay forma de
+      // saber cuál fue.
+      console.error("Error al subir la foto:", e);
+      onError?.(`No se pudo subir la foto: ${e.message}`);
     },
   });
 
