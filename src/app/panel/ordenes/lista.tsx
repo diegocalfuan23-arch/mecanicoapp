@@ -8,12 +8,14 @@ import {
   cerrarOrden,
   esperarRepuesto,
   retomarTrabajo,
+  type RepuestoUsado,
 } from "./acciones";
 import { ESTADOS } from "./estados";
 import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
+import { RepuestosUsados } from "@/components/repuestos-usados";
 
 type Orden = {
   id: string;
@@ -205,13 +207,20 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   const [repuestos, setRepuestos] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
+  const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
+  // Si se detallaron los repuestos, el cobro sale de ellos.
+  const cobroRepuestos = piezas.length
+    ? piezas.reduce(
+        (s, p) => s + (Number(p.precio) || 0) * (Number(p.cantidad) || 1),
+        0
+      )
+    : Number(repuestos) || 0;
+
   const total =
-    (Number(manoObra) || 0) +
-    (Number(repuestos) || 0) +
-    (Number(cargoTraslado) || 0);
+    (Number(manoObra) || 0) + cobroRepuestos + (Number(cargoTraslado) || 0);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -225,6 +234,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       repuestos,
       cargoTraslado,
       estadoPago,
+      piezas,
     });
     setEnviando(false);
 
@@ -275,18 +285,22 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             className={`${campoBase()} bg-card`}
           />
         </label>
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Repuestos
-          </span>
-          <input
-            value={miles(repuestos)}
-            onChange={(e) => setRepuestos(soloDigitos(e.target.value))}
-            placeholder="80.000"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
+        {/* Cuando se detallan los repuestos abajo, este campo sale
+            sobrando: el cobro se calcula solo. */}
+        {piezas.length === 0 && (
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Repuestos
+            </span>
+            <input
+              value={miles(repuestos)}
+              onChange={(e) => setRepuestos(soloDigitos(e.target.value))}
+              placeholder="80.000"
+              inputMode="numeric"
+              className={`${campoBase()} bg-card`}
+            />
+          </label>
+        )}
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
             Cargo por ir a comprar
@@ -311,6 +325,10 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
             ]}
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <RepuestosUsados piezas={piezas} onCambio={setPiezas} />
       </div>
 
       {total > 0 && (

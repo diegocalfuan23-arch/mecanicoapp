@@ -83,15 +83,26 @@ la pregunta más importante del guion pasado y quedó en dos palabras.
   muchas veces? ¿Que discuten el precio?"
 - "¿Qué pasaría si no los atendieras tú?"
 
-**Inventario.** Dijo que no lleva stock y compra sobre la marcha, pero
-después pidió inventario. Son cosas distintas:
+**Inventario — aclarado, y ya construido.** No era control de stock. Lo
+que le duele es **qué se compró, para qué auto y cuánto costó**, para
+cobrarlo con margen y recuperar al menos el pasaje de ir a buscarlo.
 
-- "¿Qué te gustaría ver en un inventario?"
-- "¿Cuánto te costó cada repuesto que compraste, para saber qué
-  cobrar? ¿O saber qué tienes guardado en el taller?"
+Construido: al cerrar la orden se agregan los repuestos uno por uno —
+qué se compró, cuántos, cuánto costó, cuánto se cobra y dónde se
+compró. La app calcula la ganancia y avisa en rojo si se pierde plata.
 
-Solo la segunda es un inventario. La primera es un registro de compras
-y es mucho más simple.
+Qué mostrarle y preguntar:
+
+- Mostrarle el formulario con un repuesto cargado y la línea de
+  ganancia.
+- "¿Así lo anotarías, o es mucho detalle para el día a día?"
+- "¿Te ha pasado cobrar un repuesto y darte cuenta después de que te
+  quedaste corto?"
+- "Lo de 'dónde se compró', ¿te sirve o sobra?"
+
+Lo que sigue sin existir y hay que preguntarle si lo echa de menos:
+saber **si tiene algo guardado** en el taller (stock real). Dijo que no
+lleva, pero conviene confirmarlo ahora que ve lo otro funcionando.
 
 **Reparaciones compartidas.** Nunca quedó claro entre quiénes.
 

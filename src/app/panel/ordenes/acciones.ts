@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { trabajo, vehiculo, cliente } from "@/db/schema";
+import { trabajo, vehiculo, cliente, parteUsada } from "@/db/schema";
 
 async function tallerActual() {
   const sesion = await auth.api.getSession({ headers: await headers() });
@@ -154,6 +154,15 @@ export async function retomarTrabajo(ordenId: string) {
   return { ok: true };
 }
 
+/** Qué se compró para este auto, dónde y cuánto costó. */
+export type RepuestoUsado = {
+  nombre: string;
+  cantidad: string;
+  costo: string;
+  precio: string;
+  donde: string;
+};
+
 /** Se completa cuando el trabajo ya está hecho: qué se hizo y cuánto salió. */
 export async function cerrarOrden(datos: {
   ordenId: string;
@@ -162,12 +171,24 @@ export async function cerrarOrden(datos: {
   repuestos: string;
   cargoTraslado: string;
   estadoPago: string;
+  piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
 
+  const piezas = (datos.piezas ?? []).filter((p) => p.nombre.trim());
+
   const manoObra = Number(datos.manoObra) || 0;
-  const repuestos = Number(datos.repuestos) || 0;
   const cargoTraslado = Number(datos.cargoTraslado) || 0;
+
+  // Si se detallaron las piezas, el cobro de repuestos sale de ellas;
+  // si no, del campo suelto de siempre.
+  const repuestos = piezas.length
+    ? piezas.reduce(
+        (s, p) => s + (Number(p.precio) || 0) * (Number(p.cantidad) || 1),
+        0
+      )
+    : Number(datos.repuestos) || 0;
+
   const total = manoObra + repuestos + cargoTraslado;
 
   if (!datos.descripcion.trim()) {
@@ -190,8 +211,49 @@ export async function cerrarOrden(datos: {
     })
     .where(and(eq(trabajo.id, datos.ordenId), eq(trabajo.tallerId, tallerId)));
 
+  // Se reemplazan: cerrar dos veces la misma orden no debe duplicarlas.
+  await db.delete(parteUsada).where(eq(parteUsada.trabajoId, datos.ordenId));
+
+  if (piezas.length) {
+    await db.insert(parteUsada).values(
+      piezas.map((p) => ({
+        id: crypto.randomUUID(),
+        trabajoId: datos.ordenId,
+        nombre: p.nombre.trim(),
+        cantidad: Number(p.cantidad) || 1,
+        costoUnitario: Number(p.costo) || 0,
+        precioUnitario: Number(p.precio) || 0,
+        dondeSeCompro: p.donde.trim() || null,
+      }))
+    );
+  }
+
   revalidatePath("/panel/ordenes");
   revalidatePath("/panel/pagos");
   revalidatePath("/panel");
   return { ok: true };
+}
+
+/** Los repuestos de una orden, con lo que costaron y lo que se cobró. */
+export async function repuestosDeOrden(ordenId: string) {
+  const tallerId = await tallerActual();
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return [];
+
+  return db
+    .select({
+      nombre: parteUsada.nombre,
+      cantidad: parteUsada.cantidad,
+      costoUnitario: parteUsada.costoUnitario,
+      precioUnitario: parteUsada.precioUnitario,
+      dondeSeCompro: parteUsada.dondeSeCompro,
+    })
+    .from(parteUsada)
+    .where(eq(parteUsada.trabajoId, ordenId));
 }

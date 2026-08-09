@@ -227,7 +227,14 @@ export const parteUsada = pgTable(
     // Se guarda el nombre por si la parte se borra del inventario
     nombre: text("nombre").notNull(),
     cantidad: integer("cantidad").notNull().default(1),
+    // Lo que se le cobra al cliente por unidad
     precioUnitario: integer("precio_unitario").notNull().default(0),
+    // Lo que el taller pagó por unidad. Sin esto no se puede saber si
+    // el trabajo dejó ganancia: es el dolor que Tío Lalo describió como
+    // "inventario" — qué se compró, para qué auto y cuánto costó.
+    costoUnitario: integer("costo_unitario").notNull().default(0),
+    // Desarmaduría, casa de repuestos, importado…
+    dondeSeCompro: text("donde_se_compro"),
   },
   (t) => [index("parte_usada_trabajo_idx").on(t.trabajoId)]
 );
