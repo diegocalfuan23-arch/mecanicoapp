@@ -16,17 +16,20 @@ export default async function LayoutPanel({
   const taller = (sesion.user as { taller?: string }).taller;
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="border-b border-border">
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <header className="shrink-0 border-b border-border">
         <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <MenuMovil />
-            <Link href="/panel" className="text-lg font-semibold tracking-tight">
+            <Link
+              href="/panel"
+              className="truncate text-lg font-semibold tracking-tight"
+            >
               Mecanico<span className="text-acento">App</span>
             </Link>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-sm text-muted-foreground sm:block">
+          <div className="flex shrink-0 items-center gap-4">
+            <span className="hidden max-w-40 truncate text-sm text-muted-foreground sm:block">
               {taller ?? sesion.user.name}
             </span>
             <BotonSalir />
