@@ -11,24 +11,47 @@ Esta visita tiene dos objetivos, en este orden:
 
 ---
 
+## 0. Lo que ya sabemos sin preguntarle
+
+**Sí la probó, solo.** La cuenta la creó él, no nosotros. Todo la
+madrugada del 7 de agosto, en seis minutos seguidos:
+
+| Hora | Qué hizo |
+|---|---|
+| 00:41 | Creó la cuenta ("Tío lalo", Eduardo reyes) |
+| 00:46 | Registró un auto real: WB7466, Sanyong Musso |
+| 00:47 | Abrió la orden OT-1 |
+
+Es la validación más concreta que hay hasta ahora: abrió la app por su
+cuenta, sin nadie mirando, y llegó hasta abrir una orden de trabajo.
+
+**Dónde se detuvo:** la OT-1 quedó sin síntoma y sin kilometraje, en
+estado "en proceso". Los dos campos son opcionales, así que la app lo
+dejó seguir. Puede ser que solo estuviera mirando cómo funciona, o que
+no supiera qué poner sin el auto delante.
+
+Eso convierte la primera pregunta en algo mucho más específico que
+"¿la probaste?".
+
 ## 1. Antes de mostrar nada (5 min)
 
-La pregunta que decide todo. No la adornes ni la disculpes.
+Ya sabemos que la abrió. La pregunta no es si la usó, sino qué pasó
+después — y hay que hacerla sin que suene a reclamo.
 
-- "¿Alcanzaste a probarla?"
+- "Vi que alcanzaste a meter el Musso. ¿Cómo te fue?"
+- "Dejaste la orden abierta sin llenar. ¿Qué pasó ahí — no supiste qué
+  poner, te faltó tiempo, o solo estabas mirando?"
+- "¿La volviste a abrir después de esa noche?"
 
-**Si dice que no** — es la información más valiosa de la visita, no un
-fracaso. Averigua por qué sin justificarte:
+Esa segunda pregunta es la más valiosa de toda la visita: el punto
+exacto donde alguien se detiene dice más que cualquier opinión.
 
-- "¿Qué pasó? ¿Se te olvidó, no tuviste tiempo, no le viste la gracia?"
+Si dice que no la volvió a abrir, averigua por qué sin justificarte:
+
 - "¿En qué momento del día la habrías abierto, si la hubieras abierto?"
 - "¿Qué tendría que pasar para que la usaras mañana?"
 
-Si no la usó, **no sirve de nada mostrarle funciones nuevas**. El
-problema no es que falten cosas. Cambia el plan: pasa directo a la
-sección 4 y quédate escuchando.
-
-**Si dice que sí** — pídele que te muestre cómo, no que te cuente:
+Después, pídele que te muestre en su teléfono, no que te cuente:
 
 - "Muéstrame qué hiciste, tal cual."
 - Anota dónde se traba, qué botón busca y no encuentra, qué palabra usa
@@ -133,9 +156,18 @@ pena confirmarlo ahora que vio más:
 
 ## Cómo leer el resultado
 
-- **Si no la usó** — el problema no es de funciones. Antes de construir
-  cualquier otra cosa hay que entender por qué no entró en su rutina.
-- **Si la usó pero solo una parte** — esa parte es el producto. El resto
-  probablemente sobra.
+Ya sabemos que la abrió solo y llegó a registrar un auto. Lo que falta
+saber es si volvió.
+
+- **Si la usó solo esa noche** — la app no entró en su rutina. Antes de
+  construir cualquier otra cosa hay que entender qué se lo impidió: la
+  hora en que trabaja, que no la tiene a mano, o que llenar la orden es
+  más lento que su cuaderno.
+- **Si la siguió usando pero solo una parte** — esa parte es el
+  producto. El resto probablemente sobra.
 - **Si le entusiasma algo que no construimos** — es la señal más útil de
   todas.
+
+Y algo que vale la pena reconocer: que un mecánico cree su cuenta y
+registre un auto real sin nadie mirando ya es más de lo que consigue la
+mayoría de los MVP. El siguiente escalón no es gustar, es volver.
