@@ -52,113 +52,104 @@ export default async function FichaVehiculo({
       </Link>
 
       {!esPropio && (
-        <p className="mt-4 text-[13px] text-muted-foreground">
-          Viendo historial de otro taller — se ve qué se le hizo, no lo que
-          se cobró.
+        <p className="mt-4 rounded-lg border border-dashed border-border px-4 py-2 text-[13px] text-muted-foreground">
+          Este auto es de otro taller: se ve qué se le hizo, no lo que se
+          cobró.
         </p>
       )}
 
-      {/* Identidad del vehículo */}
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <h1 className="font-mono text-2xl font-semibold tracking-tight">
-          {datos.patente}
-        </h1>
-        <span className="text-lg text-muted-foreground">
-          {[datos.marca, datos.modelo, datos.anio].filter(Boolean).join(" ")}
-        </span>
+      {/* Identidad del vehículo, con el dueño en la misma cabecera: es
+          contexto de quién es el auto, no una cifra que merezca tarjeta
+          propia compitiendo con las de abajo. */}
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className="font-mono text-2xl font-semibold tracking-tight">
+              {datos.patente}
+            </h1>
+            <span className="text-lg text-muted-foreground">
+              {[datos.marca, datos.modelo, datos.anio]
+                .filter(Boolean)
+                .join(" ")}
+            </span>
+          </div>
+          <p className="mt-2 text-[14px] text-muted-foreground">
+            {datos.propietario ?? "Sin dueño registrado"}
+            {datos.copropietario && ` · también retira ${datos.copropietario}`}
+          </p>
+        </div>
+        {datos.telefono && (
+          <a
+            href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+          >
+            Escribirle
+          </a>
+        )}
       </div>
 
-      {/* Resumen: dueño y cifras en una sola fila. Sin montos (vehículo
-          ajeno) quedan dos columnas en vez de tarjetas apiladas que
-          desperdician la pantalla completa. */}
+      {/* Las cifras juntas y parejas. Sin montos (vehículo ajeno) queda
+          solo visitas, que es lo único que hay que mostrar. */}
       <div
-        className={`mt-4 grid gap-4 ${verMontos ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2"}`}
+        className={`mt-6 grid gap-4 ${verMontos ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
       >
-        <div
-          className={`rounded-xl border border-border bg-card p-6 ${verMontos ? "sm:col-span-2" : ""}`}
-        >
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-                Dueño
-              </span>
-              <p className="mt-2 text-[15px]">
-                {datos.propietario ?? "Sin dueño registrado"}
+        {verMontos && (
+          <div className="rounded-xl border border-border bg-card p-6 max-lg:col-span-2">
+            <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
+              Debe
+            </span>
+            {/* El elemento principal de la pantalla: 40÷16 = 2,5. */}
+            {(debe ?? 0) > 0 ? (
+              <p className="mt-2 text-[30px] leading-none font-bold text-acento sm:text-[40px]">
+                {pesos(debe ?? 0)}
               </p>
-              {datos.copropietario && (
-                <p className="mt-1 text-[14px] text-muted-foreground">
-                  También retira: {datos.copropietario}
-                  {datos.copropietarioTelefono
-                    ? ` · ${datos.copropietarioTelefono}`
-                    : ""}
-                </p>
-              )}
-            </div>
-            {datos.telefono && (
-              <a
-                href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noreferrer"
-                className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-              >
-                Escribirle
-              </a>
+            ) : (
+              <p className="mt-2 text-2xl leading-none font-semibold text-muted-foreground">
+                Al día
+              </p>
             )}
           </div>
-        </div>
+        )}
 
         <div className="rounded-xl border border-border bg-card p-6">
           <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
             Visitas
           </span>
-          {/* Visitas y "ha gastado" van en 24: el elemento principal de
-              esta pantalla es la deuda, y con tres números de 40 ninguno
-              destacaba. */}
           <p className="mt-2 text-2xl leading-none font-semibold">
             {trabajos.length}
           </p>
         </div>
+
         {verMontos && (
-          <>
-            <div className="rounded-xl border border-border bg-card p-6">
-              <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-                Ha gastado
-              </span>
-              <p className="mt-2 text-2xl leading-none font-semibold">
-                {pesos(gastado ?? 0)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-6 sm:col-span-2 lg:col-span-1">
-              <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-                Debe
-              </span>
-              {/* Solo la deuda real manda: "Al día" no es el dato que el
-                  mecánico vino a buscar, así que no ocupa los 40px. */}
-              {(debe ?? 0) > 0 ? (
-                <p className="mt-2 text-[30px] leading-none font-bold text-acento sm:text-[40px]">
-                  {pesos(debe ?? 0)}
-                </p>
-              ) : (
-                <p className="mt-2 text-2xl leading-none font-semibold text-muted-foreground">
-                  Al día
-                </p>
-              )}
-            </div>
-          </>
+          <div className="rounded-xl border border-border bg-card p-6">
+            <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
+              Ha gastado
+            </span>
+            <p className="mt-2 text-2xl leading-none font-semibold">
+              {pesos(gastado ?? 0)}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Especificaciones */}
+      {/* Especificaciones: etiqueta arriba y valor abajo, en columnas
+          angostas. Antes cada par se estiraba a todo el ancho con
+          justify-between, dejando un vacío enorme entre los dos. */}
       {especificaciones.length > 0 && (
         <div className="mt-4 rounded-xl border border-border bg-card p-6">
-          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
             {especificaciones.map(([etiqueta, valor]) => (
-              <div key={String(etiqueta)} className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">{etiqueta}</dt>
+              <div key={String(etiqueta)} className="min-w-0">
+                <dt className="text-[13px] tracking-wide text-muted-foreground uppercase">
+                  {etiqueta}
+                </dt>
                 <dd
-                  className={
-                    etiqueta === "VIN" ? "font-mono text-[13px]" : undefined
-                  }
+                  className={`mt-1 truncate ${
+                    etiqueta === "VIN" ? "font-mono text-[13px]" : "text-[15px]"
+                  }`}
+                  title={String(valor)}
                 >
                   {String(valor)}
                 </dd>
