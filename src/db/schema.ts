@@ -76,6 +76,19 @@ export const cliente = pgTable(
     nombre: text("nombre").notNull(),
     telefono: text("telefono"),
     notas: text("notas"),
+
+    /**
+     * Cómo se ha portado con los pagos: confianza · normal · problema.
+     *
+     * Es un juicio del taller sobre su propio cliente y NO se comparte
+     * con nadie: compartirlo sería una lista negra entre talleres, con
+     * los problemas legales que eso trae (ley 21.719, datos que afectan
+     * la reputación de una persona).
+     */
+    trato: text("trato").notNull().default("normal"),
+    /** Cómo suele pagar: contado · cuotas · fiado. */
+    formaPago: text("forma_pago"),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

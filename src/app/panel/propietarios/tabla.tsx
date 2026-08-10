@@ -4,16 +4,38 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { guardarPropietario } from "./acciones";
+import { guardarPropietario, actualizarPropietario } from "./acciones";
 import { pesos } from "@/lib/formato";
+import { Selector } from "@/components/ui/selector";
 
 type Propietario = {
   id: string;
   nombre: string;
   telefono: string | null;
   notas: string | null;
+  trato: string;
+  formaPago: string | null;
   autos: number;
   deuda: number;
+};
+
+/** Cómo se ha portado con los pagos. Privado de cada taller. */
+const TRATOS = [
+  { valor: "confianza", texto: "De confianza" },
+  { valor: "normal", texto: "Normal" },
+  { valor: "problema", texto: "Ha tenido problemas" },
+];
+
+const FORMAS_PAGO = [
+  { valor: "", texto: "Sin especificar" },
+  { valor: "contado", texto: "Al contado" },
+  { valor: "cuotas", texto: "A cuotas" },
+  { valor: "fiado", texto: "Fiado" },
+];
+
+const ETIQUETA_TRATO: Record<string, string> = {
+  confianza: "De confianza",
+  problema: "Ojo con los pagos",
 };
 
 const esquema = Yup.object({
@@ -23,16 +45,31 @@ const esquema = Yup.object({
     .required("El nombre es obligatorio"),
 });
 
-function Formulario({ onListo }: { onListo: () => void }) {
+function Formulario({
+  onListo,
+  propietario,
+}: {
+  onListo: () => void;
+  propietario?: Propietario;
+}) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const editando = !!propietario;
 
   const form = useFormik({
-    initialValues: { nombre: "", telefono: "", notas: "" },
+    initialValues: {
+      nombre: propietario?.nombre ?? "",
+      telefono: propietario?.telefono ?? "",
+      notas: propietario?.notas ?? "",
+      trato: propietario?.trato ?? "normal",
+      formaPago: propietario?.formaPago ?? "",
+    },
     validationSchema: esquema,
     onSubmit: async (valores) => {
       setErrorServidor(null);
-      const res = await guardarPropietario(valores);
+      const res = propietario
+        ? await actualizarPropietario(propietario.id, valores)
+        : await guardarPropietario(valores);
       if (res?.error) {
         setErrorServidor(res.error);
         return;
@@ -84,6 +121,33 @@ function Formulario({ onListo }: { onListo: () => void }) {
       </div>
       {campo("notas", "Notas", { placeholder: "Lo que quieras recordar" })}
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <span className="mb-2 block text-[13px] font-medium">
+            Cómo se ha portado
+          </span>
+          <Selector
+            value={form.values.trato}
+            onChange={(v) => form.setFieldValue("trato", v)}
+            opciones={TRATOS}
+          />
+        </div>
+        <div>
+          <span className="mb-2 block text-[13px] font-medium">
+            Cómo suele pagar
+          </span>
+          <Selector
+            value={form.values.formaPago}
+            onChange={(v) => form.setFieldValue("formaPago", v)}
+            placeholder="Sin especificar"
+            opciones={FORMAS_PAGO.filter((f) => f.valor)}
+          />
+        </div>
+      </div>
+      <p className="text-[13px] text-muted-foreground">
+        Esto es solo para ti: ningún otro taller lo ve.
+      </p>
+
       {errorServidor && (
         <p className="text-[13px] text-destructive" role="alert">
           {errorServidor}
@@ -96,7 +160,11 @@ function Formulario({ onListo }: { onListo: () => void }) {
           disabled={form.isSubmitting}
           className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {form.isSubmitting ? "Guardando…" : "Registrar propietario"}
+          {form.isSubmitting
+            ? "Guardando…"
+            : editando
+              ? "Guardar cambios"
+              : "Registrar propietario"}
         </button>
         <button
           type="button"
@@ -116,6 +184,7 @@ export function TablaPropietarios({
   propietarios: Propietario[];
 }) {
   const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState<Propietario | null>(null);
   const [busqueda, setBusqueda] = useState("");
 
   const filtrados = busqueda.trim()
@@ -127,12 +196,21 @@ export function TablaPropietarios({
       })
     : propietarios;
 
-  if (abierto) {
+  if (abierto || editando) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-lg font-medium">Nuevo propietario</h2>
+        <h2 className="text-lg font-medium">
+          {editando ? editando.nombre : "Nuevo propietario"}
+        </h2>
         <div className="mt-6">
-          <Formulario onListo={() => setAbierto(false)} />
+          <Formulario
+            key={editando?.id ?? "nuevo"}
+            propietario={editando ?? undefined}
+            onListo={() => {
+              setAbierto(false);
+              setEditando(null);
+            }}
+          />
         </div>
       </div>
     );
@@ -181,7 +259,20 @@ export function TablaPropietarios({
                 className="rounded-xl border border-border bg-card p-4"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-medium">{p.nombre}</span>
+                  <span className="font-medium">
+                    {p.nombre}
+                    {ETIQUETA_TRATO[p.trato] && (
+                      <span
+                        className={`ml-2 rounded-full px-2 py-1 text-[12px] ${
+                          p.trato === "problema"
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-foreground/10"
+                        }`}
+                      >
+                        {ETIQUETA_TRATO[p.trato]}
+                      </span>
+                    )}
+                  </span>
                   {p.deuda > 0 ? (
                     <span className="font-medium text-acento">
                       {pesos(p.deuda)}
@@ -198,16 +289,24 @@ export function TablaPropietarios({
                   {p.notas ? ` · ${p.notas}` : ""}
                 </p>
 
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setEditando(p)}
+                    className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                  >
+                    Editar
+                  </button>
                 {p.telefono && (
                   <a
                     href={`https://wa.me/${p.telefono.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 inline-block rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
                   >
                     Escribirle
                   </a>
                 )}
+                </div>
               </li>
             ))}
           </ul>
@@ -216,7 +315,7 @@ export function TablaPropietarios({
           <table className="w-full border-collapse text-[14px]">
             <thead>
               <tr className="border-b border-border bg-card">
-                {["Nombre", "Teléfono", "Autos", "Debe", "Notas"].map((c) => (
+                {["Nombre", "Teléfono", "Autos", "Debe", "Notas", ""].map((c) => (
                   <th
                     key={c}
                     className="px-4 py-4 text-left font-medium whitespace-nowrap text-muted-foreground"
@@ -234,6 +333,17 @@ export function TablaPropietarios({
                 >
                   <td className="px-4 py-4 font-medium whitespace-nowrap">
                     {p.nombre}
+                    {ETIQUETA_TRATO[p.trato] && (
+                      <span
+                        className={`ml-2 rounded-full px-2 py-1 text-[12px] font-medium ${
+                          p.trato === "problema"
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-foreground/10"
+                        }`}
+                      >
+                        {ETIQUETA_TRATO[p.trato]}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {p.telefono ? (
@@ -261,6 +371,14 @@ export function TablaPropietarios({
                   </td>
                   <td className="max-w-xs truncate px-4 py-4 text-muted-foreground">
                     {p.notas ?? "—"}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => setEditando(p)}
+                      className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
+                    >
+                      Editar
+                    </button>
                   </td>
                 </tr>
               ))}

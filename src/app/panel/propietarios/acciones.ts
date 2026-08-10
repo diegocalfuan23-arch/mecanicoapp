@@ -23,6 +23,8 @@ export async function listarPropietarios() {
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       notas: cliente.notas,
+      trato: cliente.trato,
+      formaPago: cliente.formaPago,
       autos: sql<number>`count(distinct ${vehiculo.id})`.mapWith(Number),
       deuda: sql<number>`coalesce(sum(
         case when ${trabajo.estadoPago} <> 'pagado'
@@ -37,11 +39,15 @@ export async function listarPropietarios() {
     .orderBy(desc(cliente.createdAt));
 }
 
-export async function guardarPropietario(datos: {
+export type DatosPropietario = {
   nombre: string;
   telefono?: string;
   notas?: string;
-}) {
+  trato: string;
+  formaPago?: string;
+};
+
+export async function guardarPropietario(datos: DatosPropietario) {
   const tallerId = await tallerActual();
   const nombre = datos.nombre.trim();
 
@@ -61,8 +67,52 @@ export async function guardarPropietario(datos: {
     nombre,
     telefono: datos.telefono?.trim() || null,
     notas: datos.notas?.trim() || null,
+    trato: datos.trato || "normal",
+    formaPago: datos.formaPago?.trim() || null,
   });
 
   revalidatePath("/panel/propietarios");
+  return { ok: true };
+}
+
+export async function actualizarPropietario(
+  clienteId: string,
+  datos: DatosPropietario
+) {
+  const tallerId = await tallerActual();
+  const nombre = datos.nombre.trim();
+
+  const [suyo] = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.id, clienteId), eq(cliente.tallerId, tallerId)))
+    .limit(1);
+
+  if (!suyo) return { error: "No se encontró ese propietario." };
+
+  const repetido = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
+    .limit(2);
+
+  if (repetido.some((c) => c.id !== clienteId)) {
+    return { error: `${nombre} ya está registrado en otra ficha.` };
+  }
+
+  await db
+    .update(cliente)
+    .set({
+      nombre,
+      telefono: datos.telefono?.trim() || null,
+      notas: datos.notas?.trim() || null,
+      trato: datos.trato || "normal",
+      formaPago: datos.formaPago?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(cliente.id, clienteId));
+
+  revalidatePath("/panel/propietarios");
+  revalidatePath("/panel/historial");
   return { ok: true };
 }

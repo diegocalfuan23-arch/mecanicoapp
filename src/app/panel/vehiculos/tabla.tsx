@@ -8,6 +8,8 @@ import { eliminarVehiculo } from "./acciones";
 
 type Vehiculo = VehiculoEditable;
 
+// VIN y ejes existen en la ficha del vehículo, pero en la tabla solo
+// ocupaban ancho: no son datos que se miren de un vistazo.
 const COLUMNAS = [
   "Patente",
   "Tipo",
@@ -15,10 +17,8 @@ const COLUMNAS = [
   "Modelo",
   "Color",
   "Motor",
-  "Ejes",
   "Km",
   "Procedencia",
-  "VIN",
   "Dueño",
   "Acciones",
 ];
@@ -383,9 +383,6 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   <td className="px-4 py-4 whitespace-nowrap">
                     {v.motor ?? "—"}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    {v.ejes ?? "—"}
-                  </td>
                   <td className="px-4 py-4 whitespace-nowrap tabular-nums">
                     {v.kilometrajeInicial
                       ? v.kilometrajeInicial.toLocaleString("es-CL")
@@ -393,13 +390,6 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {v.procedencia ?? "—"}
-                  </td>
-                  <td className="px-4 py-4 font-mono text-[13px] whitespace-nowrap text-muted-foreground">
-                    {v.vin ? (
-                      <span title={v.vin}>{v.vin.slice(0, 6)}…</span>
-                    ) : (
-                      "—"
-                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {v.propietario ?? "—"}
