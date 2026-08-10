@@ -36,7 +36,10 @@ export default function RootLayout({
     <html
       lang="es"
       className={cn(
-        "h-full",
+        // overflow-x-hidden corta de raíz cualquier desborde lateral:
+        // sin esto, un solo hijo demasiado ancho arrastra toda la página
+        // y en el teléfono el contenido queda cortado por el borde.
+        "h-full overflow-x-hidden",
         "antialiased",
         geistSans.variable,
         geistMono.variable,
@@ -44,7 +47,9 @@ export default function RootLayout({
         figtree.variable
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full w-full flex-col overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }
