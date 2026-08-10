@@ -38,7 +38,7 @@ export default async function LayoutPanel({
           estirar la página. Las demás pantallas scrollean dentro de main. */}
       <div className="flex min-h-0 min-w-0 flex-1">
         <Sidebar />
-        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+        <main className="scroll-discreto min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>

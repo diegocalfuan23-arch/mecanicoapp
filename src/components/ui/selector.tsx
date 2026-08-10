@@ -58,7 +58,7 @@ export function Selector({
 
       <Select.Portal>
         <Select.Positioner className="z-50 outline-none select-none" sideOffset={4}>
-          <Select.Popup className="max-h-[min(24rem,var(--available-height))] min-w-(--anchor-width) overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
+          <Select.Popup className="scroll-discreto max-h-[min(24rem,var(--available-height))] min-w-(--anchor-width) overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
             {opciones.map((o) => (
               <Select.Item
                 key={o.valor}
