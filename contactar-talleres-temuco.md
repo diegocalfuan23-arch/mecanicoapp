@@ -78,6 +78,52 @@ Las cuatro que más importan:
 Anotar **las palabras exactas que use**, sobre todo si nombra las cosas
 distinto que Tío Lalo. Esas diferencias son el hallazgo.
 
+## Si ya usa un software
+
+No es mala noticia, es la mejor que te puede dar: significa que el
+problema es lo bastante real como para que alguien ya haya pagado por
+resolverlo. Y te dice contra qué compites.
+
+Cambia el orden: primero entender qué usa, después mostrar lo tuyo.
+
+**Qué usa y cómo llegó:**
+
+- "¿Qué usa? ¿Cómo llegó a ese?"
+- "¿Lo paga o es gratis? ¿Cuánto sale?"
+- "¿Hace cuánto lo usa?"
+
+**Lo que de verdad importa — dónde falla:**
+
+- "¿Qué es lo que más lo choca de ese sistema?"
+- "¿Hay algo que siga anotando en papel o en el celular aunque tenga el
+  software?" — esa respuesta vale oro: es exactamente el hueco que
+  ningún sistema le está tapando.
+- "¿Lo usa usted o alguien más lo llena?"
+- "Si mañana dejara de existir, ¿qué extrañaría? ¿Qué no?"
+
+**La pregunta que decide:**
+
+- "¿Qué tendría que tener otro sistema para que se cambiara?"
+
+Si dice "nada, este me sirve" — ese taller no es tu cliente, y saberlo
+ahora es más barato que descubrirlo en seis meses. Igual sirve: pregunta
+por qué le sirve tanto.
+
+**Al mostrar la app**, la comparación es inevitable, así que hazla tú
+primero. No compitas en cantidad de funciones (vas a perder): pregunta
+directo si lo que él ya usa hace estas tres cosas.
+
+- Buscar por patente y ver todo lo que se le hizo al auto
+- Saber quién le debe y hace cuánto
+- Cuánto le costó cada repuesto y cuánto ganó en ese trabajo
+
+Si su software ya hace las tres, tienes un problema de producto real y
+hay que saberlo. Si no hace ninguna, tienes una razón concreta para que
+se cambie.
+
+Anotar el nombre del software. Dos o tres talleres nombrando el mismo
+es la competencia de verdad, y vale la pena mirarla.
+
 ## Recién después, mostrar la app
 
 En el celular. Empezar por **Buscar patente**, que es lo que más
@@ -98,6 +144,11 @@ Preguntar al final:
   replantear qué se está construyendo.
 - **Si les da lo mismo** → la señal más difícil de aceptar y la más
   importante de escuchar.
+- **Si ya usan software y están conformes** → el hueco no está donde
+  creemos. Preguntar qué les resuelve, porque ahí está la respuesta.
+- **Si usan software pero igual anotan cosas aparte** → la mejor señal
+  de todas: eso que anotan al margen es lo que ningún sistema les está
+  dando.
 
 ---
 
