@@ -171,6 +171,7 @@ export async function cerrarOrden(datos: {
   repuestos: string;
   cargoTraslado: string;
   estadoPago: string;
+  conIva?: boolean;
   piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
@@ -189,7 +190,11 @@ export async function cerrarOrden(datos: {
       )
     : Number(datos.repuestos) || 0;
 
-  const total = manoObra + repuestos + cargoTraslado;
+  // El IVA se suma encima de lo cobrado. Se redondea porque los pesos
+  // chilenos no llevan decimales.
+  const neto = manoObra + repuestos + cargoTraslado;
+  const iva = datos.conIva ? Math.round(neto * 0.19) : 0;
+  const total = neto + iva;
 
   if (!datos.descripcion.trim()) {
     return { error: "Escribe qué se hizo." };
@@ -202,6 +207,7 @@ export async function cerrarOrden(datos: {
       manoObra,
       repuestos,
       cargoTraslado,
+      iva,
       total,
       estadoPago: datos.estadoPago,
       abonado: datos.estadoPago === "pagado" ? total : 0,

@@ -207,6 +207,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   const [repuestos, setRepuestos] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
+  const [conIva, setConIva] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -219,8 +220,11 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       )
     : Number(repuestos) || 0;
 
-  const total =
+  // El IVA se suma encima del neto, no viene incluido.
+  const neto =
     (Number(manoObra) || 0) + cobroRepuestos + (Number(cargoTraslado) || 0);
+  const iva = conIva ? Math.round(neto * 0.19) : 0;
+  const total = neto + iva;
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -234,6 +238,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       repuestos,
       cargoTraslado,
       estadoPago,
+      conIva,
       piezas,
     });
     setEnviando(false);
@@ -331,10 +336,37 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
         <RepuestosUsados piezas={piezas} onCambio={setPiezas} />
       </div>
 
-      {total > 0 && (
-        <p className="mt-4 text-[15px]">
-          Total: <span className="font-semibold">{pesos(total)}</span>
-        </p>
+      <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
+        <input
+          type="checkbox"
+          checked={conIva}
+          onChange={(e) => setConIva(e.target.checked)}
+          className="size-4 accent-primary"
+        />
+        <span className="text-[15px]">Sumar IVA (19%)</span>
+      </label>
+
+      {neto > 0 && (
+        <div className="mt-4 flex flex-col gap-1 text-[15px]">
+          {conIva && (
+            <>
+              <p className="flex justify-between text-muted-foreground">
+                <span>Neto</span>
+                <span className="tabular-nums">{pesos(neto)}</span>
+              </p>
+              <p className="flex justify-between text-muted-foreground">
+                <span>IVA 19%</span>
+                <span className="tabular-nums">{pesos(iva)}</span>
+              </p>
+            </>
+          )}
+          <p className="flex justify-between border-t border-border pt-2">
+            <span>Total</span>
+            <span className="text-lg font-semibold tabular-nums">
+              {pesos(total)}
+            </span>
+          </p>
+        </div>
       )}
 
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}

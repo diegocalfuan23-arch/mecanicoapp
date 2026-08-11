@@ -185,6 +185,14 @@ export const trabajo = pgTable(
     // Ir a comprar el repuesto tiene costo aparte: al menos el pasaje,
     // o un porcentaje del valor de la compra si es más lejos.
     cargoTraslado: integer("cargo_traslado").notNull().default(0),
+    /**
+     * El IVA se suma encima de lo cobrado, no viene incluido: mano de
+     * obra + repuestos + traslado es el neto, y esto es el 19% que se
+     * agrega. Se guarda calculado para que el histórico no cambie si la
+     * tasa sube algún día.
+     */
+    iva: integer("iva").notNull().default(0),
+    /** Neto + IVA: lo que efectivamente paga el cliente. */
     total: integer("total").notNull().default(0),
 
     // URLs de las fotos del auto al ingresar: estado y tablero.
