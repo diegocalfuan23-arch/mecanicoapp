@@ -30,13 +30,20 @@ export async function listarPropietarios() {
         case when ${trabajo.estadoPago} <> 'pagado'
         then ${trabajo.total} - ${trabajo.abonado} else 0 end
       ), 0)`.mapWith(Number),
+      // Quién es cliente y quién vino una vez no hay que marcarlo a
+      // mano: las visitas ya lo dicen.
+      visitas: sql<number>`count(${trabajo.id})`.mapWith(Number),
+      gastado: sql<number>`coalesce(sum(${trabajo.total}), 0)`.mapWith(Number),
+      ultimaVisita: sql<Date | null>`max(${trabajo.fecha})`,
     })
     .from(cliente)
     .leftJoin(vehiculo, eq(vehiculo.propietarioId, cliente.id))
     .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
     .where(eq(cliente.tallerId, tallerId))
     .groupBy(cliente.id)
-    .orderBy(desc(cliente.createdAt));
+    // Los que más vuelven arriba: son los que el taller quiere tener a
+    // mano, no los últimos que se registraron.
+    .orderBy(desc(sql`count(${trabajo.id})`), desc(cliente.createdAt));
 }
 
 export type DatosPropietario = {

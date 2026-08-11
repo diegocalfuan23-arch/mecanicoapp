@@ -17,7 +17,18 @@ type Propietario = {
   formaPago: string | null;
   autos: number;
   deuda: number;
+  visitas: number;
+  gastado: number;
+  ultimaVisita: Date | null;
 };
+
+/**
+ * Cliente es el que vuelve; propietario, el que trajo el auto una vez.
+ * No hay que marcarlo a mano: las visitas ya lo dicen.
+ */
+function esCliente(visitas: number) {
+  return visitas >= 2;
+}
 
 /** Cómo se ha portado con los pagos. Privado de cada taller. */
 const TRATOS = [
@@ -261,6 +272,11 @@ export function TablaPropietarios({
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">
                     {p.nombre}
+                    {esCliente(p.visitas) && (
+                      <span className="ml-2 rounded-full bg-foreground/10 px-2 py-1 text-[12px]">
+                        Cliente
+                      </span>
+                    )}
                     {ETIQUETA_TRATO[p.trato] && (
                       <span
                         className={`ml-2 rounded-full px-2 py-1 text-[12px] ${
@@ -285,7 +301,9 @@ export function TablaPropietarios({
                 </div>
 
                 <p className="mt-2 text-[13px] text-muted-foreground">
-                  {p.autos} {p.autos === 1 ? "auto" : "autos"}
+                  {p.autos} {p.autos === 1 ? "auto" : "autos"} ·{" "}
+                  {p.visitas} {p.visitas === 1 ? "visita" : "visitas"}
+                  {p.gastado > 0 ? ` · ${pesos(p.gastado)}` : ""}
                   {p.notas ? ` · ${p.notas}` : ""}
                 </p>
 
@@ -315,7 +333,15 @@ export function TablaPropietarios({
           <table className="w-full border-collapse text-[14px]">
             <thead>
               <tr className="border-b border-border bg-card">
-                {["Nombre", "Teléfono", "Autos", "Debe", "Notas", ""].map((c) => (
+                {[
+                  "Nombre",
+                  "Teléfono",
+                  "Autos",
+                  "Visitas",
+                  "Ha gastado",
+                  "Debe",
+                  "",
+                ].map((c) => (
                   <th
                     key={c}
                     className="px-4 py-4 text-left font-medium whitespace-nowrap text-muted-foreground"
@@ -333,6 +359,11 @@ export function TablaPropietarios({
                 >
                   <td className="px-4 py-4 font-medium whitespace-nowrap">
                     {p.nombre}
+                    {esCliente(p.visitas) && (
+                      <span className="ml-2 rounded-full bg-foreground/10 px-2 py-1 text-[12px] font-medium">
+                        Cliente
+                      </span>
+                    )}
                     {ETIQUETA_TRATO[p.trato] && (
                       <span
                         className={`ml-2 rounded-full px-2 py-1 text-[12px] font-medium ${
@@ -360,6 +391,16 @@ export function TablaPropietarios({
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{p.autos}</td>
+                  <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                    {p.visitas}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                    {p.gastado > 0 ? (
+                      pesos(p.gastado)
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {p.deuda > 0 ? (
                       <span className="font-medium text-acento">
@@ -368,9 +409,6 @@ export function TablaPropietarios({
                     ) : (
                       <span className="text-muted-foreground">Al día</span>
                     )}
-                  </td>
-                  <td className="max-w-xs truncate px-4 py-4 text-muted-foreground">
-                    {p.notas ?? "—"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <button

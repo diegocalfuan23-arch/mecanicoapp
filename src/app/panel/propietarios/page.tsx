@@ -3,6 +3,8 @@ import { TablaPropietarios } from "./tabla";
 
 export default async function Propietarios() {
   const propietarios = await listarPropietarios();
+  // Cliente es el que volvió: dos visitas o más.
+  const clientes = propietarios.filter((p) => p.visitas >= 2).length;
 
   return (
     <>
@@ -11,7 +13,9 @@ export default async function Propietarios() {
         <p className="mt-2 text-muted-foreground">
           {propietarios.length === 0
             ? "Los dueños de los autos que atiendes."
-            : `${propietarios.length} ${propietarios.length === 1 ? "propietario" : "propietarios"}.`}
+            : clientes > 0
+              ? `${propietarios.length} en total, ${clientes} ${clientes === 1 ? "que ha vuelto" : "que han vuelto"}.`
+              : `${propietarios.length} ${propietarios.length === 1 ? "propietario" : "propietarios"}, ninguno ha vuelto todavía.`}
         </p>
       </div>
 
