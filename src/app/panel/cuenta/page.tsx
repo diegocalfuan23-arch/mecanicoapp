@@ -22,7 +22,7 @@ export default async function Cuenta() {
       <p className="mt-8 text-[13px] text-muted-foreground">
         Cómo tratamos los datos está en la{" "}
         <Link
-          href="/privacidad"
+          href="/panel/cuenta/privacidad"
           className="underline underline-offset-4 hover:text-foreground"
         >
           política de privacidad
