@@ -33,7 +33,7 @@ export default async function FichaVehiculo({
   ].filter(([, valor]) => valor);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <Link
         href="/panel/historial"
         className="inline-flex items-center gap-2 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
@@ -90,13 +90,16 @@ export default async function FichaVehiculo({
         )}
       </div>
 
-      {/* Las cifras juntas y parejas. Sin montos (vehículo ajeno) queda
-          solo visitas, que es lo único que hay que mostrar. */}
+      {/* En pantalla ancha, los datos del auto quedan a la izquierda y el
+          historial a la derecha: antes todo iba apilado en una columna
+          angosta y sobraba media pantalla vacía. */}
+      <div className="mt-6 grid gap-8 lg:grid-cols-[22rem_1fr] lg:items-start">
+      <div className="flex flex-col gap-4">
       <div
-        className={`mt-6 grid gap-4 ${verMontos ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
+        className={`grid gap-4 ${verMontos ? "grid-cols-2" : "grid-cols-1"}`}
       >
         {verMontos && (
-          <div className="rounded-xl border border-border bg-card p-6 max-lg:col-span-2">
+          <div className="col-span-2 rounded-xl border border-border bg-card p-6">
             <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
               Debe
             </span>
@@ -138,8 +141,8 @@ export default async function FichaVehiculo({
           angostas. Antes cada par se estiraba a todo el ancho con
           justify-between, dejando un vacío enorme entre los dos. */}
       {especificaciones.length > 0 && (
-        <div className="mt-4 rounded-xl border border-border bg-card p-6">
-          <dl className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-6">
             {especificaciones.map(([etiqueta, valor]) => (
               <div key={String(etiqueta)} className="min-w-0">
                 <dt className="text-[13px] tracking-wide text-muted-foreground uppercase">
@@ -158,9 +161,11 @@ export default async function FichaVehiculo({
           </dl>
         </div>
       )}
+      </div>
 
       {/* Lo que se le ha hecho */}
-      <h2 className="mt-8 text-lg font-medium">Lo que se le ha hecho</h2>
+      <div className="min-w-0">
+      <h2 className="text-lg font-medium">Lo que se le ha hecho</h2>
 
       {trabajos.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-border py-12 text-center">
@@ -269,6 +274,8 @@ export default async function FichaVehiculo({
           })}
         </ol>
       )}
+      </div>
+      </div>
     </div>
   );
 }
