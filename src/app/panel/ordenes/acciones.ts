@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { trabajo, vehiculo, cliente, parteUsada } from "@/db/schema";
+import { trabajo, vehiculo, cliente, parteUsada, abono } from "@/db/schema";
 
 async function tallerActual() {
   const sesion = await auth.api.getSession({ headers: await headers() });
@@ -210,6 +210,19 @@ export async function cerrarOrden(datos: {
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, datos.ordenId), eq(trabajo.tallerId, tallerId)));
+
+  // Cerrar como pagado es un cobro y tiene que quedar registrado: si no,
+  // el trabajo figura pagado pero "Cobrado este mes" no lo cuenta.
+  await db.delete(abono).where(eq(abono.trabajoId, datos.ordenId));
+
+  if (datos.estadoPago === "pagado" && total > 0) {
+    await db.insert(abono).values({
+      id: crypto.randomUUID(),
+      trabajoId: datos.ordenId,
+      monto: total,
+      nota: "Pagado al entregar",
+    });
+  }
 
   // Se reemplazan: cerrar dos veces la misma orden no debe duplicarlas.
   await db.delete(parteUsada).where(eq(parteUsada.trabajoId, datos.ordenId));
