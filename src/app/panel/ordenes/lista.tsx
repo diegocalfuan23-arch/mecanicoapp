@@ -44,6 +44,7 @@ type VehiculoOpcion = {
   marca: string | null;
   modelo: string | null;
   propietario: string | null;
+  ultimoKilometraje: number | null;
 };
 
 const COLOR_ESTADO: Record<string, string> = {
@@ -80,6 +81,8 @@ function Abrir({
   const [fotos, setFotos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  const elegido = vehiculos.find((v) => v.id === vehiculoId);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -126,7 +129,16 @@ function Abrir({
           <span className="mb-2 block text-[13px] font-medium">Vehículo</span>
           <Selector
             value={vehiculoId}
-            onChange={setVehiculoId}
+            onChange={(id) => {
+              setVehiculoId(id);
+              // Se precarga el último kilometraje conocido para no
+              // escribirlo de cero: el mecánico solo corrige la
+              // diferencia desde la última visita.
+              const v = vehiculos.find((x) => x.id === id);
+              setKilometraje(
+                v?.ultimoKilometraje ? String(v.ultimoKilometraje) : ""
+              );
+            }}
             autoFocus
             placeholder="Elige el vehículo"
             opciones={vehiculos.map((v) => ({
@@ -153,6 +165,24 @@ function Abrir({
             inputMode="numeric"
             className={campoBase()}
           />
+          {elegido?.ultimoKilometraje ? (
+            // Un kilometraje menor al de la última visita es raro: casi
+            // siempre es un dígito de más o de menos al escribir.
+            Number(kilometraje) > 0 &&
+            Number(kilometraje) < elegido.ultimoKilometraje ? (
+              <span className="mt-2 block text-[12px] text-destructive">
+                Menos que la última vez, que marcaba{" "}
+                {elegido.ultimoKilometraje.toLocaleString("es-CL")} km. ¿Está
+                bien escrito?
+              </span>
+            ) : (
+              <span className="mt-2 block text-[12px] text-muted-foreground">
+                La última vez marcaba{" "}
+                {elegido.ultimoKilometraje.toLocaleString("es-CL")} km. Corrige
+                si viene con más.
+              </span>
+            )
+          ) : null}
         </label>
 
         <label className="block">

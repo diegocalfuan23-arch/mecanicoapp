@@ -44,7 +44,11 @@ export async function listarOrdenes() {
     .orderBy(desc(trabajo.numero));
 }
 
-/** Los vehículos disponibles para abrir una orden. */
+/**
+ * Los vehículos disponibles para abrir una orden, con el último
+ * kilometraje conocido: el de la visita más reciente, o el inicial si
+ * es la primera vez. Sirve para no escribirlo de cero cada vez.
+ */
 export async function listarVehiculosParaOrden() {
   const tallerId = await tallerActual();
 
@@ -55,10 +59,16 @@ export async function listarVehiculosParaOrden() {
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
       propietario: cliente.nombre,
+      ultimoKilometraje: sql<number | null>`coalesce(
+        max(${trabajo.kilometraje}),
+        ${vehiculo.kilometrajeInicial}
+      )`,
     })
     .from(vehiculo)
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
+    .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
     .where(eq(vehiculo.tallerId, tallerId))
+    .groupBy(vehiculo.id, cliente.nombre)
     .orderBy(vehiculo.patente);
 }
 
