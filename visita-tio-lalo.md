@@ -170,10 +170,24 @@ verdad.
   una observación general del rubro que hizo de pasada. Repreguntar
   directo: "¿tú medirías cuánto te demoras en cada pega?"
 
-- **Reputación de talleres — "hay talleres que son chantas"** (fuera
-  de alcance). Quiere poder calificar talleres. Es un producto
-  distinto — marketplace o reputación entre talleres —, no una función
-  del MVP de un taller individual. No se construye.
+- **Calificaciones en los dos sentidos** (uno sí, el otro no). Pidió que
+  los clientes puedan calificar al taller y que los talleres puedan
+  calificar a los clientes. Son dos cosas muy distintas:
+
+  - **Cliente califica al taller**: sin problema. Es lo mismo que hace
+    Google Maps con cualquier negocio. Pendiente de construir.
+  - **Taller califica al cliente en público**: es, en la práctica, un
+    DICOM informal de mecánicos, y en Chile eso está regulado. Para
+    publicar que alguien no paga, el deudor debe haber autorizado por
+    escrito esa publicación, la deuda debe estar documentada, y hay
+    tipos de deuda que la ley prohíbe publicar. Una deuda de taller sin
+    contrato no cumple nada de eso, y con la ley 21.719 las multas
+    llegan a 20.000 UTM.
+
+  Lo práctico: si un cliente ve que el taller lo marcó como moroso, el
+  expuesto legalmente es el taller, no la app. Vale la pena explicárselo
+  a Tío Lalo — la marca privada que ya existe le da el mismo beneficio
+  (saber a quién fiarle) sin el riesgo.
 
 - **Múltiples usuarios** (registrado, arquitectura a futuro). El
   taller no es solo él. Hoy la cuenta es de un único usuario
