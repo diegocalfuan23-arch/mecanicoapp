@@ -163,15 +163,21 @@ Preguntar al final:
 
 **Serviteca Senna** — abre de lunes a viernes, 9:00 a 19:00. Tiene 4,8
 de valoración y sitio web propio (servitecasenna.cl), así que es un
-taller bastante más establecido que el de Tío Lalo: hay buena
-probabilidad de que ya use algún software. Ver la sección "Si ya usa un
-software" antes de ir.
+taller más establecido que el de Tío Lalo.
+
+**No se sabe si usa algún software de gestión** — hay que preguntarlo,
+no asumirlo. Llevar preparada igual la sección "Si ya usa un software"
+por si la respuesta es que sí.
 
 Del sitio, dos cosas que sirven para la conversación:
 
-- **Tiene "Reservar cita" online.** Ya usa alguna herramienta para
-  agendar, o al menos un formulario. No le asusta la tecnología, y vale
-  preguntarle qué usa para eso y si le sirve.
+- **Tiene un botón de "Reservar cita" en el sitio.** Ojo: eso no prueba
+  que use un software de gestión — puede ser un formulario del mismo
+  sitio web que le llega por correo. Lo único que se sabe es que tiene
+  presencia digital. Hay que preguntarle:
+
+  > "Vi que se puede reservar hora en la página. ¿Eso te llega a algún
+  > sistema o lo anotas aparte?"
 - **Ofrece "descuentos por ser cliente habitual".** Distingue entre el
   que vuelve y el que viene una vez, y lo tiene como política comercial.
   Es justo la distinción que la app calcula sola (visitas, cuánto ha
