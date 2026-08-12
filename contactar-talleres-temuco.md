@@ -192,6 +192,32 @@ Del sitio, dos cosas que sirven para la conversación:
 - Atiende todas las marcas, sin especializarse. Más parecido a Tío Lalo
   de lo que sugiere el tamaño.
 
+### Dos cosas que la app no resuelve y acá van a saltar
+
+**Varios mecánicos trabajando.** Hoy una cuenta es un taller: no hay
+usuarios separados ni roles. Si en Senna trabajan tres personas,
+tendrían que compartir la misma sesión, y no se sabría quién hizo qué
+trabajo. Tío Lalo ya lo mencionó de pasada; acá va a ser evidente.
+
+No prometer que se puede. Preguntar cómo lo resolverían:
+
+> "¿Quién anotaría los trabajos: usted o cada mecánico el suyo?"
+> "¿Le importaría saber qué trabajo hizo cada uno?"
+
+Si dice que sí importa, es un cambio de modelo de datos y hay que
+saberlo antes de venderlo.
+
+**Inventario de herramientas.** Nadie lo ha pedido todavía — ni Tío
+Lalo, que habló de repuestos, no de herramientas. En un taller con
+varios mecánicos podría tener sentido (quién tiene qué, qué se perdió),
+pero es una suposición. Preguntar sin proponer:
+
+> "¿Llevan alguna cuenta de las herramientas, o cada uno tiene las
+> suyas?"
+
+Si la respuesta es tibia, no construirlo. Si dice que se le pierden
+herramientas seguido, ahí hay algo que mirar.
+
 ## Tío Lalo (el primero, ya validado)
 
 Taller Tío Lalo — Sarmiento 150, Padre Las Casas.
