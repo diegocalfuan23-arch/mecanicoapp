@@ -154,10 +154,22 @@ Preguntar al final:
 
 ## Registro de contactos
 
-| Taller | Dirección | Teléfono | Contactado | Respuesta | Visita |
-|---|---|---|---|---|---|
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
+| Taller | Dirección | Contactado | Respuesta | Visita |
+|---|---|---|---|---|
+| **Serviteca Senna** | Bernardo O'Higgins 0860, Temuco | 11-08-2026 | **Aceptó** — "si no hay problema" | Por agendar |
+| | | | | |
+| | | | | |
+| | | | | |
+
+**Serviteca Senna** — abre de lunes a viernes, 9:00 a 19:00. Tiene 4,8
+de valoración y sitio web propio (servitecasenna.cl), así que es un
+taller bastante más establecido que el de Tío Lalo: hay buena
+probabilidad de que ya use algún software. Ver la sección "Si ya usa un
+software" antes de ir.
+
+## Tío Lalo (el primero, ya validado)
+
+Taller Tío Lalo — Sarmiento 150, Padre Las Casas.
+Eduardo Reyes · lalo2902071986@gmail.com
+Visitado el 06-08-2026. Creó su cuenta solo el 07-08. Segunda visita
+agendada para ~20-08-2026.
