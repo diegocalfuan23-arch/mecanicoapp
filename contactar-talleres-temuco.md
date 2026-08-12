@@ -167,6 +167,25 @@ taller bastante más establecido que el de Tío Lalo: hay buena
 probabilidad de que ya use algún software. Ver la sección "Si ya usa un
 software" antes de ir.
 
+Del sitio, dos cosas que sirven para la conversación:
+
+- **Tiene "Reservar cita" online.** Ya usa alguna herramienta para
+  agendar, o al menos un formulario. No le asusta la tecnología, y vale
+  preguntarle qué usa para eso y si le sirve.
+- **Ofrece "descuentos por ser cliente habitual".** Distingue entre el
+  que vuelve y el que viene una vez, y lo tiene como política comercial.
+  Es justo la distinción que la app calcula sola (visitas, cuánto ha
+  gastado, etiqueta de Cliente). Buena entrada:
+
+  > "Vi que dan descuento al cliente habitual. ¿Cómo saben quién es
+  > habitual y quién no?"
+
+  Si la respuesta es "me acuerdo" o "lo tengo anotado", ahí está el
+  hueco. Si tiene un sistema que se lo dice, hay que ver cuál.
+
+- Atiende todas las marcas, sin especializarse. Más parecido a Tío Lalo
+  de lo que sugiere el tamaño.
+
 ## Tío Lalo (el primero, ya validado)
 
 Taller Tío Lalo — Sarmiento 150, Padre Las Casas.
