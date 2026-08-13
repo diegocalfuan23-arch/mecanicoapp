@@ -156,10 +156,20 @@ Preguntar al final:
 
 | Taller | Dirección | Contactado | Respuesta | Visita |
 |---|---|---|---|---|
-| **Serviteca Senna** | Bernardo O'Higgins 0860, Temuco | 11-08-2026 | **Aceptó** — "si no hay problema" | Por agendar |
+| **Serviteca Senna** | Bernardo O'Higgins 0860, Temuco | 11-08-2026 | Aceptó, pero **no confirmó día ni hora** | Sin agendar |
 | | | | | |
 | | | | | |
 | | | | | |
+
+**Estado (13-08):** dijo que sí a la visita pero nunca respondió a la
+propuesta de día ni al recordatorio. Dos mensajes sin respuesta ya es
+suficiente: no mandar un tercero. Lo que queda es **pasar por el taller
+sin agendar** — ya aceptó, tiene horario de atención, y estar parado
+ahí funciona mejor que otro WhatsApp. Martes a jueves, media mañana o
+media tarde.
+
+Si tampoco resulta presencial, seguir con otros talleres de la lista:
+lo que se necesita es un segundo taller, no ese taller.
 
 **Serviteca Senna** — abre de lunes a viernes, 9:00 a 19:00. Tiene 4,8
 de valoración y sitio web propio (servitecasenna.cl), así que es un
