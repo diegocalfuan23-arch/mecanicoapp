@@ -261,3 +261,11 @@ Preguntas concretas que quedaron abiertas:
 4. **Reparaciones compartidas** — ¿entre quién se divide el costo?
 5. **"No se puede cobrar menos que otras aplicaciones"** — ¿cuáles
    aplicaciones? No sabemos con qué se compara.
+6. **Grúa** — Diego cree que tanto Tío Lalo como Pipe ofrecen servicio
+   de grúa, pero nadie lo ha dicho todavía en la conversación; es una
+   suposición sin confirmar, no un dato de la visita. La app no tiene
+   nada relacionado (ni traslado, ni cobro aparte, ni registro). No
+   generar la pregunta todavía — si en algún momento sale solo en la
+   charla, anotarlo con las palabras exactas. Antes de construir nada
+   habría que saber cómo lo cobran y si llevan algún registro de los
+   viajes, o si también es todo de memoria.
