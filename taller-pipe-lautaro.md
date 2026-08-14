@@ -29,6 +29,15 @@ pesada**, además de particulares.
 > aprueba se realiza el trabajo, y así mismo la orden de compra para
 > luego facturarlo."
 
+**Garantías y reclamos:**
+
+> "Si es por el Mercado Público, los trabajos se entrega una garantía de
+> cierto tiempo de acuerdo a qué se le hizo. Pero a un particular, si es
+> algo que no se realizó bien y que se le puso un repuesto equivocado,
+> eso es responsabilidad del taller. Y de ser por una falla aparte a las
+> intervenciones que se le hicieron, se le explica al cliente que es una
+> falla distinta que no involucra las reparaciones ya realizadas."
+
 ## Por qué esto importa
 
 **Coincide con Tío Lalo en lo central.** Los dos llevan las deudas de
@@ -60,6 +69,21 @@ Eso no lo invalida — la mitad particular de su trabajo sí calza, y el
 historial por patente le sirve para todo. Pero significa que para un
 taller con clientes institucionales la app cubre una parte, no el
 total. Hay que decírselo así, no prometer lo que no hay.
+
+**La conversación difícil es "esto lo hicimos mal" vs "esto es otra
+falla".** Ahí es donde le sirve tener registrado qué se hizo, cuándo y
+con qué repuestos — la ficha del vehículo es justamente el respaldo de
+esa conversación.
+
+Ojo: **no mencionó fotos, mencionó explicar**. Su herramienta hoy es la
+palabra, no la evidencia. Vale la pena preguntarle si le serviría tener
+las fotos del estado en que llegó (que la app ya guarda) o si con
+explicar le basta.
+
+**Las garantías tienen plazo y la app no las contempla.** Por Mercado
+Público entrega garantía "de cierto tiempo según qué se le hizo". Hoy no
+hay dónde anotar hasta cuándo cubre un trabajo. Es un dato que sale de
+un solo taller — anotarlo, no construirlo todavía.
 
 **Lo que se pierde son los montos chicos.** No es problema de volumen:
 la memoria alcanza para lo grande y falla en lo pequeño. Eso significa
