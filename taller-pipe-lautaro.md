@@ -20,6 +20,15 @@ pesada**, además de particulares.
 > "Sí, en algunos casos se olvida porque no se deja registro de cuándo
 > llegó y qué reparaciones se le hicieron."
 
+**Cómo trabaja con la municipalidad:**
+
+> "Sí, con ambos [municipalidad y particulares]."
+>
+> "Ellos generan la orden de compra y uno le emite la factura. También
+> a través del Mercado Público uno realiza una cotización y si se
+> aprueba se realiza el trabajo, y así mismo la orden de compra para
+> luego facturarlo."
+
 ## Por qué esto importa
 
 **Coincide con Tío Lalo en lo central.** Los dos llevan las deudas de
@@ -39,6 +48,18 @@ registro: está a un paso de adoptar algo que se lo dé.
 **El fiado es un privilegio, no un default.** "Sólo se debe cuando son
 clientes conocidos" — conecta con la distinción entre cliente que
 vuelve y el de una vez, que la app ya calcula sola.
+
+**Dos flujos distintos en el mismo taller.** Con particulares funciona
+igual que Tío Lalo: memoria, fiado por confianza, cobrar al entregar.
+Con la municipalidad hay cotización en Mercado Público, aprobación,
+orden de compra y factura. La app hoy **no contempla nada de eso**: no
+hay cotizaciones ni órdenes de compra ni facturas, asume que se cierra
+el trabajo y se cobra.
+
+Eso no lo invalida — la mitad particular de su trabajo sí calza, y el
+historial por patente le sirve para todo. Pero significa que para un
+taller con clientes institucionales la app cubre una parte, no el
+total. Hay que decírselo así, no prometer lo que no hay.
 
 **Lo que se pierde son los montos chicos.** No es problema de volumen:
 la memoria alcanza para lo grande y falla en lo pequeño. Eso significa
