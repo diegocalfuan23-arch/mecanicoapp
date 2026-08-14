@@ -38,6 +38,11 @@ pesada**, además de particulares.
 > intervenciones que se le hicieron, se le explica al cliente que es una
 > falla distinta que no involucra las reparaciones ya realizadas."
 
+**Sobre las fotos del estado del vehículo:**
+
+> "No le tomamos fotos, pero quizás en algún caso hubiese sido útil
+> alguna para convencer al cliente."
+
 ## Por qué esto importa
 
 **Coincide con Tío Lalo en lo central.** Los dos llevan las deudas de
@@ -75,10 +80,18 @@ falla".** Ahí es donde le sirve tener registrado qué se hizo, cuándo y
 con qué repuestos — la ficha del vehículo es justamente el respaldo de
 esa conversación.
 
-Ojo: **no mencionó fotos, mencionó explicar**. Su herramienta hoy es la
-palabra, no la evidencia. Vale la pena preguntarle si le serviría tener
-las fotos del estado en que llegó (que la app ya guarda) o si con
-explicar le basta.
+**Las fotos: para Pipe son un "quizás", para Tío Lalo un pedido.** Tío
+Lalo pidió explícitamente fotos de los costados y el tablero, con un
+motivo concreto (que no le reclamen por daños que ya traía). Pipe no
+las toma y dice que "quizás en algún caso hubiese sido útil".
+
+La diferencia importa: uno tiene el dolor, el otro reconoce que podría
+servir. Y la palabra que usó Pipe es reveladora — dijo **"convencer al
+cliente"**, no protegerse ni tener respaldo. Su problema no es probar,
+es que le crean.
+
+La función ya está construida y no estorba, pero validada por uno solo.
+No merece más trabajo encima hasta que alguien la use de verdad.
 
 **Las garantías tienen plazo y la app no las contempla.** Por Mercado
 Público entrega garantía "de cierto tiempo según qué se le hizo". Hoy no
