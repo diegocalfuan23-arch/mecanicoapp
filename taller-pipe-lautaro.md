@@ -102,6 +102,50 @@ un solo taller — anotarlo, no construirlo todavía.
 la memoria alcanza para lo grande y falla en lo pequeño. Eso significa
 que "quién me debe" le sirve aunque no lleve muchos fiados.
 
+**Cómo compra repuestos e inventario:**
+
+> "Los repuestos se compran antes de la intervención del vehículo, se
+> le dice al cliente que lo traiga al taller tal día y uno ya tiene los
+> repuestos listos. En otro caso se queda el vehículo en el taller y al
+> día siguiente se termina.
+>
+> Lo que se lleva de inventario son cosas como los tambores de aceite,
+> se calcula un aprox de cuántos vehículos o camiones puede rendir,
+> también con anticongelantes, y cosas aparte como limpiafrenos, WD40,
+> cosas así.
+>
+> Pero se lleva un conteo así al ojo solamente, no se registra por
+> ningún programa el inventario."
+
+## Por qué esto contradice lo que asumíamos con Tío Lalo
+
+**Tío Lalo no lleva stock — compra sobre la marcha.** Con eso quedó
+descartado construir inventario. **Pipe sí lleva stock**, "al ojo", sin
+registrarlo en ningún lado.
+
+No son el mismo caso. La diferencia es el tipo de repuesto:
+
+- **Repuesto específico del vehículo** (una pieza para ese auto en
+  particular): Pipe también lo compra sobre la marcha, coordinando con
+  el cliente. Igual que Tío Lalo.
+- **Insumo de consumo genérico** (aceite, anticongelante,
+  limpiafrenos): eso sí lo mantiene en el taller, y sí lo calcula a
+  ojo — "cuántos vehículos puede rendir" un tambor.
+
+Es una distinción que la app no tenía: inventario de repuestos por
+trabajo vs. inventario de insumos de consumo diario. Solo lo segundo
+tiene stock real que alguien podría querer registrar.
+
+**Otra vez el mismo patrón: lo sabe, no lo tiene registrado.** No dijo
+"no me hace falta" — dijo que lo calcula al ojo. Es la misma frase que
+usó para el historial del vehículo ("no se deja registro").
+
+**No construir todavía.** Es un solo taller, y "al ojo" puede
+significar que le basta con lo que tiene — a diferencia del historial,
+donde dijo explícitamente que se le olvida. Acá no dijo que se
+equivoque ni que le falte algo. Falta preguntarle si alguna vez se ha
+quedado sin insumo sin darse cuenta.
+
 ## Lo que falta preguntarle
 
 - Cómo es cobrarle a la municipalidad (¿órdenes de compra? ¿pagan a 30,
