@@ -51,6 +51,17 @@ Si dice que no la volvió a abrir, averigua por qué sin justificarte:
 - "¿En qué momento del día la habrías abierto, si la hubieras abierto?"
 - "¿Qué tendría que pasar para que la usaras mañana?"
 
+**Dos explicaciones técnicas a descartar sin sugerirlas.** Si dice algo
+como "no pude entrar" o "no encontré por dónde", ahí recién se
+menciona que ahora existe recuperar la clave sola (`/recuperar`). No
+adelantarlo antes: si se le ofrece la salida técnica antes de que la
+mencione él, no se sabe si de verdad era eso o si solo la tomó porque
+estaba disponible.
+
+El link no es el problema — se lo mandamos por este mismo WhatsApp y
+lo sigue teniendo ahí. Si el bloqueo fue técnico, es más probable que
+haya sido la contraseña que el enlace.
+
 Después, pídele que te muestre en su teléfono, no que te cuente:
 
 - "Muéstrame qué hiciste, tal cual."
