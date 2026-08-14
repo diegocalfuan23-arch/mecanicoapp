@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { enviarRecuperacion } from "@/lib/correo";
 
 // Vercel entrega los dominios sin protocolo ("mi-app.vercel.app"), y una
 // variable escrita a mano puede venir igual. Normalizamos antes de usarla.
@@ -34,6 +35,13 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    sendResetPassword: async ({ user, url }) => {
+      await enviarRecuperacion({
+        para: user.email,
+        nombre: user.name?.split(" ")[0] ?? "",
+        url,
+      });
+    },
   },
   user: {
     additionalFields: {

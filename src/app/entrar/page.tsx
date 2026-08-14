@@ -83,6 +83,14 @@ export default function Entrar() {
           onChange={form.handleChange}
           onBlur={form.handleBlur}
           error={err("clave")}
+          ayuda={
+            <Link
+              href="/recuperar"
+              className="mt-2 block text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              Se me olvidó la contraseña
+            </Link>
+          }
         />
 
         {errorServidor && (
