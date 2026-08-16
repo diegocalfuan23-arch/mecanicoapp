@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { RegistrarSW } from "@/components/registrar-sw";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -19,6 +20,11 @@ export const metadata: Metadata = {
   title: "MecanicoApp — El cuaderno del taller, en tu celular",
   description:
     "Historial por patente, control de repuestos, fiados al día y recordatorios por WhatsApp. Hecho para talleres independientes en Chile.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MecanicoApp",
+  },
 };
 
 /** Sin esto el navegador del celular asume ~980px de ancho y encoge todo. */
@@ -48,6 +54,7 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full w-full flex-col overflow-x-hidden">
+        <RegistrarSW />
         {children}
       </body>
     </html>

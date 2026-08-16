@@ -157,7 +157,7 @@ Preguntar al final:
 | Taller | Dirección | Contactado | Respuesta | Visita |
 |---|---|---|---|---|
 | **Serviteca Senna** | Bernardo O'Higgins 0860, Temuco | 11-08-2026 | Aceptó, pero **no confirmó día ni hora** | Sin agendar |
-| | | | | |
+| **Intermotor Temuco** | Brasil 1415, Temuco | Sin contactar | — | — |
 | | | | | |
 | | | | | |
 
@@ -227,6 +227,19 @@ pero es una suposición. Preguntar sin proponer:
 
 Si la respuesta es tibia, no construirlo. Si dice que se le pierden
 herramientas seguido, ahí hay algo que mirar.
+
+**Intermotor Temuco** — Brasil 1415, Temuco. Teléfono/WhatsApp
++56 9 9069 9293. Horario: lunes a viernes 9:15-13:00 y 15:00-19:00,
+cerrado fines de semana. Valoración 4,3/5 (cantidad de reseñas no
+especificada). No se sabe a qué se especializa ni su tamaño — solo se
+verificaron dirección, teléfono y horario. Falta preguntarlo directo,
+igual que con Senna: no asumir que ya usa software solo por tener
+buena valoración.
+
+Mensaje: el mismo de "El primer mensaje" arriba, por WhatsApp al
++56 9 9069 9293, dentro de su horario de atención (mejor evitar la
+hora de almuerzo, 13:00-15:00, cuando probablemente no hay nadie para
+leer el teléfono).
 
 ## Tío Lalo (el primero, ya validado)
 
