@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Script de datos de ejemplo, se corre a mano contra la base
 cargar-ejemplos.mjs
+
+.vercel
+.env*

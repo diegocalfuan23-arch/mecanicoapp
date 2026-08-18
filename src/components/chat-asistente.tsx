@@ -279,14 +279,29 @@ export function ChatAsistente({
             placeholder="Escribe tu pregunta"
             className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
-          <Dictar etiqueta="Hablar" onTexto={enviar} />
-          <button
-            type="submit"
-            disabled={!entrada.trim() || pensando}
-            className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
-            Enviar
-          </button>
+          {/* Mismo lugar para los dos: micrófono si no hay texto, enviar
+              si lo hay — igual que WhatsApp, sin los dos botones a la vez. */}
+          {entrada.trim() ? (
+            <button
+              type="submit"
+              disabled={pensando}
+              aria-label="Enviar"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                <path
+                  d="M3 10h13M11 5l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : (
+            <Dictar etiqueta="Hablar" onTexto={enviar} compacto />
+          )}
         </form>
       </div>
     </div>

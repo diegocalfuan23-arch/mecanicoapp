@@ -161,12 +161,10 @@ Preguntar al final:
 | | | | | |
 | | | | | |
 
-**Estado (13-08):** dijo que sí a la visita pero nunca respondió a la
-propuesta de día ni al recordatorio. Dos mensajes sin respuesta ya es
-suficiente: no mandar un tercero. Lo que queda es **pasar por el taller
-sin agendar** — ya aceptó, tiene horario de atención, y estar parado
-ahí funciona mejor que otro WhatsApp. Martes a jueves, media mañana o
-media tarde.
+**Estado (17-08): CONFIRMADO — jueves 20-08, 9:30.** Tras el
+recordatorio, Senna contestó "el jueves está bien 9:30". Mismo día que
+la segunda visita a Tío Lalo (16:00) — sin cruce de horario, mañana vs
+tarde.
 
 Si tampoco resulta presencial, seguir con otros talleres de la lista:
 lo que se necesita es un segundo taller, no ese taller.

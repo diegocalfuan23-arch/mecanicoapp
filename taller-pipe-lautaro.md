@@ -146,6 +146,58 @@ donde dijo explícitamente que se le olvida. Acá no dijo que se
 equivoque ni que le falte algo. Falta preguntarle si alguna vez se ha
 quedado sin insumo sin darse cuenta.
 
+## Si alguna vez se quedó sin insumo sin darse cuenta
+
+Pregunta hecha el 16-08-2026. Respuesta textual:
+
+> "Si a veces pasa con los aceites y con varios productos, líquidos de
+> frenos, que de repente faltan. O cosas pequeñas, de repente una lija,
+> discos de corte, que de repente se olvidan. Uno se da cuenta ya no
+> tiene, y se pierde tiempo en ir a comprar y se compra una cantidad
+> pequeña solamente, que es para el momento, hasta que se hace un buen
+> pedido y se intenta incluir todo."
+
+**Sí le pasa, y con un costo concreto: tiempo.** No dijo "no me afecta"
+— dijo que se pierde tiempo yendo a comprar de urgencia, en cantidad
+mínima, "para el momento", hasta el próximo pedido grande. Es la misma
+estructura del problema del historial: no es que no le importe, es que
+no tiene manera de verlo venir.
+
+**Dos categorías de insumo que se le escapan, no una.** Ya sabíamos de
+aceite y anticongelante (los que calcula "al ojo" por cuántos vehículos
+rinden). Esto agrega una segunda: consumibles chicos y baratos —lijas,
+discos de corte— que ni siquiera entran en ese cálculo aproximado,
+simplemente se olvidan hasta que faltan.
+
+**Cambia la conclusión anterior.** Antes se había dejado como "no
+construir todavía, no dijo que se equivoque ni que le falte algo".
+Ahora sí lo dijo, con un costo nombrado (tiempo perdido, compra de
+apuro más cara por ser de a poco).
+
+**Se le preguntó explícitamente: "¿te serviría tener en la app una
+lista con las cosas que se te suelen acabar... para ir marcando cuando
+las compras...? ¿O es innecesario y ya te las arreglas bien así?"**
+Respuesta textual (16-08-2026):
+
+> "Si es necesario, voy viendo la cantidad que voy gastando en el mes
+> de productos y en dinero también, lo que se ocupa, porque también
+> monitoreo que no vayan quedando cosas perdidas, se tiene todo
+> clarito."
+
+**Confirma que sí, con el motivo detrás.** Dada la pregunta binaria que
+se le hizo (¿sirve o es innecesario?), "sí es necesario" es la
+respuesta directa. El resto de la frase explica por qué: ya tiene el
+hábito de revisar cantidad y gasto mensual de cerca —"se tiene todo
+clarito" describe ese hábito, no que le sobre una herramienta nueva—,
+lo cual es una buena señal: no es alguien que vaya a ignorar una lista
+si se la das, ya está acostumbrado a mirar estos números seguido.
+
+**Sigue sin decir dónde vive ese control hoy** (cuaderno, cabeza,
+planilla) — no imprescindible para decidir si construir la lista
+(ya validó que sí le sirve), pero sí útil para saber si "reemplaza"
+algo que ya usa o si es la primera vez que lo tiene en un solo lugar.
+Preguntable más adelante, sin urgencia.
+
 ## Lo que falta preguntarle
 
 - Cómo es cobrarle a la municipalidad (¿órdenes de compra? ¿pagan a 30,
@@ -157,6 +209,8 @@ quedado sin insumo sin darse cuenta.
 
 ## Siguiente paso
 
-Ofrecerle un video corto antes que el link: se controla qué ve y en qué
-orden. Si en algún momento viene a Temuco, una conversación de 15
-minutos rinde más que veinte mensajes.
+Visita presencial poco probable (Lautaro queda lejos y no hay
+indicios de que Pipe vaya a venir a Temuco pronto) — la validación con
+él sigue siendo por chat, como hasta ahora. Ofrecerle un video corto
+antes que el link, para controlar qué ve y en qué orden, es mejor
+sustituto que intentar forzar una visita que no es realista por ahora.

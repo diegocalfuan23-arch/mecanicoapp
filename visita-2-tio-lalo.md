@@ -62,6 +62,17 @@ El link no es el problema — se lo mandamos por este mismo WhatsApp y
 lo sigue teniendo ahí. Si el bloqueo fue técnico, es más probable que
 haya sido la contraseña que el enlace.
 
+**Importante para esta visita — `/recuperar` hoy no manda el correo a
+cualquiera.** Se agregó `RESEND_API_KEY` a producción recién el
+16-08-2026 (antes ni siquiera existía ahí, así que si lo intentó antes
+de esa fecha, no había forma de que funcionara). Pero incluso ahora,
+Resend con dominio de pruebas (`onboarding@resend.dev`) **solo entrega
+a la propia cuenta de Resend** — el correo de Tío Lalo no lo recibiría
+igual. Falta comprar un dominio y verificarlo para que ande de verdad.
+Si en la visita dice que no pudo entrar, no prometerle que `/recuperar`
+le va a servir todavía — resolverlo ahí mismo cambiándole la
+contraseña a mano o por WhatsApp, no derivarlo a esa pantalla.
+
 Después, pídele que te muestre en su teléfono, no que te cuente:
 
 - "Muéstrame qué hiciste, tal cual."
