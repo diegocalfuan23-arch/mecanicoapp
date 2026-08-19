@@ -192,11 +192,18 @@ clarito" describe ese hábito, no que le sobre una herramienta nueva—,
 lo cual es una buena señal: no es alguien que vaya a ignorar una lista
 si se la das, ya está acostumbrado a mirar estos números seguido.
 
-**Sigue sin decir dónde vive ese control hoy** (cuaderno, cabeza,
-planilla) — no imprescindible para decidir si construir la lista
-(ya validó que sí le sirve), pero sí útil para saber si "reemplaza"
-algo que ya usa o si es la primera vez que lo tiene en un solo lugar.
-Preguntable más adelante, sin urgencia.
+**Dónde lo lleva hoy — respuesta textual (17-08-2026):**
+
+> "Solo lo voy revisando así de vez en cuando. No se lleva anotado."
+
+**No hay ningún registro — es revisión visual, de memoria, sin
+soporte.** Esto resuelve la duda: "se tiene todo clarito" de la
+respuesta anterior no describía un sistema propio que compita con la
+lista propuesta — describía revisar el estante de vez en cuando y
+notar a ojo qué falta. No hay nada que la app "reemplace"; sería la
+primera vez que este control vive en un solo lugar en vez de en la
+cabeza. Confirma, con más fuerza que antes, que la lista de insumos es
+terreno libre y vale la pena construirla.
 
 ## Lo que falta preguntarle
 

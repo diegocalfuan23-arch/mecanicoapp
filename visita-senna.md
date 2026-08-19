@@ -1,5 +1,11 @@
 # Visita a Serviteca Senna — jueves 20-08-2026, 9:30
 
+Mismo día, 16:00: segunda visita a Tío Lalo (Padre Las Casas). Sin
+restaurantes en el medio — Senna (Bernardo O'Higgins, Temuco centro) y
+los candidatos de restaurantes quedan bastante separados entre sí y de
+Padre Las Casas, no vale la pena forzarlo en la misma ventana. Las
+visitas a restaurantes se agendan otro día aparte.
+
 Primera visita. Nunca vio la app. A diferencia de Tío Lalo y Pipe, es
 un taller más establecido: sitio propio (servitecasenna.cl), 4,8 de
 valoración, atiende todas las marcas. Puede tener más estructura
@@ -60,6 +66,20 @@ Si la respuesta revela que sí usa algo:
 
 Si dice "nada, este me sirve" — no es cliente hoy, y es mejor saberlo
 ahora. Igual preguntar por qué le sirve tanto.
+
+**Si menciona cobrar con tarjeta o algún POS** (posible, dado que es
+un taller más establecido — nadie más lo ha mencionado hasta ahora):
+
+- "¿Cómo cobra hoy — efectivo, tarjeta, transferencia? ¿Usa algún
+  POS?"
+- "Si la app se conectara con eso para que quede registrado quién
+  pagó y cuánto, ¿le serviría, o prefiere mantenerlo aparte?"
+
+Es solo una hipótesis a chequear, no algo para prometerle construido.
+Si dice que sí le serviría, sería una integración vía API con el POS
+que ya tenga (bastante más simple que construir un sistema de pagos
+propio) — pero no vale la pena decidir nada de eso hasta escuchar la
+respuesta real.
 
 ## 4. Recién ahora, mostrar la app (10 min)
 

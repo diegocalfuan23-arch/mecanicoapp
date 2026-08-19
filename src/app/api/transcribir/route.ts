@@ -35,10 +35,12 @@ export async function POST(req: Request) {
       model: "whisper-1",
       language: "es",
       // Sin esto Whisper a veces "traduce" jerga de taller a un
-      // español más formal en vez de transcribirla tal cual.
+      // español más formal en vez de transcribirla tal cual, y confunde
+      // pares que suenan parecido (deuda/duda, fiado/hilado).
       prompt:
         "Taller mecánico en Chile. Términos: pastillas de freno, " +
-        "amortiguadores, batería, correa, embrague, patente, kilometraje.",
+        "amortiguadores, batería, correa, embrague, patente, kilometraje, " +
+        "deuda, debe, fiado, abono, cobrar, cliente.",
     });
 
     return NextResponse.json({ texto: resultado.text });

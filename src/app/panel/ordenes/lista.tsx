@@ -451,46 +451,53 @@ function EsperarRepuesto({
   }
 
   return (
-    <form
-      onSubmit={enviar}
-      className="mt-4 rounded-lg border border-border bg-background p-4"
-    >
-      <label className="block">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[13px] font-medium">
-            Qué se está esperando
-          </span>
-          <Dictar onTexto={(texto) => setDetalle((a) => (a ? `${a} ${texto}` : texto))} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Cerrar"
+        onClick={onListo}
+        className="absolute inset-0 bg-black/60"
+      />
+      <form
+        onSubmit={enviar}
+        className="relative w-full max-w-md rounded-lg border border-border bg-background p-4"
+      >
+        <label className="block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">
+              Qué se está esperando
+            </span>
+            <Dictar onTexto={(texto) => setDetalle((a) => (a ? `${a} ${texto}` : texto))} />
+          </div>
+          <textarea
+            value={detalle}
+            onChange={(e) => setDetalle(e.target.value)}
+            placeholder="Amortiguadores traseros, importados, llegan en 10 días"
+            rows={2}
+            autoFocus
+            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
+
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row">
+          <button
+            type="submit"
+            disabled={enviando}
+            className="rounded-lg bg-foreground px-6 py-2 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {enviando ? "Guardando…" : "El auto se va del taller"}
+          </button>
+          <button
+            type="button"
+            onClick={onListo}
+            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+          >
+            Cancelar
+          </button>
         </div>
-        <textarea
-          value={detalle}
-          onChange={(e) => setDetalle(e.target.value)}
-          placeholder="Amortiguadores traseros, importados, llegan en 10 días"
-          rows={2}
-          autoFocus
-          className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-        />
-      </label>
-
-      {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
-
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-lg bg-foreground px-6 py-2 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {enviando ? "Guardando…" : "El auto se va del taller"}
-        </button>
-        <button
-          type="button"
-          onClick={onListo}
-          className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
 
