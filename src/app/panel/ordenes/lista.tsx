@@ -680,14 +680,23 @@ export function ListaOrdenes({
                 </p>
 
                 {o.total > 0 && (
-                  <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-4">
-                    <span className="text-2xl font-bold">
-                      {pesos(o.total)}
-                    </span>
-                    {o.estadoPago !== "pagado" && (
-                      <span className="text-[13px] font-medium text-acento">
-                        Debe {pesos(saldo)}
+                  <div className="mt-4 border-t border-border pt-4">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="text-2xl font-bold">
+                        {pesos(o.total)}
                       </span>
+                      {o.estadoPago !== "pagado" && (
+                        <span className="text-[13px] font-medium text-acento">
+                          Debe {pesos(saldo)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Sin esto, "Debe $X" de un total mayor obliga a
+                        restar de cabeza para saber si ya abonó algo. */}
+                    {o.abonado > 0 && o.estadoPago !== "pagado" && (
+                      <p className="mt-1 text-[13px] text-muted-foreground">
+                        Ya abonó {pesos(o.abonado)}
+                      </p>
                     )}
                   </div>
                 )}
