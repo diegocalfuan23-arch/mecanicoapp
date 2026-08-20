@@ -36,6 +36,7 @@ const esquema = Yup.object({
 export default function Registro() {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [yaTieneCuenta, setYaTieneCuenta] = useState(false);
 
   const form = useFormik({
     initialValues: {
@@ -57,9 +58,16 @@ export default function Registro() {
       });
 
       if (error) {
+        // Comparación por si Better Auth cambia levemente el texto entre
+        // versiones — antes con igualdad exacta esto se quedaba mudo y
+        // mostraba el mensaje en inglés tal cual.
+        const yaExiste = error.message
+          ?.toLowerCase()
+          .includes("already exist");
+        setYaTieneCuenta(!!yaExiste);
         setErrorServidor(
-          error.message === "User already exists"
-            ? "Ya existe una cuenta con ese correo."
+          yaExiste
+            ? "Ya tienes una cuenta con ese correo."
             : (error.message ?? "No se pudo crear la cuenta.")
         );
         return;
@@ -151,6 +159,25 @@ export default function Registro() {
         {errorServidor && (
           <p className="text-[13px] text-destructive" role="alert">
             {errorServidor}
+            {yaTieneCuenta && (
+              <>
+                {" "}
+                <Link
+                  href="/entrar"
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  Entra aquí
+                </Link>{" "}
+                o{" "}
+                <Link
+                  href="/recuperar"
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  recupera tu contraseña
+                </Link>
+                .
+              </>
+            )}
           </p>
         )}
 

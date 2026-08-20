@@ -1,4 +1,7 @@
-# Segunda visita a Tío Lalo — ~20 de agosto de 2026
+# Segunda visita a Tío Lalo — viernes 21 de agosto de 2026
+
+(Postergada desde el jueves 20 — Tío Lalo estaba topado de pega, sin
+relación con la app. Confirmado por chat.)
 
 Desde la primera visita se construyeron 11 funciones nuevas, casi todas
 salidas de lo que él mismo pidió. Él no conoce ninguna.

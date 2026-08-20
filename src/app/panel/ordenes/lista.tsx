@@ -237,6 +237,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   const [repuestos, setRepuestos] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
+  const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -268,6 +269,7 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       repuestos,
       cargoTraslado,
       estadoPago,
+      montoAbonado: estadoPago === "fiado" ? montoAbonado : "",
       conIva,
       piezas,
     });
@@ -361,6 +363,23 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
           />
         </div>
       </div>
+
+      {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
+          dato saltando a Pagos después a anotarlo aparte. */}
+      {estadoPago === "fiado" && (
+        <label className="mt-4 block">
+          <span className="mb-2 block text-[13px] font-medium">
+            ¿Abonó algo ahora? (opcional)
+          </span>
+          <input
+            value={miles(montoAbonado)}
+            onChange={(e) => setMontoAbonado(soloDigitos(e.target.value))}
+            placeholder="40.000"
+            inputMode="numeric"
+            className={`${campoBase()} bg-card`}
+          />
+        </label>
+      )}
 
       <div className="mt-4">
         <RepuestosUsados piezas={piezas} onCambio={setPiezas} />

@@ -181,6 +181,7 @@ export async function cerrarOrden(datos: {
   repuestos: string;
   cargoTraslado: string;
   estadoPago: string;
+  montoAbonado?: string;
   conIva?: boolean;
   piezas?: RepuestoUsado[];
 }) {
@@ -210,6 +211,19 @@ export async function cerrarOrden(datos: {
     return { error: "Escribe qué se hizo." };
   }
 
+  // Si quedó fiado pero entregó algo ahora, el estado real es "abonado":
+  // debe una parte, no el total.
+  const montoAbonado = Math.min(
+    Math.max(Number(datos.montoAbonado) || 0, 0),
+    total
+  );
+  const estadoPago =
+    datos.estadoPago === "fiado" && montoAbonado > 0
+      ? "abonado"
+      : datos.estadoPago;
+  const abonado =
+    estadoPago === "pagado" ? total : estadoPago === "abonado" ? montoAbonado : 0;
+
   await db
     .update(trabajo)
     .set({
@@ -219,24 +233,25 @@ export async function cerrarOrden(datos: {
       cargoTraslado,
       iva,
       total,
-      estadoPago: datos.estadoPago,
-      abonado: datos.estadoPago === "pagado" ? total : 0,
-      fechaPago: datos.estadoPago === "pagado" ? new Date() : null,
+      estadoPago,
+      abonado,
+      fechaPago: estadoPago === "pagado" ? new Date() : null,
       estado: "terminado",
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, datos.ordenId), eq(trabajo.tallerId, tallerId)));
 
-  // Cerrar como pagado es un cobro y tiene que quedar registrado: si no,
-  // el trabajo figura pagado pero "Cobrado este mes" no lo cuenta.
+  // Cerrar como pagado o con abono es un cobro y tiene que quedar
+  // registrado: si no, el trabajo figura con plata recibida pero
+  // "Cobrado este mes" no lo cuenta.
   await db.delete(abono).where(eq(abono.trabajoId, datos.ordenId));
 
-  if (datos.estadoPago === "pagado" && total > 0) {
+  if (abonado > 0) {
     await db.insert(abono).values({
       id: crypto.randomUUID(),
       trabajoId: datos.ordenId,
-      monto: total,
-      nota: "Pagado al entregar",
+      monto: abonado,
+      nota: estadoPago === "pagado" ? "Pagado al entregar" : "Abono al entregar",
     });
   }
 
