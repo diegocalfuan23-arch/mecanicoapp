@@ -466,10 +466,11 @@ function EditarAbierta({
   const [kilometraje, setKilometraje] = useState(
     orden.kilometraje ? String(orden.kilometraje) : ""
   );
+  const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [guardado, setGuardado] = useState(false);
 
   async function guardar() {
-    await editarOrdenAbierta(orden.id, { sintoma, kilometraje });
+    await editarOrdenAbierta(orden.id, { sintoma, kilometraje, descripcion });
     setGuardado(true);
     setTimeout(() => setGuardado(false), 1500);
     router.refresh();
@@ -525,6 +526,27 @@ function EditarAbierta({
             placeholder="128.500"
             inputMode="numeric"
             className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        <label className="mt-4 block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">
+              Qué se está haciendo
+            </span>
+            <Dictar
+              onTexto={(texto) =>
+                setDescripcion((a) => (a ? `${a} ${texto}` : texto))
+              }
+            />
+          </div>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            onBlur={guardar}
+            placeholder="Se encontró fuga en el retén del cigüeñal, aparte del diagnóstico inicial"
+            rows={3}
+            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
         </label>
 
@@ -852,7 +874,11 @@ export function ListaOrdenes({
                   )}
                   {o.descripcion && (
                     <p className="text-[15px]">
-                      <span className="text-muted-foreground">Se hizo: </span>
+                      <span className="text-muted-foreground">
+                        {o.estado === "terminado" || o.estado === "entregado"
+                          ? "Se hizo: "
+                          : "Procedimiento: "}
+                      </span>
                       {o.descripcion}
                     </p>
                   )}

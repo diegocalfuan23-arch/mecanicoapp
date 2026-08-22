@@ -107,7 +107,7 @@ export async function abrirOrden(datos: {
  */
 export async function editarOrdenAbierta(
   ordenId: string,
-  datos: { sintoma: string; kilometraje: string }
+  datos: { sintoma: string; kilometraje: string; descripcion: string }
 ) {
   const tallerId = await tallerActual();
 
@@ -116,6 +116,7 @@ export async function editarOrdenAbierta(
     .set({
       sintoma: datos.sintoma.trim() || null,
       kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
+      descripcion: datos.descripcion.trim() || null,
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
