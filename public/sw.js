@@ -9,6 +9,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", () => {
-  // Sin manejo propio: deja pasar todas las peticiones a la red normal.
+self.addEventListener("fetch", (event) => {
+  // Chrome exige que el fetch handler responda de verdad para
+  // considerar la app instalable — un listener vacío no basta, aunque
+  // el resultado sea idéntico a no interceptar nada.
+  event.respondWith(fetch(event.request));
 });
