@@ -78,16 +78,26 @@ export default async function FichaVehiculo({
             {datos.copropietario && ` · también retira ${datos.copropietario}`}
           </p>
         </div>
-        {datos.telefono && (
-          <a
-            href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-          >
-            Escribirle
-          </a>
-        )}
+        <div className="flex shrink-0 gap-2">
+          {esPropio && (
+            <Link
+              href={`/panel/ordenes?abrir=${datos.id}`}
+              className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Nueva visita
+            </Link>
+          )}
+          {datos.telefono && (
+            <a
+              href={`https://wa.me/${datos.telefono.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+            >
+              Escribirle
+            </a>
+          )}
+        </div>
       </div>
 
       {/* En pantalla ancha, los datos del auto quedan a la izquierda y el

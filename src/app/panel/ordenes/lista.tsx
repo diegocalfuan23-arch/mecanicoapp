@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   abrirOrden,
   cambiarEstado,
@@ -70,14 +70,20 @@ function campoBase(error?: boolean) {
 
 function Abrir({
   vehiculos,
+  vehiculoIdInicial,
   onListo,
 }: {
   vehiculos: VehiculoOpcion[];
+  /** Al llegar desde "Nueva visita" en la ficha del vehículo. */
+  vehiculoIdInicial?: string;
   onListo: () => void;
 }) {
   const router = useRouter();
-  const [vehiculoId, setVehiculoId] = useState("");
-  const [kilometraje, setKilometraje] = useState("");
+  const [vehiculoId, setVehiculoId] = useState(vehiculoIdInicial ?? "");
+  const [kilometraje, setKilometraje] = useState(() => {
+    const v = vehiculos.find((x) => x.id === vehiculoIdInicial);
+    return v?.ultimoKilometraje ? String(v.ultimoKilometraje) : "";
+  });
   const [sintoma, setSintoma] = useState("");
   const [fotos, setFotos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -617,7 +623,11 @@ export function ListaOrdenes({
   vehiculos: VehiculoOpcion[];
 }) {
   const router = useRouter();
-  const [abriendo, setAbriendo] = useState(false);
+  const params = useSearchParams();
+  // Al llegar desde "Nueva visita" en la ficha del vehículo, con
+  // ?abrir=<id> en la URL: abre el formulario ya con ese auto puesto.
+  const vehiculoDesdeUrl = params.get("abrir");
+  const [abriendo, setAbriendo] = useState(!!vehiculoDesdeUrl);
   const [cerrando, setCerrando] = useState<string | null>(null);
   const [esperando, setEsperando] = useState<string | null>(null);
   const [editandoAbierta, setEditandoAbierta] = useState<string | null>(null);
@@ -642,7 +652,18 @@ export function ListaOrdenes({
   }
 
   if (abriendo) {
-    return <Abrir vehiculos={vehiculos} onListo={() => setAbriendo(false)} />;
+    return (
+      <Abrir
+        vehiculos={vehiculos}
+        vehiculoIdInicial={vehiculoDesdeUrl ?? undefined}
+        onListo={() => {
+          setAbriendo(false);
+          // Limpia el ?abrir= de la URL: un refresh no debe reabrir
+          // el formulario solo.
+          if (vehiculoDesdeUrl) router.replace("/panel/ordenes");
+        }}
+      />
+    );
   }
 
   return (

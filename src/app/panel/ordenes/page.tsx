@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { listarOrdenes, listarVehiculosParaOrden } from "./acciones";
 import { ListaOrdenes } from "./lista";
 
@@ -22,7 +23,9 @@ export default async function Ordenes() {
         </p>
       </div>
 
-      <ListaOrdenes ordenes={ordenes} vehiculos={vehiculos} />
+      <Suspense>
+        <ListaOrdenes ordenes={ordenes} vehiculos={vehiculos} />
+      </Suspense>
     </>
   );
 }
