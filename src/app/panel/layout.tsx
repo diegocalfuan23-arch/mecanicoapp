@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { BotonInstalar } from "@/components/boton-instalar";
 import { BotonSalir } from "./boton-salir";
 import { Sidebar, MenuMovil } from "./navegacion";
 
@@ -32,6 +33,7 @@ export default async function LayoutPanel({
             <span className="hidden max-w-40 truncate text-sm text-muted-foreground sm:block">
               {taller ?? sesion.user.name}
             </span>
+            <BotonInstalar />
             <BotonSalir />
           </div>
         </div>
