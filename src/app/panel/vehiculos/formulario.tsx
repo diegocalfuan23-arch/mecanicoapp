@@ -86,13 +86,17 @@ const texto = (v: string | number | null | undefined) =>
 export function FormularioVehiculo({
   onListo,
   vehiculo,
+  autoguardar = false,
 }: {
   onListo: () => void;
   /** Si viene, el formulario edita esa ficha en vez de crear una nueva. */
   vehiculo?: VehiculoEditable;
+  /** Guarda solo al salir de cada campo, sin botón "Guardar cambios". */
+  autoguardar?: boolean;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [guardado, setGuardado] = useState(false);
   const editando = !!vehiculo;
 
   const form = useFormik({
@@ -128,6 +132,13 @@ export function FormularioVehiculo({
         return;
       }
 
+      if (autoguardar) {
+        setGuardado(true);
+        setTimeout(() => setGuardado(false), 1500);
+        router.refresh();
+        return;
+      }
+
       form.resetForm();
       onListo();
       router.refresh();
@@ -136,6 +147,21 @@ export function FormularioVehiculo({
 
   const err = (campo: keyof typeof form.values) =>
     form.touched[campo] ? (form.errors[campo] as string | undefined) : undefined;
+
+  /**
+   * En modo autoguardar no hay botón "Guardar": cada onBlur dispara el
+   * submit si el campo quedó válido. Si quedó inválido, no se guarda —
+   * el error ya se muestra debajo del campo por `err()`.
+   */
+  async function alSalirDelCampo(
+    e: React.FocusEvent<HTMLInputElement>
+  ) {
+    form.handleBlur(e);
+    if (!autoguardar) return;
+
+    const errores = await form.validateForm();
+    if (Object.keys(errores).length === 0) form.submitForm();
+  }
 
   /**
    * `conMiles` muestra 3.020.220 mientras se escribe pero guarda los
@@ -161,7 +187,7 @@ export function FormularioVehiculo({
               ? form.setFieldValue(name, soloDigitos(e.target.value))
               : form.handleChange(e)
           }
-          onBlur={form.handleBlur}
+          onBlur={alSalirDelCampo}
           aria-invalid={!!err(name)}
           {...props}
           className={`w-full rounded-lg border bg-background px-4 py-2 text-[15px] transition-colors outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
@@ -187,7 +213,10 @@ export function FormularioVehiculo({
       <span className="mb-2 block text-[13px] font-medium">{etiqueta}</span>
       <Selector
         value={form.values[name] as string}
-        onChange={(v) => form.setFieldValue(name, v)}
+        onChange={async (v) => {
+          await form.setFieldValue(name, v);
+          if (autoguardar) form.submitForm();
+        }}
         placeholder="Sin especificar"
         opciones={opciones.map((o) => ({ valor: o, texto: o }))}
       />
@@ -263,7 +292,10 @@ export function FormularioVehiculo({
           type="checkbox"
           name="primeraVez"
           checked={form.values.primeraVez}
-          onChange={form.handleChange}
+          onChange={async (e) => {
+            form.handleChange(e);
+            if (autoguardar) form.submitForm();
+          }}
           className="size-4 accent-primary"
         />
         <span className="text-[15px]">Primera vez en el taller</span>
@@ -275,7 +307,10 @@ export function FormularioVehiculo({
             type="checkbox"
             name="comparteHistorial"
             checked={form.values.comparteHistorial}
-            onChange={form.handleChange}
+            onChange={async (e) => {
+              form.handleChange(e);
+              if (autoguardar) form.submitForm();
+            }}
             className="mt-1 size-4 shrink-0 accent-primary"
           />
           <span className="text-[15px]">
@@ -298,26 +333,45 @@ export function FormularioVehiculo({
         </p>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <button
-          type="submit"
-          disabled={form.isSubmitting}
-          className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {form.isSubmitting
-            ? "Guardando…"
-            : editando
-              ? "Guardar cambios"
-              : "Registrar vehículo"}
-        </button>
-        <button
-          type="button"
-          onClick={onListo}
-          className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
-        >
-          Cancelar
-        </button>
-      </div>
+      {autoguardar ? (
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-[13px] text-muted-foreground">
+            {form.isSubmitting
+              ? "Guardando…"
+              : guardado
+                ? "Guardado"
+                : "Los cambios se guardan solos"}
+          </span>
+          <button
+            type="button"
+            onClick={onListo}
+            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+          >
+            Volver
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <button
+            type="submit"
+            disabled={form.isSubmitting}
+            className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {form.isSubmitting
+              ? "Guardando…"
+              : editando
+                ? "Guardar cambios"
+                : "Registrar vehículo"}
+          </button>
+          <button
+            type="button"
+            onClick={onListo}
+            className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
     </form>
   );
 }

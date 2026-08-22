@@ -23,14 +23,16 @@ const COLUMNAS = [
   "Acciones",
 ];
 
-/** Ver la ficha, editarla o borrarla, tras los tres puntos. */
+/**
+ * Clic en la fila ya abre para editar (ver más abajo) — este menú
+ * queda solo para lo que no es "tocar y editar": ver el historial
+ * completo, o eliminar la ficha.
+ */
 function Acciones({
   v,
-  onEditar,
   onBorrar,
 }: {
   v: Vehiculo;
-  onEditar: () => void;
   onBorrar: () => void;
 }) {
   const [abierto, setAbierto] = useState(false);
@@ -82,7 +84,10 @@ function Acciones({
   return (
     <div ref={contenedor} className="relative">
       <button
-        onClick={alternar}
+        onClick={(e) => {
+          e.stopPropagation();
+          alternar();
+        }}
         aria-haspopup="menu"
         aria-expanded={abierto}
         aria-label={`Acciones de ${v.patente}`}
@@ -105,22 +110,14 @@ function Acciones({
             href={`/panel/historial/${v.id}`}
             role="menuitem"
             className={opcion}
+            onClick={(e) => e.stopPropagation()}
           >
-            Ver
+            Ver historial
           </Link>
           <button
             role="menuitem"
-            onClick={() => {
-              setAbierto(false);
-              onEditar();
-            }}
-            className={opcion}
-          >
-            Editar
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setAbierto(false);
               onBorrar();
             }}
@@ -185,6 +182,7 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                conserva los valores de la anterior. */
             key={editando?.id ?? "nuevo"}
             vehiculo={editando ?? undefined}
+            autoguardar={!!editando}
             onListo={() => {
               setAbierto(false);
               setEditando(null);
@@ -282,7 +280,8 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
             {filtrados.map((v) => (
               <li
                 key={v.id}
-                className="rounded-xl border border-border bg-card p-4"
+                onClick={() => setEditando(v)}
+                className="cursor-pointer rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-mono text-lg font-medium">
@@ -318,12 +317,8 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                   {v.copropietario ? ` · con ${v.copropietario}` : ""}
                 </p>
 
-                <div className="mt-4">
-                  <Acciones
-                    v={v}
-                    onEditar={() => setEditando(v)}
-                    onBorrar={() => setConfirmando(v)}
-                  />
+                <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                  <Acciones v={v} onBorrar={() => setConfirmando(v)} />
                 </div>
               </li>
             ))}
@@ -347,7 +342,8 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
               {filtrados.map((v) => (
                 <tr
                   key={v.id}
-                  className="border-b border-border last:border-0 hover:bg-card/50"
+                  onClick={() => setEditando(v)}
+                  className="cursor-pointer border-b border-border last:border-0 hover:bg-card/50"
                 >
                   <td className="px-4 py-4 font-mono font-medium whitespace-nowrap">
                     {v.patente}
@@ -399,12 +395,11 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <Acciones
-                      v={v}
-                      onEditar={() => setEditando(v)}
-                      onBorrar={() => setConfirmando(v)}
-                    />
+                  <td
+                    className="px-4 py-4 whitespace-nowrap"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Acciones v={v} onBorrar={() => setConfirmando(v)} />
                   </td>
                 </tr>
               ))}

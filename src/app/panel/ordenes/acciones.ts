@@ -99,6 +99,31 @@ export async function abrirOrden(datos: {
   return { ok: true, numero: ultimo + 1 };
 }
 
+/**
+ * Editar una orden que sigue abierta (ingresado / en proceso), sin
+ * cerrarla. Caso real: se diagnostica algo y después se encuentra un
+ * problema aparte — hasta ahora no había forma de anotarlo sin
+ * esperar a cerrar la orden del todo.
+ */
+export async function editarOrdenAbierta(
+  ordenId: string,
+  datos: { sintoma: string; kilometraje: string }
+) {
+  const tallerId = await tallerActual();
+
+  await db
+    .update(trabajo)
+    .set({
+      sintoma: datos.sintoma.trim() || null,
+      kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true };
+}
+
 export async function cambiarEstado(ordenId: string, estado: string) {
   const tallerId = await tallerActual();
 

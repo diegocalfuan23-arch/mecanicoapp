@@ -6,6 +6,7 @@ import {
   abrirOrden,
   cambiarEstado,
   cerrarOrden,
+  editarOrdenAbierta,
   esperarRepuesto,
   retomarTrabajo,
   type RepuestoUsado,
@@ -440,6 +441,94 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
   );
 }
 
+/**
+ * Editar una orden que sigue abierta, sin cerrarla — para cuando se
+ * encuentra algo aparte del diagnóstico inicial. Guarda solo al salir
+ * del campo, sin botón: no hay montos que calcular acá, a diferencia
+ * de Cerrar.
+ */
+function EditarAbierta({
+  orden,
+  onListo,
+}: {
+  orden: Orden;
+  onListo: () => void;
+}) {
+  const router = useRouter();
+  const [sintoma, setSintoma] = useState(orden.sintoma ?? "");
+  const [kilometraje, setKilometraje] = useState(
+    orden.kilometraje ? String(orden.kilometraje) : ""
+  );
+  const [guardado, setGuardado] = useState(false);
+
+  async function guardar() {
+    await editarOrdenAbierta(orden.id, { sintoma, kilometraje });
+    setGuardado(true);
+    setTimeout(() => setGuardado(false), 1500);
+    router.refresh();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Cerrar"
+        onClick={onListo}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
+        <label className="block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">
+              Qué reporta el cliente
+            </span>
+            <Dictar
+              onTexto={(texto) =>
+                setSintoma((a) => (a ? `${a} ${texto}` : texto))
+              }
+            />
+          </div>
+          <textarea
+            value={sintoma}
+            onChange={(e) => setSintoma(e.target.value)}
+            onBlur={guardar}
+            placeholder="Suena adelante al frenar"
+            rows={3}
+            autoFocus
+            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        <label className="mt-4 block">
+          <span className="mb-2 block text-[13px] font-medium">
+            Kilometraje
+          </span>
+          <input
+            value={miles(kilometraje)}
+            onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
+            onBlur={guardar}
+            placeholder="128.500"
+            inputMode="numeric"
+            className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <span className="text-[13px] text-muted-foreground">
+            {guardado ? "Guardado" : "Los cambios se guardan solos"}
+          </span>
+          <button
+            type="button"
+            onClick={onListo}
+            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** El auto se va del taller: pide qué repuesto se está esperando. */
 function EsperarRepuesto({
   ordenId,
@@ -531,6 +620,7 @@ export function ListaOrdenes({
   const [abriendo, setAbriendo] = useState(false);
   const [cerrando, setCerrando] = useState<string | null>(null);
   const [esperando, setEsperando] = useState<string | null>(null);
+  const [editandoAbierta, setEditandoAbierta] = useState<string | null>(null);
   const [retomando, setRetomando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("abiertas");
 
@@ -605,13 +695,18 @@ export function ListaOrdenes({
           {visibles.map((o) => {
             const saldo = o.total - o.abonado;
             const editando = cerrando === o.id;
+            const puedeEditarAbierta =
+              o.estado === "ingresado" || o.estado === "en_proceso";
 
             return (
               <li
                 key={o.id}
+                onClick={
+                  puedeEditarAbierta ? () => setEditandoAbierta(o.id) : undefined
+                }
                 className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
                   editando ? "sm:col-span-2 xl:col-span-3" : ""
-                }`}
+                } ${puedeEditarAbierta ? "cursor-pointer transition-colors hover:border-primary/40" : ""}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[13px] text-muted-foreground">
@@ -655,7 +750,10 @@ export function ListaOrdenes({
                     </p>
                   )}
                   {o.fotos.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div
+                      className="flex flex-wrap gap-1 pt-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {o.fotos.map((url) => (
                         <a key={url} href={url} target="_blank" rel="noreferrer">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -701,7 +799,10 @@ export function ListaOrdenes({
                   </div>
                 )}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div
+                  className="mt-4 flex flex-wrap gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {o.estado === "ingresado" && (
                     <button
                       onClick={() => avanzar(o.id, "en_proceso")}
@@ -768,6 +869,12 @@ export function ListaOrdenes({
                   <EsperarRepuesto
                     ordenId={o.id}
                     onListo={() => setEsperando(null)}
+                  />
+                )}
+                {editandoAbierta === o.id && (
+                  <EditarAbierta
+                    orden={o}
+                    onListo={() => setEditandoAbierta(null)}
                   />
                 )}
               </li>
