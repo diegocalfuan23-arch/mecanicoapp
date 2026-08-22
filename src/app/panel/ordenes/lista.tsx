@@ -475,11 +475,20 @@ function EditarAbierta({
     router.refresh();
   }
 
+  // El botón "Volver" competía con el onBlur del campo enfocado: al
+  // tocarlo, el blur disparaba guardar() (async) al mismo tiempo que
+  // el click, y el re-render de por medio hacía que el click se
+  // perdiera. Guardar primero y recién ahí cerrar evita la carrera.
+  async function volver() {
+    await guardar();
+    onListo();
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         aria-label="Cerrar"
-        onClick={onListo}
+        onClick={volver}
         className="absolute inset-0 bg-black/60"
       />
       <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
@@ -525,7 +534,7 @@ function EditarAbierta({
           </span>
           <button
             type="button"
-            onClick={onListo}
+            onClick={volver}
             className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
           >
             Volver
@@ -559,11 +568,18 @@ function EditarDescripcion({
     router.refresh();
   }
 
+  // Ver el comentario equivalente en EditarAbierta: guardar antes de
+  // cerrar evita que el blur y el click compitan por el re-render.
+  async function volver() {
+    await guardar();
+    onListo();
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         aria-label="Cerrar"
-        onClick={onListo}
+        onClick={volver}
         className="absolute inset-0 bg-black/60"
       />
       <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
@@ -593,7 +609,7 @@ function EditarDescripcion({
           </span>
           <button
             type="button"
-            onClick={onListo}
+            onClick={volver}
             className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
           >
             Volver
