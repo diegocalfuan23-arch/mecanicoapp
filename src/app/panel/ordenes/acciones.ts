@@ -124,6 +124,23 @@ export async function editarOrdenAbierta(
   return { ok: true };
 }
 
+/**
+ * Corregir "qué se hizo" en una orden ya Terminada o Entregada —
+ * caso real: se acuerda de algo que faltó anotar después de cerrar.
+ * No toca montos: eso quedó calculado al cerrar y no se recalcula.
+ */
+export async function editarDescripcion(ordenId: string, descripcion: string) {
+  const tallerId = await tallerActual();
+
+  await db
+    .update(trabajo)
+    .set({ descripcion: descripcion.trim() || null, updatedAt: new Date() })
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true };
+}
+
 export async function cambiarEstado(ordenId: string, estado: string) {
   const tallerId = await tallerActual();
 

@@ -6,6 +6,7 @@ import {
   abrirOrden,
   cambiarEstado,
   cerrarOrden,
+  editarDescripcion,
   editarOrdenAbierta,
   esperarRepuesto,
   retomarTrabajo,
@@ -535,6 +536,74 @@ function EditarAbierta({
   );
 }
 
+/**
+ * Corregir "qué se hizo" en una orden ya Terminada o Entregada — se
+ * acordó de algo que faltó anotar después de cerrar. Sin montos: eso
+ * ya quedó calculado al cerrar.
+ */
+function EditarDescripcion({
+  orden,
+  onListo,
+}: {
+  orden: Orden;
+  onListo: () => void;
+}) {
+  const router = useRouter();
+  const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
+  const [guardado, setGuardado] = useState(false);
+
+  async function guardar() {
+    await editarDescripcion(orden.id, descripcion);
+    setGuardado(true);
+    setTimeout(() => setGuardado(false), 1500);
+    router.refresh();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Cerrar"
+        onClick={onListo}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
+        <label className="block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">Qué se hizo</span>
+            <Dictar
+              onTexto={(texto) =>
+                setDescripcion((a) => (a ? `${a} ${texto}` : texto))
+              }
+            />
+          </div>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            onBlur={guardar}
+            placeholder="Cambio de pastillas delanteras y rectificado de discos"
+            rows={3}
+            autoFocus
+            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <span className="text-[13px] text-muted-foreground">
+            {guardado ? "Guardado" : "Los cambios se guardan solos"}
+          </span>
+          <button
+            type="button"
+            onClick={onListo}
+            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** El auto se va del taller: pide qué repuesto se está esperando. */
 function EsperarRepuesto({
   ordenId,
@@ -631,6 +700,9 @@ export function ListaOrdenes({
   const [cerrando, setCerrando] = useState<string | null>(null);
   const [esperando, setEsperando] = useState<string | null>(null);
   const [editandoAbierta, setEditandoAbierta] = useState<string | null>(null);
+  const [editandoDescripcion, setEditandoDescripcion] = useState<
+    string | null
+  >(null);
   const [retomando, setRetomando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("abiertas");
 
@@ -718,16 +790,22 @@ export function ListaOrdenes({
             const editando = cerrando === o.id;
             const puedeEditarAbierta =
               o.estado === "ingresado" || o.estado === "en_proceso";
+            const puedeEditarDescripcion =
+              o.estado === "terminado" || o.estado === "entregado";
 
             return (
               <li
                 key={o.id}
                 onClick={
-                  puedeEditarAbierta ? () => setEditandoAbierta(o.id) : undefined
+                  puedeEditarAbierta
+                    ? () => setEditandoAbierta(o.id)
+                    : puedeEditarDescripcion
+                      ? () => setEditandoDescripcion(o.id)
+                      : undefined
                 }
                 className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
                   editando ? "sm:col-span-2 xl:col-span-3" : ""
-                } ${puedeEditarAbierta ? "cursor-pointer transition-colors hover:border-primary/40" : ""}`}
+                } ${puedeEditarAbierta || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[13px] text-muted-foreground">
@@ -896,6 +974,12 @@ export function ListaOrdenes({
                   <EditarAbierta
                     orden={o}
                     onListo={() => setEditandoAbierta(null)}
+                  />
+                )}
+                {editandoDescripcion === o.id && (
+                  <EditarDescripcion
+                    orden={o}
+                    onListo={() => setEditandoDescripcion(null)}
                   />
                 )}
               </li>
