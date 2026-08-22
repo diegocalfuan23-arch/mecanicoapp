@@ -2,19 +2,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { tallerActual } from "@/lib/taller";
-import { listarEquipo } from "./equipo";
 import { PanelDatos } from "./panel-datos";
-import { Equipo } from "./equipo-ui";
 
 export default async function Cuenta() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
-
-  // Un ayudante no gestiona el equipo — solo el dueño, para quien
-  // tallerActual() coincide con su propio id.
-  const esDueno = (await tallerActual()) === sesion.user.id;
-  const miembros = esDueno ? await listarEquipo() : [];
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -24,12 +16,6 @@ export default async function Cuenta() {
           {sesion.user.email}
         </p>
       </div>
-
-      {esDueno && (
-        <div className="mb-6">
-          <Equipo miembros={miembros} />
-        </div>
-      )}
 
       <PanelDatos correo={sesion.user.email} />
 

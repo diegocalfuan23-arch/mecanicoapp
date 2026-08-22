@@ -19,6 +19,16 @@ Confirmado por WhatsApp el 20-08-2026, mensajes sueltos de Boris:
   quedó claro si el mensaje significa que el precio varía por plan o
   que a él el monto le pareció relativo/negociable. Confirmar en algún
   momento.)
+
+  **Verificado (22-08-2026):** el precio base público de GestionCar es
+  **2 UF + IVA**. Con la UF a $40.862 (21-08-2026), eso son
+  $81.724 + IVA (19%) = **~$97.252/mes** — casi el doble de los
+  $50.000 que mencionó Boris. Puede ser que: (a) los $50.000 fueran una
+  cifra aproximada suya, (b) tuvieran un plan más chico o un precio
+  histórico distinto al actual, o (c) el precio público subió desde
+  que ellos contrataron. **No asumir ninguna sin confirmar con Boris.**
+  Sirve como referencia de mercado (2 UF+IVA es lo que cobra hoy un
+  competidor directo), no como precio a igualar todavía.
 - **Por qué lo abandonaron — motivo único y concreto:** "El software
   GestionCar no cumplía con impresión de órdenes de trabajos." No fue
   precio ni funciones faltantes en general — fue específicamente que
@@ -174,6 +184,11 @@ contenido del formato, no de la función de imprimir en sí. Esto
 refuerza por qué pidió específicamente una orden "híbrida" con esos
 campos: no es una función nueva rara, es replicar en digital lo que ya
 tienen en papel y que el software anterior no logró calcar bien.
+
+**Dejó la puerta abierta (22-08-2026):** Boris invitó a escribirle "por
+cualquier cosa" — igual que Tío Lalo. Se puede seguir la conversación
+con preguntas puntuales (como el precio real de GestionCar, arriba)
+sin necesitar una excusa grande ni esperar a la próxima visita.
 
 ## Siguiente paso
 

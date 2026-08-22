@@ -87,6 +87,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/equipo",
+    texto: "Equipo",
+    icono: (
+      <path
+        d="M7 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM13 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM2.5 16c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5M11 12.8c2 .2 3.5 1.4 3.5 3.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/pagos",
     texto: "Pagos",
     icono: (

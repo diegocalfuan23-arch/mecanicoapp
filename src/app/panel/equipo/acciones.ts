@@ -61,7 +61,7 @@ export async function agregarAyudante(datos: {
     rol: "ayudante",
   });
 
-  revalidatePath("/panel/cuenta");
+  revalidatePath("/panel/equipo");
   return { ok: true };
 }
 
@@ -72,5 +72,5 @@ export async function quitarAyudante(miembroId: string) {
     .delete(miembroTaller)
     .where(and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId)));
 
-  revalidatePath("/panel/cuenta");
+  revalidatePath("/panel/equipo");
 }
