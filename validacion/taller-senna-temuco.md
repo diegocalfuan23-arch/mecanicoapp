@@ -115,6 +115,34 @@ Sube el peso de esto como candidato a construir para ese segmento —
 a diferencia de la orden impresa con diagrama
 de daños, que sigue siendo de un solo taller.
 
+## Pedido nuevo: buscar patente a nivel nacional y conectar proveedores
+
+Distinto a lo anterior — esto no es algo que GestionCar ya hiciera,
+es lo que Boris pidió que **MecanicoApp** tuviera:
+
+- **Buscar la patente a nivel nacional**, no solo contra lo que el
+  propio taller (o los talleres que comparten historial) ya cargó. Hoy
+  el historial compartido de MecanicoApp solo cruza contra vehículos
+  que otro taller usando la app ya registró — si la patente no está en
+  ningún taller de la plataforma, no hay nada que mostrar. Lo que pide
+  Boris es distinto: traer datos del vehículo (marca, modelo, año,
+  posiblemente dueño) desde un registro nacional externo, aunque nadie
+  lo haya cargado antes en MecanicoApp — la misma función que GestionCar
+  sí tenía y él ya conocía y valoraba.
+- **Que la app se conecte con proveedores online** — sin más detalle
+  todavía de qué significa exactamente (¿cotizar repuestos automático?
+  ¿pedir directo desde la app? ¿ver precios de varios proveedores?).
+  Falta preguntarle qué proveedores tiene en mente y qué problema
+  puntual resolvería — por ahora es una idea suelta, no un requisito
+  claro.
+
+**Por qué importa:** la búsqueda por patente nacional depende de una
+fuente de datos externa (probablemente el Registro Civil o el SII, si
+existe una API pública o de pago) — es un cambio de infraestructura,
+no una función de UI. No hay que asumir que es fácil ni barato de
+construir sin investigar primero si existe una fuente de datos
+accesible en Chile para esto.
+
 ## Lo que falta preguntarle
 
 - Las cuatro preguntas base del guion (deudas, historial de vehículo

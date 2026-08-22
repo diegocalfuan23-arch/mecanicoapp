@@ -1,7 +1,9 @@
-# Visita a Carserv — viernes 21-08-2026, 17:30
+# Visita a Carserv — reagendada para el lunes 24-08-2026
 
-Mismo día, 16:00: segunda visita a Tío Lalo. Carserv queda después,
-sin cruce de horario.
+Estado (22-08-2026): la cita del viernes 21 a las 17:30 se reagendó.
+Cristopher escribió el mismo viernes ("¡Hola Diego!") y se coordinó
+pasar a la semana siguiente — puede ser online o presencial, hora por
+confirmar, tentativamente el lunes.
 
 Contacto: Cristopher (cristopher@carserv.cl). Llegó por mensaje frío,
 respondido primero por "Marcela" (bot automático) y derivado al dueño.

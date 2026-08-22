@@ -1,20 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { vehiculo, cliente, trabajo } from "@/db/schema";
+import { tallerActual } from "@/lib/taller";
 
 function id() {
   return crypto.randomUUID();
-}
-
-async function tallerActual() {
-  const sesion = await auth.api.getSession({ headers: await headers() });
-  if (!sesion) throw new Error("Sin sesión");
-  return sesion.user.id;
 }
 
 export type DatosVehiculo = {

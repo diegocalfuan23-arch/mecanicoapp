@@ -37,6 +37,31 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/**
+ * Un ayudante que trabaja en el taller pero tiene su propia cuenta
+ * para iniciar sesión. El dueño no necesita fila acá: para él,
+ * tallerId es directamente su propio user.id (como siempre fue). Un
+ * ayudante en cambio ve y trabaja sobre los datos de tallerId, aunque
+ * su sesión sea con su propio userId.
+ */
+export const miembroTaller = pgTable(
+  "miembro_taller",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" })
+      .unique(),
+    // ayudante — único rol por ahora, sin permisos diferenciados.
+    rol: text("rol").notNull().default("ayudante"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("miembro_taller_taller_idx").on(t.tallerId)]
+);
+
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
   userId: text("user_id")

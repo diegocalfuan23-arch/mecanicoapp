@@ -1,17 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { eq, and, ne, sql, desc, gte } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { trabajo, vehiculo, cliente, abono } from "@/db/schema";
-
-async function tallerActual() {
-  const sesion = await auth.api.getSession({ headers: await headers() });
-  if (!sesion) throw new Error("Sin sesión");
-  return sesion.user.id;
-}
+import { tallerActual } from "@/lib/taller";
 
 /** Trabajos con saldo pendiente: los fiados y los abonados a medias. */
 export async function listarDeudas() {

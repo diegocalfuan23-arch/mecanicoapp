@@ -14,6 +14,86 @@ Esta visita tiene dos objetivos, en este orden:
 
 ---
 
+## Resultado de la visita (21-08-2026)
+
+Ya había usado la app de verdad antes de esta visita (ver la sección
+"Lo que ya sabemos" más abajo) — llegó a la reunión con 4 órdenes
+reales cargadas, clientes distintos, montos distintos. La visita
+confirmó que la sigue usando y salieron pedidos nuevos, anotados al
+vuelo durante la conversación:
+
+**El asistente por voz sí lo usó y le sirvió — validación directa:**
+
+> "Buscaba la patente y la IA me leyó todo lo anotado del vehículo."
+
+Es la confirmación exacta de lo que pidió en la primera visita ("IA
+operacional") y que se construyó como el botón "Preguntar" de solo
+lectura. Funcionó como se pensó. Además pidió más: "Dictarse sería
+práctico" — quiere dictar, no solo consultar. Hoy el dictado por voz
+ya existe en varios campos (síntoma, descripción al cerrar) — falta
+confirmar si se refiere a algo que no encontró o a extender el dictado
+a más lugares.
+
+**Editar una orden después de cerrada / no cerrarla de inmediato:**
+
+> "Encontré otras cosas aparte del diagnóstico" → "No se cierre el
+> trabajo de inmediato" → "Editar de órdenes de trabajo"
+
+Le pasó en el trabajo real: diagnosticó algo, después encontró un
+problema adicional, y quiso agregarlo sin que la orden quedara cerrada
+todavía. Hoy `cerrarOrden` deja el trabajo en estado "terminado" sin
+vuelta atrás fácil. Esto es un caso de uso real, con ejemplo concreto
+(un retén de cigüeñal con fuga, encontrado aparte del diagnóstico
+inicial) — vale la pena revisar el flujo de "orden en proceso, se
+agrega más" antes de cerrarla del todo.
+
+**Reingreso del mismo vehículo / varias visitas en el tiempo:**
+
+> "Reingresar vehículo" → "Cuando llegue de nuevo" → "Agregar segundo
+> chequeo" → "Ingresar más visitas" → "2da, tercera, 4ta, 5ta"
+
+Parece pedir una forma más fluida de abrir una nueva orden para un
+vehículo que ya pasó antes por el taller, sin tener que cargar todo de
+cero — el historial ya existe (ficha del vehículo), pero el flujo de
+"abrir una orden nueva para un auto conocido" podría no ser obvio
+desde ahí. Confirmar en la próxima conversación qué paso específico le
+costó.
+
+**Tío Lalo tiene ayudantes — dato nuevo, cambia el perfil del taller:**
+
+> "Roles" → "Agregar equipo de trabajo"
+
+Confirmado (22-08-2026): "los roles son para sus ayudantes,
+netamente". Hasta ahora se pensaba a Tío Lalo como taller de una sola
+persona — no lo es. Esto conecta directo con la limitación ya conocida
+(una cuenta = un taller, sin usuarios separados por persona) que se
+había anotado como posible problema solo para talleres grandes tipo
+Senna. **Ya no es exclusivo de talleres grandes**: si Tío Lalo también
+lo necesita, es un problema más transversal de lo pensado. Sube de
+prioridad.
+
+**Imprimir órdenes de trabajo — coincide con Senna:**
+
+> "Imprimir órdenes de trabajo"
+
+Segundo taller que lo pide, de forma independiente. Con Senna había
+quedado como "necesidad de un solo taller, no construir todavía". Con
+esta segunda mención (aunque sin el mismo detalle del diagrama de
+daños que pidió Senna), vale la pena revisar esa decisión.
+
+**Decisión (22-08-2026): imprimir queda como función de un plan
+superior/pago, no del plan base.** Los dos talleres que lo pidieron
+(Senna, Tío Lalo con ayudantes) son perfiles más grandes o
+establecidos, no el taller de una sola persona sin estructura. Con
+esto se separa: el plan base sigue enfocado en lo que ya valida bien
+(historial, deudas, repuestos con ganancia), y la impresión se guarda
+para cuando exista una definición de planes por nivel de taller.
+
+**Sin contexto claro, a confirmar:**
+
+- "Clic para ver vehículos" — posible fricción de navegación, no
+  quedó claro qué buscaba exactamente.
+
 ## 0. Lo que ya sabemos sin preguntarle
 
 **Sí la probó, solo.** La cuenta la creó él, no nosotros. Todo la

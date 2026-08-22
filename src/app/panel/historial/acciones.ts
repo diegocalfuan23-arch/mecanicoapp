@@ -1,16 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import { eq, and, or, ne, ilike, desc, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { vehiculo, cliente, trabajo, user } from "@/db/schema";
-
-async function tallerActual() {
-  const sesion = await auth.api.getSession({ headers: await headers() });
-  if (!sesion) throw new Error("Sin sesión");
-  return sesion.user.id;
-}
+import { tallerActual } from "@/lib/taller";
 
 export type ResultadoBusqueda = {
   id: string;

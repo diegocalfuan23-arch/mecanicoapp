@@ -1,17 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { eq, and, sql, desc } from "drizzle-orm";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { cliente, vehiculo, trabajo } from "@/db/schema";
-
-async function tallerActual() {
-  const sesion = await auth.api.getSession({ headers: await headers() });
-  if (!sesion) throw new Error("Sin sesión");
-  return sesion.user.id;
-}
+import { tallerActual } from "@/lib/taller";
 
 export async function listarPropietarios() {
   const tallerId = await tallerActual();
