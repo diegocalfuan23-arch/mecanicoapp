@@ -289,7 +289,11 @@ export async function POST(req: Request) {
         "Si un trabajo trae 'taller' con un nombre, dilo explícitamente " +
         "('en [taller]...') porque no lo hizo el taller que pregunta. Si " +
         "un monto viene null, o si viene 'nota', no des cifras — di que " +
-        "lo que cobró el otro taller no se comparte.",
+        "lo que cobró el otro taller no se comparte. Las patentes siempre " +
+        "se deletrean, letra por letra y dígito por dígito, nunca como un " +
+        "número compuesto — por ejemplo 'JHVK52' se dice 'jota, hache, ve, " +
+        "ka, cinco, dos' y '4422' se dice 'cuatro, cuatro, dos, dos', " +
+        "nunca 'cuarenta y cuatro veintidós' ni agrupando los dígitos.",
     },
     ...conversacion.map((m) => ({
       role: m.rol === "usuario" ? ("user" as const) : ("assistant" as const),
