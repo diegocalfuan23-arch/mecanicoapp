@@ -14,6 +14,7 @@ export async function listarOrdenes() {
       id: trabajo.id,
       numero: trabajo.numero,
       sintoma: trabajo.sintoma,
+      diagnostico: trabajo.diagnostico,
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
       fotos: trabajo.fotos,
@@ -107,7 +108,12 @@ export async function abrirOrden(datos: {
  */
 export async function editarOrdenAbierta(
   ordenId: string,
-  datos: { sintoma: string; kilometraje: string; descripcion: string }
+  datos: {
+    sintoma: string;
+    kilometraje: string;
+    diagnostico: string;
+    descripcion: string;
+  }
 ) {
   const tallerId = await tallerActual();
 
@@ -116,6 +122,7 @@ export async function editarOrdenAbierta(
     .set({
       sintoma: datos.sintoma.trim() || null,
       kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
+      diagnostico: datos.diagnostico.trim() || null,
       descripcion: datos.descripcion.trim() || null,
       updatedAt: new Date(),
     })

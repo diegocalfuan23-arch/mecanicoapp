@@ -23,6 +23,7 @@ type Orden = {
   id: string;
   numero: number;
   sintoma: string | null;
+  diagnostico: string | null;
   descripcion: string | null;
   kilometraje: number | null;
   fotos: string[];
@@ -466,11 +467,17 @@ function EditarAbierta({
   const [kilometraje, setKilometraje] = useState(
     orden.kilometraje ? String(orden.kilometraje) : ""
   );
+  const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [guardado, setGuardado] = useState(false);
 
   async function guardar() {
-    await editarOrdenAbierta(orden.id, { sintoma, kilometraje, descripcion });
+    await editarOrdenAbierta(orden.id, {
+      sintoma,
+      kilometraje,
+      diagnostico,
+      descripcion,
+    });
     setGuardado(true);
     setTimeout(() => setGuardado(false), 1500);
     router.refresh();
@@ -531,6 +538,25 @@ function EditarAbierta({
 
         <label className="mt-4 block">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">Diagnóstico</span>
+            <Dictar
+              onTexto={(texto) =>
+                setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
+              }
+            />
+          </div>
+          <textarea
+            value={diagnostico}
+            onChange={(e) => setDiagnostico(e.target.value)}
+            onBlur={guardar}
+            placeholder="Retenes de la caja desgastados, causando la fuga"
+            rows={2}
+            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </label>
+
+        <label className="mt-4 block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[13px] font-medium">
               Qué se está haciendo
             </span>
@@ -544,7 +570,7 @@ function EditarAbierta({
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             onBlur={guardar}
-            placeholder="Se encontró fuga en el retén del cigüeñal, aparte del diagnóstico inicial"
+            placeholder="Se desarmó la caja y se fue a comprar los retenes"
             rows={3}
             className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
@@ -870,6 +896,14 @@ export function ListaOrdenes({
                     <p className="text-[15px]">
                       <span className="text-muted-foreground">Reporta: </span>
                       {o.sintoma}
+                    </p>
+                  )}
+                  {o.diagnostico && (
+                    <p className="text-[15px]">
+                      <span className="text-muted-foreground">
+                        Diagnóstico:{" "}
+                      </span>
+                      {o.diagnostico}
                     </p>
                   )}
                   {o.descripcion && (

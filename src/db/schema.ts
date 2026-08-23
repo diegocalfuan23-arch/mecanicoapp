@@ -193,6 +193,9 @@ export const trabajo = pgTable(
 
     // Lo que el cliente reporta al dejar el auto, con sus palabras
     sintoma: text("sintoma"),
+    // Qué se encontró que causa el síntoma — distinto del síntoma
+    // (lo que dice el cliente) y de la descripción (lo que se hace).
+    diagnostico: text("diagnostico"),
     // Lo que efectivamente se hizo; se completa al cerrar la orden
     descripcion: text("descripcion"),
     kilometraje: integer("kilometraje"),
