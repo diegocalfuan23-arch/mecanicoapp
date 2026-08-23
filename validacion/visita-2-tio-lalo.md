@@ -98,6 +98,15 @@ para cuando exista una definición de planes por nivel de taller.
 - **Plan Serviteca** — perfil Senna (con equipo, inventario). Incluye
   imprimir la orden con checklist de recepción, diagrama de daños,
   firma del cliente y logo del taller — el formato completo que pidió.
+
+**Actualización (23-08-2026): el inventario ya se construyó** (sección
+"Inventario" en el sidebar, descuento automático al cerrar orden —
+ver commit `cd19370`). Queda confirmado que se reserva para el Plan
+Serviteca, no el plan base — pendiente técnico: cuando exista lógica
+de planes real, ocultar esa sección del sidebar (y el descuento de
+stock) para talleres en Plan Taller. Por ahora sigue visible para
+todos porque no hay ningún taller pagando y no hay urgencia de
+restringirlo — Tío Lalo simplemente no la usa.
 - **Plan Empresarial** — cadenas, a medida. Sin validar con nadie
   todavía, especulativo (pensado para el tipo de flujo institucional
   que mencionó Pipe con la municipalidad: cotizaciones, órdenes de

@@ -1,14 +1,9 @@
-# Visita a Carserv — reagendada para el lunes 24-08-2026
+# Visita a Carserv — CONFIRMADA lunes 24-08-2026, 11:00
 
-Estado (22-08-2026): la cita del viernes 21 a las 17:30 se reagendó.
-Cristopher escribió el mismo viernes ("¡Hola Diego!") y se coordinó
-pasar a la semana siguiente — puede ser online o presencial, hora por
-confirmar, tentativamente el lunes. Mencionó su oficina como posible
-lugar si es presencial, pero **todavía no dio la dirección** — falta
-preguntarla si confirma que prefiere presencial.
-
-Mensaje enviado sábado 22-08-2026 ~20:46 pidiendo hora concreta para
-el lunes, sin respuesta todavía.
+Estado (23-08-2026): Cristopher confirmó "el lunes a las 11am" y
+reiteró que puede ser online o presencial — queda pendiente decidir
+cuál de las dos y avisarle. Si es presencial, falta pedirle la
+dirección de su oficina (la mencionó antes pero nunca la dio).
 
 Contacto: Cristopher (cristopher@carserv.cl). Llegó por mensaje frío,
 respondido primero por "Marcela" (bot automático) y derivado al dueño.

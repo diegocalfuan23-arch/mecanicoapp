@@ -1,7 +1,17 @@
 # Serviteca Senna (Omega Serviteca SpA) — Temuco
 
 Visita presencial el 20-08-2026, 9:30. Bernardo O'Higgins 0860, Temuco.
-Contacto: Boris H. A diferencia de Tío Lalo y Pipe, **Senna ya pagó por
+
+**Corrección (23-08-2026): quien habló en la visita es don Daniel, el
+dueño de Senna — no Boris.** Los mensajes de WhatsApp firmados "Boris
+H." en este documento son las notas que Diego fue tomando en tiempo
+real durante la visita presencial, usando ese chat como bloc de notas
+(mismo patrón que se hizo después con "otto" en Mi cuenta). Todas las
+citas de "Boris" de aquí en adelante son en realidad palabras de don
+Daniel. El contacto real para seguir la conversación es Daniel, dueño
+de Senna — no hay un "Boris" en el taller.
+
+A diferencia de Tío Lalo y Pipe, **Senna ya pagó por
 un software de gestión** — GestionCar — y lo dejó. Es la primera
 validación real contra un producto de la competencia, no solo contra
 la memoria o el cuaderno.
