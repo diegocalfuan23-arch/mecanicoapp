@@ -309,48 +309,115 @@ export function TablaInventario({ insumos }: { insumos: Insumo[] }) {
           </button>
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {insumos.map((i) => {
-            const bajo = i.stock <= i.stockMinimo && i.stockMinimo > 0;
-            return (
-              <li
-                key={i.id}
-                onClick={() => setEditando(i)}
-                className="flex min-w-0 cursor-pointer flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 sm:p-6"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="truncate font-medium">{i.nombre}</p>
-                  {bajo && (
-                    <span className="shrink-0 rounded-full bg-acento/15 px-2 py-1 text-[12px] font-medium text-acento">
-                      Queda poco
-                    </span>
-                  )}
-                </div>
-                {i.codigo && (
-                  <p className="mt-1 truncate text-[13px] text-muted-foreground">
-                    {i.codigo}
-                  </p>
-                )}
-                <p className="mt-4 text-2xl font-bold">{i.stock}</p>
-                <p className="text-[13px] text-muted-foreground">
-                  en stock
-                </p>
-                <p className="mt-4 text-[13px] text-muted-foreground">
-                  Cuesta {pesos(i.costo)} · cobras {pesos(i.precio)}
-                </p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmando(i);
-                  }}
-                  className="mt-4 self-start text-[13px] text-muted-foreground underline underline-offset-4 hover:text-destructive"
+        <>
+          {/* En el teléfono, cada insumo es una tarjeta — la tabla de
+              escritorio obligaría a arrastrar de lado. */}
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:hidden">
+            {insumos.map((i) => {
+              const bajo = i.stock <= i.stockMinimo && i.stockMinimo > 0;
+              return (
+                <li
+                  key={i.id}
+                  onClick={() => setEditando(i)}
+                  className="flex min-w-0 cursor-pointer flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 sm:p-6"
                 >
-                  Eliminar
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="truncate font-medium">{i.nombre}</p>
+                    {bajo && (
+                      <span className="shrink-0 rounded-full bg-acento/15 px-2 py-1 text-[12px] font-medium text-acento">
+                        Queda poco
+                      </span>
+                    )}
+                  </div>
+                  {i.codigo && (
+                    <p className="mt-1 truncate text-[13px] text-muted-foreground">
+                      {i.codigo}
+                    </p>
+                  )}
+                  <p className="mt-4 text-2xl font-bold">{i.stock}</p>
+                  <p className="text-[13px] text-muted-foreground">
+                    en stock
+                  </p>
+                  <p className="mt-4 text-[13px] text-muted-foreground">
+                    Cuesta {pesos(i.costo)} · cobras {pesos(i.precio)}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmando(i);
+                    }}
+                    className="mt-4 self-start text-[13px] text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                  >
+                    Eliminar
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="scroll-discreto mt-6 hidden overflow-x-auto rounded-xl border border-border lg:block">
+            <table className="w-full border-collapse text-[14px]">
+              <thead>
+                <tr className="border-b border-border bg-card">
+                  {["Nombre", "Código", "Stock", "Costo", "Precio", "Acciones"].map(
+                    (c) => (
+                      <th
+                        key={c}
+                        className="px-4 py-4 text-left font-medium whitespace-nowrap text-muted-foreground"
+                      >
+                        {c}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {insumos.map((i) => {
+                  const bajo = i.stock <= i.stockMinimo && i.stockMinimo > 0;
+                  return (
+                    <tr
+                      key={i.id}
+                      onClick={() => setEditando(i)}
+                      className="cursor-pointer border-b border-border last:border-0 hover:bg-card/50"
+                    >
+                      <td className="px-4 py-4 font-medium whitespace-nowrap">
+                        {i.nombre}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-muted-foreground">
+                        {i.codigo ?? "—"}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                        {i.stock}
+                        {bajo && (
+                          <span className="ml-2 rounded-full bg-acento/15 px-2 py-1 font-sans text-[12px] font-medium text-acento">
+                            Queda poco
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                        {pesos(i.costo)}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                        {pesos(i.precio)}
+                      </td>
+                      <td
+                        className="px-4 py-4 whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => setConfirmando(i)}
+                          className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </>
   );
