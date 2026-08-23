@@ -191,9 +191,14 @@ export default async function FichaVehiculo({
         </div>
       ) : (
         <ol className="mt-4 border-l border-border">
-          {trabajos.map((t) => {
+          {trabajos.map((t, i) => {
             const saldo =
               t.total !== null && t.abonado !== null ? t.total - t.abonado : null;
+            // trabajos viene del más reciente al más antiguo: la
+            // primera vez que llegó es el último de la lista, no el
+            // primero — Tío Lalo pidió verlas numeradas en el orden
+            // en que pasaron ("2da, tercera, 4ta...").
+            const numeroVisita = trabajos.length - i;
 
             return (
               <li key={t.id} className="relative pb-6 pl-6 last:pb-0">
@@ -201,6 +206,9 @@ export default async function FichaVehiculo({
 
                 <div className="flex flex-wrap items-baseline gap-x-4">
                   <span className="text-[15px] font-medium">
+                    Visita {numeroVisita}
+                  </span>
+                  <span className="text-[13px] text-muted-foreground">
                     {fecha(t.fecha)}
                   </span>
                   <span className="font-mono text-[13px] text-muted-foreground">

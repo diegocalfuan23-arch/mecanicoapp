@@ -3,7 +3,12 @@
 Estado (22-08-2026): la cita del viernes 21 a las 17:30 se reagendó.
 Cristopher escribió el mismo viernes ("¡Hola Diego!") y se coordinó
 pasar a la semana siguiente — puede ser online o presencial, hora por
-confirmar, tentativamente el lunes.
+confirmar, tentativamente el lunes. Mencionó su oficina como posible
+lugar si es presencial, pero **todavía no dio la dirección** — falta
+preguntarla si confirma que prefiere presencial.
+
+Mensaje enviado sábado 22-08-2026 ~20:46 pidiendo hora concreta para
+el lunes, sin respuesta todavía.
 
 Contacto: Cristopher (cristopher@carserv.cl). Llegó por mensaje frío,
 respondido primero por "Marcela" (bot automático) y derivado al dueño.

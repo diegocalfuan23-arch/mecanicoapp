@@ -89,6 +89,26 @@ esto se separa: el plan base sigue enfocado en lo que ya valida bien
 (historial, deudas, repuestos con ganancia), y la impresión se guarda
 para cuando exista una definición de planes por nivel de taller.
 
+**Idea de estructura de planes (22-08-2026), sin construir todavía:**
+
+- **Plan Taller** — perfil Tío Lalo/Pipe (1-3 personas, sin ayudantes
+  formales). Historial, deudas, repuestos con ganancia. Sin impresión
+  elaborada — como mucho, algo simple (qué se hizo + monto) si en
+  algún momento se valida que hace falta.
+- **Plan Serviteca** — perfil Senna (con equipo, inventario). Incluye
+  imprimir la orden con checklist de recepción, diagrama de daños,
+  firma del cliente y logo del taller — el formato completo que pidió.
+- **Plan Empresarial** — cadenas, a medida. Sin validar con nadie
+  todavía, especulativo (pensado para el tipo de flujo institucional
+  que mencionó Pipe con la municipalidad: cotizaciones, órdenes de
+  compra, facturación).
+
+Requiere primero que el sistema sepa en qué plan está cada taller —
+hoy `user.plan` existe en el schema pero no se usa en ninguna lógica.
+**No construir hasta que haya al menos un taller pagando de verdad** —
+no vale la pena la infraestructura de planes mientras todo sigue en
+validación gratuita.
+
 **Sin contexto claro, a confirmar:**
 
 - "Clic para ver vehículos" — posible fricción de navegación, no
