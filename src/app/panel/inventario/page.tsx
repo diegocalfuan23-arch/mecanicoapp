@@ -1,7 +1,13 @@
+import { redirect } from "next/navigation";
+import { tienePlan } from "@/lib/taller";
 import { listarInventario } from "./acciones";
 import { TablaInventario } from "./tabla";
 
 export default async function Inventario() {
+  // Plan Serviteca — si alguien entra directo por URL sin el plan, no
+  // basta con ocultar el link del sidebar.
+  if (!(await tienePlan("inventario"))) redirect("/panel");
+
   const insumos = await listarInventario();
   const bajos = insumos.filter(
     (i) => i.stock <= i.stockMinimo && i.stockMinimo > 0

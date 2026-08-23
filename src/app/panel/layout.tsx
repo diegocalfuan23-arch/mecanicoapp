@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { tienePlan } from "@/lib/taller";
 import { BotonInstalar } from "@/components/boton-instalar";
 import { BotonSalir } from "./boton-salir";
 import { Sidebar, MenuMovil } from "./navegacion";
@@ -15,13 +16,16 @@ export default async function LayoutPanel({
   if (!sesion) redirect("/entrar");
 
   const taller = (sesion.user as { taller?: string }).taller;
+  // Inventario es del Plan Serviteca — Tío Lalo/Pipe no lo ven ni lo
+  // necesitan, y no hay que dejarles el ítem sin uso en el sidebar.
+  const tieneInventario = await tienePlan("inventario");
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <header className="shrink-0 border-b border-border">
         <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-4">
-            <MenuMovil />
+            <MenuMovil tieneInventario={tieneInventario} />
             <Link
               href="/panel"
               className="truncate text-lg font-semibold tracking-tight"
@@ -42,7 +46,7 @@ export default async function LayoutPanel({
       {/* min-h-0 deja que el chat haga su propio scroll interno en vez de
           estirar la página. Las demás pantallas scrollean dentro de main. */}
       <div className="flex min-h-0 min-w-0 flex-1">
-        <Sidebar />
+        <Sidebar tieneInventario={tieneInventario} />
         <main className="scroll-discreto min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
           {children}
         </main>

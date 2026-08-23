@@ -143,12 +143,21 @@ const SECCIONES = [
   },
 ];
 
-function Enlaces({ alNavegar }: { alNavegar?: () => void }) {
+function Enlaces({
+  alNavegar,
+  tieneInventario,
+}: {
+  alNavegar?: () => void;
+  tieneInventario: boolean;
+}) {
   const ruta = usePathname();
+  const secciones = SECCIONES.filter(
+    (s) => s.href !== "/panel/inventario" || tieneInventario
+  );
 
   return (
     <ul className="flex flex-col gap-1">
-      {SECCIONES.map((s) => {
+      {secciones.map((s) => {
         const activo = ruta === s.href;
         return (
           <li key={s.href}>
@@ -175,18 +184,18 @@ function Enlaces({ alNavegar }: { alNavegar?: () => void }) {
 }
 
 /** Barra lateral fija, solo en pantallas grandes. */
-export function Sidebar() {
+export function Sidebar({ tieneInventario }: { tieneInventario: boolean }) {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
       <div className="sticky top-0 p-4">
-        <Enlaces />
+        <Enlaces tieneInventario={tieneInventario} />
       </div>
     </aside>
   );
 }
 
 /** Botón y panel deslizante, solo en pantallas chicas. */
-export function MenuMovil() {
+export function MenuMovil({ tieneInventario }: { tieneInventario: boolean }) {
   const [abierto, setAbierto] = useState(false);
 
   return (
@@ -217,7 +226,10 @@ export function MenuMovil() {
             <div className="mb-6 px-4 py-2 text-lg font-semibold tracking-tight">
               Mecanico<span className="text-acento">App</span>
             </div>
-            <Enlaces alNavegar={() => setAbierto(false)} />
+            <Enlaces
+              alNavegar={() => setAbierto(false)}
+              tieneInventario={tieneInventario}
+            />
           </div>
         </div>
       )}

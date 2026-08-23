@@ -11,7 +11,7 @@ import {
   parte,
   abono,
 } from "@/db/schema";
-import { tallerActual } from "@/lib/taller";
+import { tallerActual, tienePlan } from "@/lib/taller";
 
 export async function listarOrdenes() {
   const tallerId = await tallerActual();
@@ -239,7 +239,13 @@ export async function cerrarOrden(datos: {
 }) {
   const tallerId = await tallerActual();
 
-  const piezas = (datos.piezas ?? []).filter((p) => p.nombre.trim());
+  // parteId viene del cliente: sin el Plan Serviteca, aunque alguien
+  // fuerce el envío de un parteId no se descuenta nada del inventario
+  // de nadie — se guarda igual como repuesto puntual (sin id).
+  const tieneInventario = await tienePlan("inventario");
+  const piezas = (datos.piezas ?? [])
+    .filter((p) => p.nombre.trim())
+    .map((p) => (tieneInventario ? p : { ...p, parteId: null }));
 
   const manoObra = Number(datos.manoObra) || 0;
   const cargoTraslado = Number(datos.cargoTraslado) || 0;

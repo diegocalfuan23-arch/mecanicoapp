@@ -4,9 +4,17 @@ import { revalidatePath } from "next/cache";
 import { eq, and, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { parte } from "@/db/schema";
-import { tallerActual } from "@/lib/taller";
+import { tallerActual, tienePlan } from "@/lib/taller";
 
+/**
+ * Vacío si el taller no tiene el Plan Serviteca — así cualquier
+ * pantalla que la use (Inventario, o las sugerencias al cerrar una
+ * orden) deja de mostrar algo automáticamente, sin tener que
+ * acordarse de chequear el plan en cada lugar por separado.
+ */
 export async function listarInventario() {
+  if (!(await tienePlan("inventario"))) return [];
+
   const tallerId = await tallerActual();
 
   return db
@@ -32,6 +40,10 @@ export async function guardarInsumo(datos: {
   costo: string;
   precio: string;
 }) {
+  if (!(await tienePlan("inventario"))) {
+    return { error: "El inventario no está disponible en tu plan." };
+  }
+
   const tallerId = await tallerActual();
   const nombre = datos.nombre.trim();
 
@@ -63,6 +75,10 @@ export async function actualizarInsumo(
     precio: string;
   }
 ) {
+  if (!(await tienePlan("inventario"))) {
+    return { error: "El inventario no está disponible en tu plan." };
+  }
+
   const tallerId = await tallerActual();
   const nombre = datos.nombre.trim();
 
@@ -86,6 +102,8 @@ export async function actualizarInsumo(
 }
 
 export async function eliminarInsumo(insumoId: string) {
+  if (!(await tienePlan("inventario"))) return;
+
   const tallerId = await tallerActual();
 
   await db
