@@ -87,6 +87,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/inventario",
+    texto: "Inventario",
+    icono: (
+      <path
+        d="M4 6.5l6-3 6 3v7l-6 3-6-3v-7zM4 6.5l6 3 6-3M10 9.5V16.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/equipo",
     texto: "Equipo",
     icono: (

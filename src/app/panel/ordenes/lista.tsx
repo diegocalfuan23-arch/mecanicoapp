@@ -50,6 +50,14 @@ type VehiculoOpcion = {
   ultimoKilometraje: number | null;
 };
 
+type Insumo = {
+  id: string;
+  nombre: string;
+  stock: number;
+  costo: number;
+  precio: number;
+};
+
 const COLOR_ESTADO: Record<string, string> = {
   ingresado: "bg-muted text-muted-foreground",
   en_proceso: "bg-foreground/10 text-foreground",
@@ -239,7 +247,15 @@ function Abrir({
   );
 }
 
-function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
+function Cerrar({
+  orden,
+  inventario,
+  onListo,
+}: {
+  orden: Orden;
+  inventario: Insumo[];
+  onListo: () => void;
+}) {
   const router = useRouter();
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [manoObra, setManoObra] = useState("");
@@ -391,7 +407,11 @@ function Cerrar({ orden, onListo }: { orden: Orden; onListo: () => void }) {
       )}
 
       <div className="mt-4">
-        <RepuestosUsados piezas={piezas} onCambio={setPiezas} />
+        <RepuestosUsados
+          piezas={piezas}
+          onCambio={setPiezas}
+          inventario={inventario}
+        />
       </div>
 
       <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
@@ -751,9 +771,11 @@ function EsperarRepuesto({
 export function ListaOrdenes({
   ordenes,
   vehiculos,
+  inventario,
 }: {
   ordenes: Orden[];
   vehiculos: VehiculoOpcion[];
+  inventario: Insumo[];
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -1038,7 +1060,11 @@ export function ListaOrdenes({
                 </div>
 
                 {editando && (
-                  <Cerrar orden={o} onListo={() => setCerrando(null)} />
+                  <Cerrar
+                    orden={o}
+                    inventario={inventario}
+                    onListo={() => setCerrando(null)}
+                  />
                 )}
                 {esperando === o.id && (
                   <EsperarRepuesto

@@ -3,7 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { trabajo, vehiculo, cliente, parteUsada, abono } from "@/db/schema";
+import {
+  trabajo,
+  vehiculo,
+  cliente,
+  parteUsada,
+  parte,
+  abono,
+} from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
 
 export async function listarOrdenes() {
@@ -214,6 +221,8 @@ export type RepuestoUsado = {
   costo: string;
   precio: string;
   donde: string;
+  /** Si viene del inventario (insumo con stock), su id — para descontarlo al cerrar. */
+  parteId?: string | null;
 };
 
 /** Se completa cuando el trabajo ya está hecho: qué se hizo y cuánto salió. */
@@ -299,6 +308,23 @@ export async function cerrarOrden(datos: {
   }
 
   // Se reemplazan: cerrar dos veces la misma orden no debe duplicarlas.
+  // Antes de borrar, hay que devolver al inventario lo que se había
+  // descontado la vez anterior — si no, cerrar dos veces (por ejemplo
+  // para corregir un dato) descuenta el stock de más.
+  const piezasAnteriores = await db
+    .select({ parteId: parteUsada.parteId, cantidad: parteUsada.cantidad })
+    .from(parteUsada)
+    .where(eq(parteUsada.trabajoId, datos.ordenId));
+
+  for (const anterior of piezasAnteriores) {
+    if (anterior.parteId) {
+      await db
+        .update(parte)
+        .set({ stock: sql`${parte.stock} + ${anterior.cantidad}` })
+        .where(eq(parte.id, anterior.parteId));
+    }
+  }
+
   await db.delete(parteUsada).where(eq(parteUsada.trabajoId, datos.ordenId));
 
   if (piezas.length) {
@@ -306,6 +332,7 @@ export async function cerrarOrden(datos: {
       piezas.map((p) => ({
         id: crypto.randomUUID(),
         trabajoId: datos.ordenId,
+        parteId: p.parteId || null,
         nombre: p.nombre.trim(),
         cantidad: Number(p.cantidad) || 1,
         costoUnitario: Number(p.costo) || 0,
@@ -313,6 +340,17 @@ export async function cerrarOrden(datos: {
         dondeSeCompro: p.donde.trim() || null,
       }))
     );
+
+    // Solo se descuenta del inventario lo que vino elegido de ahí —
+    // un repuesto puntual escrito libre (sin parteId) no toca stock.
+    for (const p of piezas) {
+      if (p.parteId) {
+        await db
+          .update(parte)
+          .set({ stock: sql`${parte.stock} - ${Number(p.cantidad) || 1}` })
+          .where(eq(parte.id, p.parteId));
+      }
+    }
   }
 
   revalidatePath("/panel/ordenes");

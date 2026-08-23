@@ -1,7 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { miles, soloDigitos, pesos } from "@/lib/formato";
 import type { RepuestoUsado } from "@/app/panel/ordenes/acciones";
+
+type InsumoInventario = {
+  id: string;
+  nombre: string;
+  stock: number;
+  costo: number;
+  precio: number;
+};
 
 export const repuestoVacio = (): RepuestoUsado => ({
   nombre: "",
@@ -9,22 +18,113 @@ export const repuestoVacio = (): RepuestoUsado => ({
   costo: "",
   precio: "",
   donde: "",
+  parteId: null,
 });
 
 /**
- * Qué se compró para este auto, dónde y cuánto costó. No es un
- * inventario con stock: es el registro de la compra de cada trabajo,
- * para saber si quedó ganancia y no cobrar por debajo del costo.
+ * El nombre del repuesto: si coincide con algo del inventario aparecen
+ * sugerencias para elegirlo (así se conecta a un id real y se puede
+ * descontar del stock); si no, queda como texto libre — un repuesto
+ * puntual comprado sobre la marcha, que no descuenta nada.
+ */
+function CampoNombre({
+  pieza,
+  inventario,
+  onCambiar,
+  className,
+}: {
+  pieza: RepuestoUsado;
+  inventario: InsumoInventario[];
+  onCambiar: (campo: keyof RepuestoUsado, valor: string | null) => void;
+  className: string;
+}) {
+  const [abierto, setAbierto] = useState(false);
+
+  const coincidencias =
+    pieza.nombre.trim().length > 0
+      ? inventario.filter((i) =>
+          i.nombre.toLowerCase().includes(pieza.nombre.trim().toLowerCase())
+        )
+      : inventario;
+
+  function elegir(insumo: InsumoInventario) {
+    onCambiar("nombre", insumo.nombre);
+    onCambiar("parteId", insumo.id);
+    onCambiar("costo", String(insumo.costo));
+    onCambiar("precio", String(insumo.precio));
+    setAbierto(false);
+  }
+
+  return (
+    <div className="relative min-w-0 flex-1">
+      <input
+        value={pieza.nombre}
+        onChange={(e) => {
+          onCambiar("nombre", e.target.value);
+          // Si venía de una elección del inventario y ahora se
+          // reescribe a mano, deja de ser ese ítem.
+          if (pieza.parteId) onCambiar("parteId", null);
+        }}
+        onFocus={() => setAbierto(true)}
+        onBlur={() => setTimeout(() => setAbierto(false), 150)}
+        placeholder="Qué se compró"
+        className={className}
+      />
+      {pieza.parteId && (
+        <span className="mt-1 block text-[12px] text-muted-foreground">
+          Del inventario
+        </span>
+      )}
+      {abierto && inventario.length > 0 && (
+        <ul className="scroll-discreto absolute top-full left-0 z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg">
+          {coincidencias.length === 0 ? (
+            <li className="px-4 py-2 text-[13px] text-muted-foreground">
+              Sin coincidencias — queda como repuesto puntual
+            </li>
+          ) : (
+            coincidencias.map((i) => (
+              <li key={i.id}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => elegir(i)}
+                  className="flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
+                >
+                  <span className="truncate">{i.nombre}</span>
+                  <span className="shrink-0 text-[12px] text-muted-foreground">
+                    {i.stock} en stock
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Qué se compró para este auto, dónde y cuánto costó. Si se elige del
+ * inventario, además descuenta el stock al cerrar la orden — un
+ * repuesto puntual sin coincidencia solo queda registrado, sin tocar
+ * stock (esa es la distinción que ya sabemos: insumo genérico vs
+ * repuesto específico de un auto).
  */
 export function RepuestosUsados({
   piezas,
   onCambio,
+  inventario = [],
 }: {
   piezas: RepuestoUsado[];
   onCambio: (piezas: RepuestoUsado[]) => void;
+  inventario?: InsumoInventario[];
 }) {
-  const cambiar = (i: number, campo: keyof RepuestoUsado, valor: string) =>
-    onCambio(piezas.map((p, j) => (i === j ? { ...p, [campo]: valor } : p)));
+  const cambiar = (
+    i: number,
+    campo: keyof RepuestoUsado,
+    valor: string | null
+  ) => onCambio(piezas.map((p, j) => (i === j ? { ...p, [campo]: valor } : p)));
 
   const quitar = (i: number) => onCambio(piezas.filter((_, j) => j !== i));
 
@@ -56,10 +156,10 @@ export function RepuestosUsados({
               className="rounded-lg border border-border bg-background p-4"
             >
               <div className="flex flex-wrap items-start gap-2">
-                <input
-                  value={p.nombre}
-                  onChange={(e) => cambiar(i, "nombre", e.target.value)}
-                  placeholder="Qué se compró"
+                <CampoNombre
+                  pieza={p}
+                  inventario={inventario}
+                  onCambiar={(campo, valor) => cambiar(i, campo, valor)}
                   className={`${campo} min-w-0 flex-1`}
                 />
                 <button
