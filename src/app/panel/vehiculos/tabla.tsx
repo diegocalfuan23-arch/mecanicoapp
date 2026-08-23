@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import Link from "next/link";
+import { useState } from "react";
+import { Menu } from "@base-ui/react/menu";
 import { useRouter } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
 import { eliminarVehiculo } from "./acciones";
@@ -28,69 +27,24 @@ const COLUMNAS = [
  * Clic en la fila ya abre para editar (ver más abajo) — este menú
  * queda solo para lo que no es "tocar y editar": ver el historial
  * completo, o eliminar la ficha.
+ *
+ * Usa Menu de Base UI en vez de calcular la posición a mano con
+ * getBoundingClientRect(): "main" tiene overflow-y-auto, y un
+ * ancestro scrolleable puede hacer que position:fixed se posicione
+ * relativo a él en vez de a la ventana — el menú manual terminaba
+ * flotando lejos del botón que lo abrió. Menu.Positioner se encarga
+ * del anclaje real, igual que ya hace Selector con Select.Positioner.
  */
-function Acciones({
-  v,
-  onBorrar,
-}: {
-  v: Vehiculo;
-  onBorrar: () => void;
-}) {
-  const [abierto, setAbierto] = useState(false);
-  const [pos, setPos] = useState({ top: 0, right: 0 });
-  const contenedor = useRef<HTMLDivElement>(null);
-
-  /**
-   * El menu va con position:fixed porque la tabla vive dentro de un
-   * contenedor con overflow, que si no lo recortaria.
-   */
-  function alternar() {
-    const caja = contenedor.current?.getBoundingClientRect();
-    if (caja) {
-      setPos({
-        top: caja.bottom + 8,
-        right: window.innerWidth - caja.right,
-      });
-    }
-    setAbierto((a) => !a);
-  }
-
-  // Cerrar al hacer clic fuera, al presionar Escape o al mover la pagina.
-  useEffect(() => {
-    if (!abierto) return;
-
-    function fuera(e: MouseEvent) {
-      if (!contenedor.current?.contains(e.target as Node)) setAbierto(false);
-    }
-    function escape(e: KeyboardEvent) {
-      if (e.key === "Escape") setAbierto(false);
-    }
-    const cerrar = () => setAbierto(false);
-
-    document.addEventListener("mousedown", fuera);
-    document.addEventListener("keydown", escape);
-    window.addEventListener("scroll", cerrar, true);
-    window.addEventListener("resize", cerrar);
-    return () => {
-      document.removeEventListener("mousedown", fuera);
-      document.removeEventListener("keydown", escape);
-      window.removeEventListener("scroll", cerrar, true);
-      window.removeEventListener("resize", cerrar);
-    };
-  }, [abierto]);
+function Acciones({ v, onBorrar }: { v: Vehiculo; onBorrar: () => void }) {
+  const router = useRouter();
 
   const opcion =
-    "block w-full px-4 py-2 text-left text-[14px] transition-colors hover:bg-background";
+    "block w-full px-4 py-2 text-left text-[14px] outline-none transition-colors data-highlighted:bg-background";
 
   return (
-    <div ref={contenedor} className="relative">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          alternar();
-        }}
-        aria-haspopup="menu"
-        aria-expanded={abierto}
+    <Menu.Root>
+      <Menu.Trigger
+        onClick={(e) => e.stopPropagation()}
         aria-label={`Acciones de ${v.patente}`}
         className="rounded-lg border border-border p-2 transition-colors hover:bg-background"
       >
@@ -99,44 +53,27 @@ function Acciones({
           <circle cx="10" cy="10" r="1.5" fill="currentColor" />
           <circle cx="16" cy="10" r="1.5" fill="currentColor" />
         </svg>
-      </button>
+      </Menu.Trigger>
 
-      {abierto &&
-        createPortal(
-          // Portal a document.body: dentro del árbol normal, "main"
-          // tiene overflow-y-auto, y un ancestro scrolleable puede
-          // hacer que position:fixed se posicione relativo a él en
-          // vez de a la ventana — el menú terminaba flotando lejos
-          // del botón que lo abrió. Fuera del árbol, no hay ese
-          // ancestro de por medio.
-          <div
-            role="menu"
-            style={{ top: pos.top, right: pos.right }}
-            className="fixed z-50 w-40 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
-          >
-            <Link
-              href={`/panel/historial/${v.id}`}
-              role="menuitem"
+      <Menu.Portal>
+        <Menu.Positioner className="z-50 outline-none" sideOffset={4} align="end">
+          <Menu.Popup className="w-40 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
+            <Menu.Item
+              onClick={() => router.push(`/panel/historial/${v.id}`)}
               className={opcion}
-              onClick={(e) => e.stopPropagation()}
             >
               Ver historial
-            </Link>
-            <button
-              role="menuitem"
-              onClick={(e) => {
-                e.stopPropagation();
-                setAbierto(false);
-                onBorrar();
-              }}
-              className={`${opcion} text-destructive hover:bg-destructive/10`}
+            </Menu.Item>
+            <Menu.Item
+              onClick={onBorrar}
+              className={`${opcion} text-destructive data-highlighted:bg-destructive/10`}
             >
               Eliminar
-            </button>
-          </div>,
-          document.body
-        )}
-    </div>
+            </Menu.Item>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 }
 
