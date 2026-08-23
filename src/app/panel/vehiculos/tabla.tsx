@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
@@ -100,33 +101,41 @@ function Acciones({
         </svg>
       </button>
 
-      {abierto && (
-        <div
-          role="menu"
-          style={{ top: pos.top, right: pos.right }}
-          className="fixed z-50 w-40 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
-        >
-          <Link
-            href={`/panel/historial/${v.id}`}
-            role="menuitem"
-            className={opcion}
-            onClick={(e) => e.stopPropagation()}
+      {abierto &&
+        createPortal(
+          // Portal a document.body: dentro del árbol normal, "main"
+          // tiene overflow-y-auto, y un ancestro scrolleable puede
+          // hacer que position:fixed se posicione relativo a él en
+          // vez de a la ventana — el menú terminaba flotando lejos
+          // del botón que lo abrió. Fuera del árbol, no hay ese
+          // ancestro de por medio.
+          <div
+            role="menu"
+            style={{ top: pos.top, right: pos.right }}
+            className="fixed z-50 w-40 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
           >
-            Ver historial
-          </Link>
-          <button
-            role="menuitem"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAbierto(false);
-              onBorrar();
-            }}
-            className={`${opcion} text-destructive hover:bg-destructive/10`}
-          >
-            Eliminar
-          </button>
-        </div>
-      )}
+            <Link
+              href={`/panel/historial/${v.id}`}
+              role="menuitem"
+              className={opcion}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Ver historial
+            </Link>
+            <button
+              role="menuitem"
+              onClick={(e) => {
+                e.stopPropagation();
+                setAbierto(false);
+                onBorrar();
+              }}
+              className={`${opcion} text-destructive hover:bg-destructive/10`}
+            >
+              Eliminar
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
