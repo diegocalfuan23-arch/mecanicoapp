@@ -5,8 +5,9 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { user, miembroTaller } from "@/db/schema";
+import { user, account, miembroTaller } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
+import { hashPassword } from "@better-auth/utils/password";
 
 export async function listarEquipo() {
   const tallerId = await tallerActual();
@@ -46,18 +47,43 @@ export async function agregarAyudante(datos: {
     return { error: "Revisa los datos: nombre, correo y clave de 8+ caracteres." };
   }
 
-  const creado = await auth.api.signUpEmail({
-    body: { name: nombre, email: correo, password: datos.clave },
+  const existente = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, correo))
+    .limit(1);
+
+  if (existente.length) {
+    return { error: "Ya existe una cuenta con ese correo." };
+  }
+
+  // No se usa auth.api.signUpEmail: ese endpoint deja al dueño con la
+  // sesión del ayudante recién creado (Better Auth hace login
+  // automático al registrar, y nextCookies() aplica esa cookie nueva
+  // sin distinguir quién llamó al endpoint). Se crea la cuenta directo
+  // en la base, con el mismo hash que usa Better Auth por dentro.
+  const nuevoId = crypto.randomUUID();
+  const hash = await hashPassword(datos.clave);
+
+  await db.insert(user).values({
+    id: nuevoId,
+    name: nombre,
+    email: correo,
+    emailVerified: false,
   });
 
-  if (!creado?.user) {
-    return { error: "No se pudo crear la cuenta. ¿El correo ya existe?" };
-  }
+  await db.insert(account).values({
+    id: crypto.randomUUID(),
+    userId: nuevoId,
+    providerId: "credential",
+    accountId: nuevoId,
+    password: hash,
+  });
 
   await db.insert(miembroTaller).values({
     id: crypto.randomUUID(),
     tallerId,
-    userId: creado.user.id,
+    userId: nuevoId,
     rol: "ayudante",
   });
 
