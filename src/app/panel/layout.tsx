@@ -24,7 +24,11 @@ export default async function LayoutPanel({
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <RegistrarSW />
-      <header className="shrink-0 border-b border-border">
+      {/* sticky, no solo shrink-0: en Android, cuando el teclado abre y
+          el navegador no reduce h-dvh, hace scroll de toda la página
+          para mantener visible el input — sin sticky, el header se
+          iba con ese scroll. */}
+      <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-background">
         <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-4">
             <MenuMovil tieneInventario={tieneInventario} />

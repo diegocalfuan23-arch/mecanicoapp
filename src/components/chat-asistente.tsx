@@ -30,27 +30,31 @@ export function ChatAsistente({
   const [listaAbierta, setListaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const raizRef = useRef<HTMLDivElement>(null);
-  const [alturaVisible, setAlturaVisible] = useState<number | null>(null);
+  // Cuánto queda tapado abajo (por el teclado, o por nada si no hay
+  // teclado) — se usa como "bottom" del formulario fijo, así siempre
+  // queda pegado al borde inferior de lo que de verdad se ve.
+  const [tapadoAbajo, setTapadoAbajo] = useState(0);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
 
   // Android no siempre reduce el viewport (h-dvh) cuando aparece el
-  // teclado — el input quedaba tapado, como pasó en la app real. La
-  // Visual Viewport API sí mide con precisión cuánto queda visible
-  // arriba del teclado. Se resta la posición real del contenedor
-  // (header + padding de "main" ya ocupan espacio arriba) para que el
-  // formulario quede pegado justo encima del teclado, ni corto ni
-  // largo.
+  // teclado: en vez de eso, mueve la página entera con scroll para
+  // mantener visible el input enfocado — eso arrastraba el header
+  // fuera de la vista. Anclando el formulario con position:fixed y
+  // bottom calculado desde visualViewport (que sí compensa ese
+  // scroll, a diferencia de getBoundingClientRect) queda siempre
+  // pegado al borde inferior real, sin importar qué mueva el
+  // navegador alrededor.
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
 
     function actualizar() {
-      const top = raizRef.current?.getBoundingClientRect().top ?? 0;
-      setAlturaVisible(vv!.height - top);
+      const restante =
+        window.innerHeight - (vv!.height + vv!.offsetTop);
+      setTapadoAbajo(Math.max(0, Math.round(restante)));
     }
     actualizar();
     vv.addEventListener("resize", actualizar);
@@ -202,11 +206,7 @@ export function ChatAsistente({
   );
 
   return (
-    <div
-      ref={raizRef}
-      className="flex h-full min-h-0 gap-8"
-      style={alturaVisible ? { height: alturaVisible } : undefined}
-    >
+    <div className="flex h-full min-h-0 gap-8">
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
         <Lista />
@@ -255,7 +255,7 @@ export function ChatAsistente({
             </p>
           </div>
         ) : (
-          <ul className="scroll-discreto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-4">
+          <ul className="scroll-discreto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-20">
             {mensajes.map((m, i) => {
               // La última respuesta es lo que el mecánico vino a leer: va
               // grande. Las anteriores bajan a tamaño de cuerpo.
@@ -301,7 +301,8 @@ export function ChatAsistente({
             e.preventDefault();
             enviar(entrada);
           }}
-          className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border pt-4"
+          style={{ bottom: tapadoAbajo }}
+          className="fixed inset-x-4 z-20 flex flex-wrap items-center gap-2 border-t border-border bg-background pt-4 sm:inset-x-6 lg:static lg:inset-auto lg:bg-transparent"
         >
           <input
             value={entrada}
