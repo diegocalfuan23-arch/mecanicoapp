@@ -51,15 +51,27 @@ export function ChatAsistente({
     const vv = window.visualViewport;
     if (!vv) return;
 
+    // requestAnimationFrame en vez de actualizar en cada evento: el
+    // teclado dispara resize/scroll en ráfagas con valores intermedios
+    // mientras anima, y sin esto el formulario parpadeaba saltando de
+    // un "bottom" a otro en cada frame de esa animación.
+    let cuadro = 0;
     function actualizar() {
-      const restante =
-        window.innerHeight - (vv!.height + vv!.offsetTop);
-      setTapadoAbajo(Math.max(0, Math.round(restante)));
+      cancelAnimationFrame(cuadro);
+      cuadro = requestAnimationFrame(() => {
+        // clientHeight, no innerHeight: no lo mueve la barra de
+        // scroll ni queda desfasado mientras el teclado anima.
+        const restante =
+          document.documentElement.clientHeight -
+          (vv!.height + vv!.offsetTop);
+        setTapadoAbajo(Math.max(0, Math.round(restante)));
+      });
     }
     actualizar();
     vv.addEventListener("resize", actualizar);
     vv.addEventListener("scroll", actualizar);
     return () => {
+      cancelAnimationFrame(cuadro);
       vv.removeEventListener("resize", actualizar);
       vv.removeEventListener("scroll", actualizar);
     };
@@ -307,6 +319,14 @@ export function ChatAsistente({
           <input
             value={entrada}
             onChange={(e) => setEntrada(e.target.value)}
+            // El formulario ya queda fijo justo arriba del teclado con
+            // JS — sin esto, al enfocar, el navegador igual intenta
+            // hacer scroll de "main" para llevar el input a la vista,
+            // generando el salto/scroll no deseado que no debería
+            // existir todavía sin haber enviado ningún mensaje.
+            onFocus={(e) =>
+              e.currentTarget.scrollIntoView({ block: "nearest" })
+            }
             placeholder="Escribe tu pregunta"
             className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
