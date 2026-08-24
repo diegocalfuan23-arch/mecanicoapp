@@ -314,7 +314,7 @@ export function ChatAsistente({
             value={entrada}
             onChange={(e) => setEntrada(e.target.value)}
             placeholder="Escribe tu pregunta"
-            className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+            className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-4 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
           {/* Mismo lugar para los dos: micrófono si no hay texto, enviar
               si lo hay — igual que WhatsApp, sin los dos botones a la vez. */}
