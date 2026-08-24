@@ -30,52 +30,10 @@ export function ChatAsistente({
   const [listaAbierta, setListaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // Cuánto queda tapado abajo (por el teclado, o por nada si no hay
-  // teclado) — se usa como "bottom" del formulario fijo, así siempre
-  // queda pegado al borde inferior de lo que de verdad se ve.
-  const [tapadoAbajo, setTapadoAbajo] = useState(0);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
-
-  // Android no siempre reduce el viewport (h-dvh) cuando aparece el
-  // teclado: en vez de eso, mueve la página entera con scroll para
-  // mantener visible el input enfocado — eso arrastraba el header
-  // fuera de la vista. Anclando el formulario con position:fixed y
-  // bottom calculado desde visualViewport (que sí compensa ese
-  // scroll, a diferencia de getBoundingClientRect) queda siempre
-  // pegado al borde inferior real, sin importar qué mueva el
-  // navegador alrededor.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    // requestAnimationFrame en vez de actualizar en cada evento: el
-    // teclado dispara resize/scroll en ráfagas con valores intermedios
-    // mientras anima, y sin esto el formulario parpadeaba saltando de
-    // un "bottom" a otro en cada frame de esa animación.
-    let cuadro = 0;
-    function actualizar() {
-      cancelAnimationFrame(cuadro);
-      cuadro = requestAnimationFrame(() => {
-        // clientHeight, no innerHeight: no lo mueve la barra de
-        // scroll ni queda desfasado mientras el teclado anima.
-        const restante =
-          document.documentElement.clientHeight -
-          (vv!.height + vv!.offsetTop);
-        setTapadoAbajo(Math.max(0, Math.round(restante)));
-      });
-    }
-    actualizar();
-    vv.addEventListener("resize", actualizar);
-    vv.addEventListener("scroll", actualizar);
-    return () => {
-      cancelAnimationFrame(cuadro);
-      vv.removeEventListener("resize", actualizar);
-      vv.removeEventListener("scroll", actualizar);
-    };
-  }, []);
 
   async function abrir(id: string) {
     setListaAbierta(false);
@@ -267,7 +225,7 @@ export function ChatAsistente({
             </p>
           </div>
         ) : (
-          <ul className="scroll-discreto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-20">
+          <ul className="scroll-discreto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             {mensajes.map((m, i) => {
               // La última respuesta es lo que el mecánico vino a leer: va
               // grande. Las anteriores bajan a tamaño de cuerpo.
@@ -313,20 +271,15 @@ export function ChatAsistente({
             e.preventDefault();
             enviar(entrada);
           }}
-          style={{ bottom: tapadoAbajo }}
-          className="fixed inset-x-4 z-20 flex flex-wrap items-center gap-2 border-t border-border bg-background pt-4 sm:inset-x-6 lg:static lg:inset-auto lg:bg-transparent"
+          // sticky, no fixed: el navegador la ancla al fondo de su propio
+          // contenedor sin cálculos en JS, así que se acomoda sola cuando
+          // aparece el teclado, sin el parpadeo/desalineo que daba
+          // calcular "bottom" a mano desde visualViewport.
+          className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-border bg-background pt-4"
         >
           <input
             value={entrada}
             onChange={(e) => setEntrada(e.target.value)}
-            // El formulario ya queda fijo justo arriba del teclado con
-            // JS — sin esto, al enfocar, el navegador igual intenta
-            // hacer scroll de "main" para llevar el input a la vista,
-            // generando el salto/scroll no deseado que no debería
-            // existir todavía sin haber enviado ningún mensaje.
-            onFocus={(e) =>
-              e.currentTarget.scrollIntoView({ block: "nearest" })
-            }
             placeholder="Escribe tu pregunta"
             className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
