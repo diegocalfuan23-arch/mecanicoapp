@@ -77,6 +77,7 @@ export async function abrirOrden(datos: {
   vehiculoId: string;
   kilometraje?: string;
   sintoma?: string;
+  diagnostico?: string;
   fotos?: string[];
 }) {
   const tallerId = await tallerActual();
@@ -97,6 +98,7 @@ export async function abrirOrden(datos: {
     vehiculoId: datos.vehiculoId,
     numero: ultimo + 1,
     sintoma: datos.sintoma?.trim() || null,
+    diagnostico: datos.diagnostico?.trim() || null,
     kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
     fotos: datos.fotos ?? [],
     estado: "ingresado",

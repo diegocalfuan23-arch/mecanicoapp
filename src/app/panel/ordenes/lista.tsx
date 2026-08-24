@@ -95,6 +95,7 @@ function Abrir({
     return v?.ultimoKilometraje ? String(v.ultimoKilometraje) : "";
   });
   const [sintoma, setSintoma] = useState("");
+  const [diagnostico, setDiagnostico] = useState("");
   const [fotos, setFotos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -106,7 +107,13 @@ function Abrir({
     setError(null);
     setEnviando(true);
 
-    const res = await abrirOrden({ vehiculoId, kilometraje, sintoma, fotos });
+    const res = await abrirOrden({
+      vehiculoId,
+      kilometraje,
+      sintoma,
+      diagnostico,
+      fotos,
+    });
     setEnviando(false);
 
     if (res?.error) {
@@ -218,6 +225,28 @@ function Abrir({
             onChange={(e) => setSintoma(e.target.value)}
             placeholder="Suena adelante al frenar"
             rows={3}
+            className={`${campoBase()} resize-y`}
+          />
+        </label>
+
+        <label className="block">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium">
+              Diagnóstico (si ya se sabe)
+            </span>
+            <Dictar
+              onTexto={(texto) =>
+                setDiagnostico((actual) =>
+                  actual ? `${actual} ${texto}` : texto
+                )
+              }
+            />
+          </div>
+          <textarea
+            value={diagnostico}
+            onChange={(e) => setDiagnostico(e.target.value)}
+            placeholder="Retenes de la caja desgastados, causando la fuga"
+            rows={2}
             className={`${campoBase()} resize-y`}
           />
         </label>
