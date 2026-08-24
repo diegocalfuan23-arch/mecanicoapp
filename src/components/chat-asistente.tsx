@@ -308,7 +308,7 @@ export function ChatAsistente({
           // sticky al fondo del contenedor raíz, cuyo alto ya está fijado
           // al visualViewport real (ver "alto" arriba) — por eso sticky
           // ancla en el lugar correcto también con el teclado abierto.
-          className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-border bg-background pt-4"
+          className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 bg-background pt-4"
         >
           <input
             value={entrada}
