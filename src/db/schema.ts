@@ -21,6 +21,9 @@ export const user = pgTable("user", {
   // Datos del taller
   taller: text("taller"),
   telefono: text("telefono"),
+  // Para el encabezado de la orden de trabajo impresa (Plan Serviteca).
+  rut: text("rut"),
+  direccion: text("direccion"),
   plan: text("plan").notNull().default("prueba"),
 });
 

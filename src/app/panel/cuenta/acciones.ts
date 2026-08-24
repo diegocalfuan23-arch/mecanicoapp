@@ -22,6 +22,29 @@ async function sesionActual() {
 }
 
 /**
+ * Datos del taller para el encabezado de la orden de trabajo impresa
+ * (Plan Serviteca) — nombre, RUT, dirección y teléfono del negocio.
+ */
+export async function guardarDatosTaller(datos: {
+  taller: string;
+  rut: string;
+  direccion: string;
+  telefono: string;
+}) {
+  const sesion = await sesionActual();
+
+  await db
+    .update(user)
+    .set({
+      taller: datos.taller.trim() || null,
+      rut: datos.rut.trim() || null,
+      direccion: datos.direccion.trim() || null,
+      telefono: datos.telefono.trim() || null,
+    })
+    .where(eq(user.id, sesion.user.id));
+}
+
+/**
  * Derecho de acceso y portabilidad (ley 21.719): todo lo que la app
  * guarda del taller, en un JSON que se puede descargar y llevar.
  */

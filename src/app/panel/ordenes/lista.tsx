@@ -801,10 +801,12 @@ export function ListaOrdenes({
   ordenes,
   vehiculos,
   inventario,
+  tieneImpresion,
 }: {
   ordenes: Orden[];
   vehiculos: VehiculoOpcion[];
   inventario: Insumo[];
+  tieneImpresion: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -1029,6 +1031,16 @@ export function ListaOrdenes({
                   className="mt-4 flex flex-wrap gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {tieneImpresion && (
+                    <a
+                      href={`/imprimir/${o.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    >
+                      Imprimir
+                    </a>
+                  )}
                   {o.estado === "ingresado" && (
                     <button
                       onClick={() => avanzar(o.id, "en_proceso")}

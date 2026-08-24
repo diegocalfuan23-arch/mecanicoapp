@@ -10,6 +10,7 @@ import {
   parteUsada,
   parte,
   abono,
+  user,
 } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 
@@ -43,6 +44,66 @@ export async function listarOrdenes() {
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .where(eq(trabajo.tallerId, tallerId))
     .orderBy(desc(trabajo.numero));
+}
+
+/**
+ * Todo lo necesario para imprimir la orden de trabajo con el formato de
+ * cotización/recepción de vehículos — Plan Serviteca en adelante.
+ * Devuelve null si la orden no es del taller actual o si el plan no
+ * incluye impresión, tratando ambos casos igual para no filtrar cuál.
+ */
+export async function datosParaImprimir(ordenId: string) {
+  const tallerId = await tallerActual();
+  if (!(await tienePlan("impresionOrden"))) return null;
+
+  const [orden] = await db
+    .select({
+      id: trabajo.id,
+      numero: trabajo.numero,
+      sintoma: trabajo.sintoma,
+      diagnostico: trabajo.diagnostico,
+      descripcion: trabajo.descripcion,
+      kilometraje: trabajo.kilometraje,
+      manoObra: trabajo.manoObra,
+      repuestos: trabajo.repuestos,
+      cargoTraslado: trabajo.cargoTraslado,
+      iva: trabajo.iva,
+      total: trabajo.total,
+      abonado: trabajo.abonado,
+      fecha: trabajo.fecha,
+      patente: vehiculo.patente,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      anio: vehiculo.anio,
+      color: vehiculo.color,
+      motor: vehiculo.motor,
+      propietario: cliente.nombre,
+      propietarioTelefono: cliente.telefono,
+      taller: user.taller,
+      tallerRut: user.rut,
+      tallerDireccion: user.direccion,
+      tallerTelefono: user.telefono,
+      tallerEmail: user.email,
+    })
+    .from(trabajo)
+    .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+    .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
+    .innerJoin(user, eq(trabajo.tallerId, user.id))
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!orden) return null;
+
+  const piezas = await db
+    .select({
+      nombre: parteUsada.nombre,
+      cantidad: parteUsada.cantidad,
+      precioUnitario: parteUsada.precioUnitario,
+    })
+    .from(parteUsada)
+    .where(eq(parteUsada.trabajoId, ordenId));
+
+  return { orden, piezas };
 }
 
 /**
