@@ -138,13 +138,16 @@ export default async function ImprimirOrden({
         <div className="ml-auto mt-4 w-full max-w-64">
           <Total etiqueta="Neto" valor={neto} />
           <Total etiqueta="IVA" valor={orden.iva} />
-          <Total etiqueta="Total" valor={orden.total} destacado />
           <Total etiqueta="Abonado" valor={orden.abonado} />
           <Total etiqueta="Saldo" valor={orden.total - orden.abonado} />
+          <div className="mt-2 flex items-baseline justify-between border-t border-foreground/40 pt-2">
+            <span className="text-[13px] font-medium">Total</span>
+            <span className="text-2xl font-bold">{pesos(orden.total)}</span>
+          </div>
         </div>
 
         {/* Firma */}
-        <div className="mt-12 grid grid-cols-2 gap-8 text-center text-[12px]">
+        <div className="mt-8 grid grid-cols-2 gap-8 text-center text-[12px]">
           <div>
             <div className="border-t border-foreground/40 pt-2">Técnico</div>
           </div>
@@ -193,19 +196,9 @@ function Bloque({
   );
 }
 
-function Total({
-  etiqueta,
-  valor,
-  destacado,
-}: {
-  etiqueta: string;
-  valor: number;
-  destacado?: boolean;
-}) {
+function Total({ etiqueta, valor }: { etiqueta: string; valor: number }) {
   return (
-    <div
-      className={`flex justify-between border-b border-foreground/20 py-1 ${destacado ? "font-semibold" : ""}`}
-    >
+    <div className="flex justify-between border-b border-foreground/20 py-1">
       <span>{etiqueta}</span>
       <span>{pesos(valor)}</span>
     </div>
