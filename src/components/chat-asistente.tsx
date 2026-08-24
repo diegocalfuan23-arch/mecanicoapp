@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Dictar } from "@/components/dictar";
 import {
   guardarIntercambio,
@@ -44,12 +44,21 @@ export function ChatAsistente({
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const vv = window.visualViewport;
-    if (!vv || !raizRef.current) return;
+    const contenedor = raizRef.current;
+    if (!vv || !contenedor) return;
+    // padding-bottom de <main> (py-8 del layout): sin restarlo, el
+    // contenido queda justo hasta el borde del viewport pero <main>
+    // todavía necesita ese espacio debajo, empujando el total más allá
+    // de lo visible y generando scroll aunque no haya nada de más.
+    const main = contenedor.closest("main");
+    const abajo = main
+      ? parseFloat(getComputedStyle(main).paddingBottom)
+      : 0;
     function actualizar() {
-      const arriba = raizRef.current!.getBoundingClientRect().top;
-      setAlto(vv!.height - arriba);
+      const arriba = contenedor!.getBoundingClientRect().top;
+      setAlto(vv!.height - arriba - abajo);
     }
     actualizar();
     vv.addEventListener("resize", actualizar);
