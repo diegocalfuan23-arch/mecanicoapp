@@ -30,10 +30,36 @@ export function ChatAsistente({
   const [listaAbierta, setListaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const raizRef = useRef<HTMLDivElement>(null);
+  const [alturaVisible, setAlturaVisible] = useState<number | null>(null);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
+
+  // Android no siempre reduce el viewport (h-dvh) cuando aparece el
+  // teclado — el input quedaba tapado, como pasó en la app real. La
+  // Visual Viewport API sí mide con precisión cuánto queda visible
+  // arriba del teclado. Se resta la posición real del contenedor
+  // (header + padding de "main" ya ocupan espacio arriba) para que el
+  // formulario quede pegado justo encima del teclado, ni corto ni
+  // largo.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    function actualizar() {
+      const top = raizRef.current?.getBoundingClientRect().top ?? 0;
+      setAlturaVisible(vv!.height - top);
+    }
+    actualizar();
+    vv.addEventListener("resize", actualizar);
+    vv.addEventListener("scroll", actualizar);
+    return () => {
+      vv.removeEventListener("resize", actualizar);
+      vv.removeEventListener("scroll", actualizar);
+    };
+  }, []);
 
   async function abrir(id: string) {
     setListaAbierta(false);
@@ -176,7 +202,11 @@ export function ChatAsistente({
   );
 
   return (
-    <div className="flex h-full min-h-0 gap-8">
+    <div
+      ref={raizRef}
+      className="flex h-full min-h-0 gap-8"
+      style={alturaVisible ? { height: alturaVisible } : undefined}
+    >
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
         <Lista />
