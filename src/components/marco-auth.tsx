@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function MarcoAuth({
   titulo,
   bajada,
@@ -13,10 +11,12 @@ export function MarcoAuth({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Sin enlace: dentro de la PWA no debe existir ninguna forma de
+          volver a la landing pública (/). */}
       <header className="mx-auto flex w-full max-w-6xl items-center px-6 py-6">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
+        <span className="text-lg font-semibold tracking-tight">
           Mecanico<span className="text-acento">App</span>
-        </Link>
+        </span>
       </header>
 
       <main className="flex flex-1 items-start justify-center px-6 pt-8 pb-24 sm:items-center sm:pt-0 sm:pb-32">
