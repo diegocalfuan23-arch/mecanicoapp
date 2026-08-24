@@ -22,6 +22,13 @@ reales cargadas, clientes distintos, montos distintos. La visita
 confirmó que la sigue usando y salieron pedidos nuevos, anotados al
 vuelo durante la conversación:
 
+**PWA confirmada funcionando (23-08-2026, verificado en un segundo
+celular):** el diálogo de instalación de Chrome apareció automático
+al entrar a una URL pública (`/registro`). El problema visto antes en
+el celular de Diego era específico de ese dispositivo (probablemente
+historial de Chrome ahí), no del código — manifest, service worker y
+criterios de instalabilidad funcionan bien de punta a punta.
+
 **El asistente por voz sí lo usó y le sirvió — validación directa:**
 
 > "Buscaba la patente y la IA me leyó todo lo anotado del vehículo."
