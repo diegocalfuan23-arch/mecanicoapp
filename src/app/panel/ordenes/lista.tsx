@@ -11,6 +11,7 @@ import {
   esperarRepuesto,
   retomarTrabajo,
   repuestosDeOrden,
+  actualizarDatosClienteOrden,
   type RepuestoUsado,
 } from "./acciones";
 import { ESTADOS } from "./estados";
@@ -57,6 +58,7 @@ type VehiculoOpcion = {
   cilindrada: string | null;
   vin: string | null;
   movil: string | null;
+  propietarioId: string | null;
   propietarioNumero: number | null;
   propietario: string | null;
   propietarioTelefono: string | null;
@@ -120,6 +122,158 @@ function DatoVehiculo({
   );
 }
 
+/**
+ * Marcar Empresa/Particular y completar los datos del cliente sin
+ * salir del formulario de abrir orden — Plan Serviteca.
+ */
+function EditarClienteOrden({
+  elegido,
+  onListo,
+}: {
+  elegido: VehiculoOpcion;
+  onListo: () => void;
+}) {
+  const [email, setEmail] = useState(elegido.propietarioEmail ?? "");
+  const [direccion, setDireccion] = useState(
+    elegido.propietarioDireccion ?? ""
+  );
+  const [comuna, setComuna] = useState(elegido.propietarioComuna ?? "");
+  const [ciudad, setCiudad] = useState(elegido.propietarioCiudad ?? "");
+  const [esEmpresa, setEsEmpresa] = useState(elegido.esEmpresa ?? false);
+  const [empresa, setEmpresa] = useState(elegido.empresa ?? "");
+  const [empresaRut, setEmpresaRut] = useState(elegido.empresaRut ?? "");
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function guardar() {
+    if (!elegido.propietarioId) return;
+    setGuardando(true);
+    setError(null);
+    const res = await actualizarDatosClienteOrden(elegido.propietarioId, {
+      email,
+      direccion,
+      comuna,
+      ciudad,
+      esEmpresa,
+      empresa,
+      empresaRut,
+    });
+    setGuardando(false);
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    onListo();
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13px] font-medium">
+          Editando a {elegido.propietario}
+        </span>
+        <button
+          type="button"
+          onClick={onListo}
+          className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          Cancelar
+        </button>
+      </div>
+
+      <label className="block">
+        <span className="mb-2 block text-[13px] font-medium">E-mail</span>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          placeholder="juan@correo.com"
+          className={campoBase()}
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-[13px] font-medium">Dirección</span>
+        <input
+          value={direccion}
+          onChange={(e) => setDireccion(e.target.value)}
+          placeholder="Av. Alemania 1234"
+          className={campoBase()}
+        />
+      </label>
+
+      <div className="grid grid-cols-2 gap-4">
+        <label className="block">
+          <span className="mb-2 block text-[13px] font-medium">Comuna</span>
+          <input
+            value={comuna}
+            onChange={(e) => setComuna(e.target.value)}
+            placeholder="Temuco"
+            className={campoBase()}
+          />
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-[13px] font-medium">Ciudad</span>
+          <input
+            value={ciudad}
+            onChange={(e) => setCiudad(e.target.value)}
+            placeholder="Temuco"
+            className={campoBase()}
+          />
+        </label>
+      </div>
+
+      <label className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={esEmpresa}
+          onChange={(e) => setEsEmpresa(e.target.checked)}
+          className="size-4 accent-primary"
+        />
+        <span className="text-[14px]">Es empresa</span>
+      </label>
+
+      {esEmpresa && (
+        <div className="grid grid-cols-2 gap-4">
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Nombre de la empresa
+            </span>
+            <input
+              value={empresa}
+              onChange={(e) => setEmpresa(e.target.value)}
+              placeholder="Transportes Pérez SpA"
+              className={campoBase()}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              RUT de la empresa
+            </span>
+            <input
+              value={empresaRut}
+              onChange={(e) => setEmpresaRut(e.target.value)}
+              placeholder="76.123.456-7"
+              className={campoBase()}
+            />
+          </label>
+        </div>
+      )}
+
+      {error && <p className="text-[13px] text-destructive">{error}</p>}
+
+      <button
+        type="button"
+        onClick={guardar}
+        disabled={guardando}
+        className="self-start rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+      >
+        {guardando ? "Guardando…" : "Guardar"}
+      </button>
+    </div>
+  );
+}
+
 function Abrir({
   vehiculos,
   vehiculoIdInicial,
@@ -153,6 +307,7 @@ function Abrir({
   const [ordenadoPor, setOrdenadoPor] = useState("");
   const [ordenadoPorFono, setOrdenadoPorFono] = useState("");
   const [tecnicoId, setTecnicoId] = useState("");
+  const [editandoCliente, setEditandoCliente] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -251,32 +406,73 @@ function Abrir({
             <DatoVehiculo etiqueta="Cilindrada" valor={elegido.cilindrada} />
             <DatoVehiculo etiqueta="VIN / Chasis" valor={elegido.vin} />
             <DatoVehiculo etiqueta="Móvil" valor={elegido.movil} />
-            <DatoVehiculo
-              etiqueta="Cliente"
-              valor={
-                elegido.propietarioNumero
-                  ? `${elegido.propietario} · #${elegido.propietarioNumero}`
-                  : elegido.propietario
-              }
-            />
-            <DatoVehiculo
-              etiqueta="Fono"
-              valor={elegido.propietarioTelefono}
-            />
-            <DatoVehiculo etiqueta="E-mail" valor={elegido.propietarioEmail} />
-            <DatoVehiculo
-              etiqueta="Dirección"
-              valor={elegido.propietarioDireccion}
-            />
-            <DatoVehiculo etiqueta="Comuna" valor={elegido.propietarioComuna} />
-            <DatoVehiculo etiqueta="Ciudad" valor={elegido.propietarioCiudad} />
-            {elegido.esEmpresa && (
+          </div>
+        )}
+
+        {tieneImpresion && elegido && elegido.propietarioId && (
+          <div className="rounded-lg border border-border bg-background p-4">
+            {editandoCliente ? (
+              <EditarClienteOrden
+                elegido={elegido}
+                onListo={() => {
+                  setEditandoCliente(false);
+                  router.refresh();
+                }}
+              />
+            ) : (
               <>
-                <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
-                <DatoVehiculo
-                  etiqueta="RUT empresa"
-                  valor={elegido.empresaRut}
-                />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-medium">Cliente</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditandoCliente(true)}
+                    className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                  >
+                    Editar
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <DatoVehiculo
+                    etiqueta="Cliente"
+                    valor={
+                      elegido.propietarioNumero
+                        ? `${elegido.propietario} · #${elegido.propietarioNumero}`
+                        : elegido.propietario
+                    }
+                  />
+                  <DatoVehiculo
+                    etiqueta="Fono"
+                    valor={elegido.propietarioTelefono}
+                  />
+                  <DatoVehiculo
+                    etiqueta="E-mail"
+                    valor={elegido.propietarioEmail}
+                  />
+                  <DatoVehiculo
+                    etiqueta="Dirección"
+                    valor={elegido.propietarioDireccion}
+                  />
+                  <DatoVehiculo
+                    etiqueta="Comuna"
+                    valor={elegido.propietarioComuna}
+                  />
+                  <DatoVehiculo
+                    etiqueta="Ciudad"
+                    valor={elegido.propietarioCiudad}
+                  />
+                  {elegido.esEmpresa && (
+                    <>
+                      <DatoVehiculo
+                        etiqueta="Empresa"
+                        valor={elegido.empresa}
+                      />
+                      <DatoVehiculo
+                        etiqueta="RUT empresa"
+                        valor={elegido.empresaRut}
+                      />
+                    </>
+                  )}
+                </div>
               </>
             )}
           </div>

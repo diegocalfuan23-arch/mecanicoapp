@@ -156,6 +156,53 @@ export async function listarTecnicos() {
 }
 
 /**
+ * Marcar el cliente como empresa (o particular) y completar sus datos
+ * directo desde el formulario de abrir orden, sin ir primero a
+ * Propietarios — Plan Serviteca. Solo toca estos campos: no pisa
+ * trato/notas/formaPago, que son de la ficha de Propietarios.
+ */
+export async function actualizarDatosClienteOrden(
+  clienteId: string,
+  datos: {
+    email?: string;
+    direccion?: string;
+    comuna?: string;
+    ciudad?: string;
+    esEmpresa?: boolean;
+    empresa?: string;
+    empresaRut?: string;
+  }
+) {
+  const tallerId = await tallerActual();
+
+  const [suyo] = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.id, clienteId), eq(cliente.tallerId, tallerId)))
+    .limit(1);
+
+  if (!suyo) return { error: "No se encontró ese cliente." };
+
+  await db
+    .update(cliente)
+    .set({
+      email: datos.email?.trim() || null,
+      direccion: datos.direccion?.trim() || null,
+      comuna: datos.comuna?.trim() || null,
+      ciudad: datos.ciudad?.trim() || null,
+      esEmpresa: datos.esEmpresa ?? false,
+      empresa: datos.empresa?.trim() || null,
+      empresaRut: datos.empresaRut?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(cliente.id, clienteId));
+
+  revalidatePath("/panel/ordenes");
+  revalidatePath("/panel/propietarios");
+  return { ok: true };
+}
+
+/**
  * Los vehículos disponibles para abrir una orden, con el último
  * kilometraje conocido: el de la visita más reciente, o el inicial si
  * es la primera vez. Sirve para no escribirlo de cero cada vez.
@@ -175,6 +222,7 @@ export async function listarVehiculosParaOrden() {
       cilindrada: vehiculo.cilindrada,
       vin: vehiculo.vin,
       movil: vehiculo.movil,
+      propietarioId: cliente.id,
       propietarioNumero: cliente.numero,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
