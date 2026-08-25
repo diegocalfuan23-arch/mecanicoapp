@@ -101,9 +101,15 @@ export const cliente = pgTable(
     tallerId: text("taller_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    // Correlativo por taller para identificar rápido a un cliente
+    // frecuente (Cliente #1, #2...) — Plan Serviteca en adelante.
+    numero: integer("numero").notNull(),
     nombre: text("nombre").notNull(),
     telefono: text("telefono"),
     email: text("email"),
+    direccion: text("direccion"),
+    comuna: text("comuna"),
+    ciudad: text("ciudad"),
     // Cuando el auto es de una empresa, no de una persona natural —
     // Plan Serviteca en adelante (cotización a nombre de la empresa,
     // en vez de a nombre de la persona que lo trajo).

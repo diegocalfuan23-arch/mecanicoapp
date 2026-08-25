@@ -10,9 +10,13 @@ import { Selector } from "@/components/ui/selector";
 
 type Propietario = {
   id: string;
+  numero: number;
   nombre: string;
   telefono: string | null;
   email: string | null;
+  direccion: string | null;
+  comuna: string | null;
+  ciudad: string | null;
   esEmpresa: boolean;
   empresa: string | null;
   empresaRut: string | null;
@@ -79,6 +83,9 @@ function Formulario({
       nombre: propietario?.nombre ?? "",
       telefono: propietario?.telefono ?? "",
       email: propietario?.email ?? "",
+      direccion: propietario?.direccion ?? "",
+      comuna: propietario?.comuna ?? "",
+      ciudad: propietario?.ciudad ?? "",
       esEmpresa: propietario?.esEmpresa ?? false,
       empresa: propietario?.empresa ?? "",
       empresaRut: propietario?.empresaRut ?? "",
@@ -148,6 +155,14 @@ function Formulario({
             placeholder: "juan@correo.com",
             type: "email",
           })}
+
+          {campo("direccion", "Dirección", {
+            placeholder: "Av. Alemania 1234",
+          })}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {campo("comuna", "Comuna", { placeholder: "Temuco" })}
+            {campo("ciudad", "Ciudad", { placeholder: "Temuco" })}
+          </div>
 
           <label className="flex items-center gap-3">
             <input
@@ -256,7 +271,9 @@ export function TablaPropietarios({
     return (
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <h2 className="text-lg font-medium">
-          {editando ? editando.nombre : "Nuevo propietario"}
+          {editando
+            ? `${editando.nombre} · Cliente #${editando.numero}`
+            : "Nuevo propietario"}
         </h2>
         <div className="mt-6">
           <Formulario

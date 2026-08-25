@@ -5,6 +5,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { vehiculo, cliente, trabajo } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
+import { siguienteNumeroCliente } from "@/app/panel/propietarios/acciones";
 
 function id() {
   return crypto.randomUUID();
@@ -109,6 +110,7 @@ export async function actualizarVehiculo(
       await db.insert(cliente).values({
         id: propietarioId,
         tallerId,
+        numero: await siguienteNumeroCliente(tallerId),
         nombre,
         telefono: datos.propietarioTelefono?.trim() || null,
       });
@@ -216,6 +218,7 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
       await db.insert(cliente).values({
         id: propietarioId,
         tallerId,
+        numero: await siguienteNumeroCliente(tallerId),
         nombre,
         telefono: datos.propietarioTelefono?.trim() || null,
       });

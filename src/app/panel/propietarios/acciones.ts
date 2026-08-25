@@ -13,9 +13,13 @@ export async function listarPropietarios() {
   return db
     .select({
       id: cliente.id,
+      numero: cliente.numero,
       nombre: cliente.nombre,
       telefono: cliente.telefono,
       email: cliente.email,
+      direccion: cliente.direccion,
+      comuna: cliente.comuna,
+      ciudad: cliente.ciudad,
       esEmpresa: cliente.esEmpresa,
       empresa: cliente.empresa,
       empresaRut: cliente.empresaRut,
@@ -47,6 +51,9 @@ export type DatosPropietario = {
   nombre: string;
   telefono?: string;
   email?: string;
+  direccion?: string;
+  comuna?: string;
+  ciudad?: string;
   esEmpresa?: boolean;
   empresa?: string;
   empresaRut?: string;
@@ -54,6 +61,19 @@ export type DatosPropietario = {
   trato: string;
   formaPago?: string;
 };
+
+/**
+ * Correlativo de cliente por taller (Cliente #1, #2...), para
+ * identificarlo rápido de memoria. Compartido con vehiculos/acciones.ts,
+ * que también puede crear un cliente al vuelo desde la ficha del auto.
+ */
+export async function siguienteNumeroCliente(tallerId: string) {
+  const [{ ultimo }] = await db
+    .select({ ultimo: sql<number>`coalesce(max(${cliente.numero}), 0)`.mapWith(Number) })
+    .from(cliente)
+    .where(eq(cliente.tallerId, tallerId));
+  return ultimo + 1;
+}
 
 export async function guardarPropietario(datos: DatosPropietario) {
   const tallerId = await tallerActual();
@@ -72,9 +92,13 @@ export async function guardarPropietario(datos: DatosPropietario) {
   await db.insert(cliente).values({
     id: crypto.randomUUID(),
     tallerId,
+    numero: await siguienteNumeroCliente(tallerId),
     nombre,
     telefono: datos.telefono?.trim() || null,
     email: datos.email?.trim() || null,
+    direccion: datos.direccion?.trim() || null,
+    comuna: datos.comuna?.trim() || null,
+    ciudad: datos.ciudad?.trim() || null,
     esEmpresa: datos.esEmpresa ?? false,
     empresa: datos.empresa?.trim() || null,
     empresaRut: datos.empresaRut?.trim() || null,
@@ -118,6 +142,9 @@ export async function actualizarPropietario(
       nombre,
       telefono: datos.telefono?.trim() || null,
       email: datos.email?.trim() || null,
+      direccion: datos.direccion?.trim() || null,
+      comuna: datos.comuna?.trim() || null,
+      ciudad: datos.ciudad?.trim() || null,
       esEmpresa: datos.esEmpresa ?? false,
       empresa: datos.empresa?.trim() || null,
       empresaRut: datos.empresaRut?.trim() || null,

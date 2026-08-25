@@ -56,9 +56,13 @@ type VehiculoOpcion = {
   cilindrada: string | null;
   vin: string | null;
   movil: string | null;
+  propietarioNumero: number | null;
   propietario: string | null;
   propietarioTelefono: string | null;
   propietarioEmail: string | null;
+  propietarioDireccion: string | null;
+  propietarioComuna: string | null;
+  propietarioCiudad: string | null;
   empresa: string | null;
   empresaRut: string | null;
   ultimoKilometraje: number | null;
@@ -236,12 +240,25 @@ function Abrir({
             <DatoVehiculo etiqueta="Cilindrada" valor={elegido.cilindrada} />
             <DatoVehiculo etiqueta="VIN / Chasis" valor={elegido.vin} />
             <DatoVehiculo etiqueta="Móvil" valor={elegido.movil} />
-            <DatoVehiculo etiqueta="Cliente" valor={elegido.propietario} />
+            <DatoVehiculo
+              etiqueta="Cliente"
+              valor={
+                elegido.propietarioNumero
+                  ? `${elegido.propietario} · #${elegido.propietarioNumero}`
+                  : elegido.propietario
+              }
+            />
             <DatoVehiculo
               etiqueta="Fono"
               valor={elegido.propietarioTelefono}
             />
             <DatoVehiculo etiqueta="E-mail" valor={elegido.propietarioEmail} />
+            <DatoVehiculo
+              etiqueta="Dirección"
+              valor={elegido.propietarioDireccion}
+            />
+            <DatoVehiculo etiqueta="Comuna" valor={elegido.propietarioComuna} />
+            <DatoVehiculo etiqueta="Ciudad" valor={elegido.propietarioCiudad} />
             <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
             <DatoVehiculo
               etiqueta="RUT empresa"

@@ -85,9 +85,19 @@ export default async function ImprimirOrden({
           <Campo etiqueta="Cilindrada" valor={orden.cilindrada ?? ""} />
           <Campo etiqueta="VIN / Chasis" valor={orden.vin ?? ""} />
           <Campo etiqueta="Móvil" valor={orden.movil ?? ""} />
-          <Campo etiqueta="Cliente" valor={orden.propietario ?? ""} />
+          <Campo
+            etiqueta="Cliente"
+            valor={
+              orden.propietarioNumero
+                ? `${orden.propietario ?? ""} · #${orden.propietarioNumero}`
+                : (orden.propietario ?? "")
+            }
+          />
           <Campo etiqueta="Fono" valor={orden.propietarioTelefono ?? ""} />
           <Campo etiqueta="E-mail" valor={orden.propietarioEmail ?? ""} />
+          <Campo etiqueta="Dirección" valor={orden.propietarioDireccion ?? ""} />
+          <Campo etiqueta="Comuna" valor={orden.propietarioComuna ?? ""} />
+          <Campo etiqueta="Ciudad" valor={orden.propietarioCiudad ?? ""} />
           <Campo etiqueta="Empresa" valor={orden.empresa ?? ""} />
           <Campo etiqueta="RUT empresa" valor={orden.empresaRut ?? ""} />
           {orden.ordenadoPor && (
