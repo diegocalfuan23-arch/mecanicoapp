@@ -206,6 +206,12 @@ export const trabajo = pgTable(
     // marca es {zona, tipo}, tipo: abolladura · rayadura · quebrado.
     // Ver el diagrama del auto en el formulario de abrir orden.
     danos: text("danos").array().notNull().default([]),
+    // vacio · 1/4 · 1/2 · 3/4 · lleno — Plan Serviteca.
+    combustible: text("combustible"),
+    // Qué accesorios trae el auto al recibirlo, para respaldo ante un
+    // reclamo al retirarlo ("no traía la rueda de repuesto"). Cada
+    // elemento es el id del accesorio que SÍ trae — ausencia = no trae.
+    accesorios: text("accesorios").array().notNull().default([]),
 
     // ingresado · en_proceso · esperando_repuesto · terminado · entregado
     estado: text("estado").notNull().default("ingresado"),

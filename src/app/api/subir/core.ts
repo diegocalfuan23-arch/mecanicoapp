@@ -22,6 +22,19 @@ export const rutasSubida = {
     .onUploadComplete(async ({ file }) => {
       return { url: file.ufsUrl };
     }),
+
+  /** Logo del taller: sale en el encabezado de la orden en pantalla e impresa. */
+  logoTaller: f({
+    image: { maxFileSize: "2MB", maxFileCount: 1 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type RutasSubida = typeof rutasSubida;

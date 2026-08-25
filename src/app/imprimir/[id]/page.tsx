@@ -5,6 +5,7 @@ import { datosParaImprimir } from "@/app/panel/ordenes/acciones";
 import { BotonImprimir } from "./boton-imprimir";
 import { pesos, fecha } from "@/lib/formato";
 import { ZONAS_AUTO, TIPOS_DANO, marcasDesdeDanos } from "@/lib/zonas-auto";
+import { ACCESORIOS_AUTO, NIVELES_COMBUSTIBLE } from "@/lib/accesorios-auto";
 
 export default async function ImprimirOrden({
   params,
@@ -30,17 +31,27 @@ export default async function ImprimirOrden({
       <div className="border border-foreground/30 p-6 text-[13px] text-foreground">
         {/* Encabezado del taller */}
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-foreground/30 pb-4">
-          <div>
-            <p className="text-lg font-semibold">
-              {orden.taller ?? "Taller"}
-            </p>
-            {orden.tallerRut && <p>RUT: {orden.tallerRut}</p>}
-            {orden.tallerDireccion && <p>{orden.tallerDireccion}</p>}
-            <p>
-              {[orden.tallerTelefono, orden.tallerEmail]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+          <div className="flex items-start gap-4">
+            {orden.tallerLogo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={orden.tallerLogo}
+                alt=""
+                className="size-14 rounded-lg object-contain"
+              />
+            )}
+            <div>
+              <p className="text-lg font-semibold">
+                {orden.taller ?? "Taller"}
+              </p>
+              {orden.tallerRut && <p>RUT: {orden.tallerRut}</p>}
+              {orden.tallerDireccion && <p>{orden.tallerDireccion}</p>}
+              <p>
+                {[orden.tallerTelefono, orden.tallerEmail]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold">ORDEN DE TRABAJO</p>
@@ -67,6 +78,7 @@ export default async function ImprimirOrden({
             }
           />
           <Campo etiqueta="Motor" valor={orden.motor ?? ""} />
+          <Campo etiqueta="VIN / Chasis" valor={orden.vin ?? ""} />
           <Campo etiqueta="Cliente" valor={orden.propietario ?? ""} />
           <Campo etiqueta="Fono" valor={orden.propietarioTelefono ?? ""} />
         </div>
@@ -86,6 +98,33 @@ export default async function ImprimirOrden({
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+
+        {/* Combustible y accesorios al recibir */}
+        <div className="grid gap-4 border-b border-foreground/30 py-4 sm:grid-cols-2">
+          <Campo
+            etiqueta="Nivel de combustible"
+            valor={
+              NIVELES_COMBUSTIBLE.find((n) => n.id === orden.combustible)
+                ?.etiqueta ?? ""
+            }
+          />
+          <div>
+            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Accesorios que trae
+            </p>
+            <p className="mt-1">
+              {orden.accesorios.length > 0
+                ? orden.accesorios
+                    .map(
+                      (id) =>
+                        ACCESORIOS_AUTO.find((a) => a.id === id)?.etiqueta
+                    )
+                    .filter(Boolean)
+                    .join(", ")
+                : "—"}
+            </p>
           </div>
         </div>
 

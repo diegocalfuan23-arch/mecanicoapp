@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   abrirOrden,
@@ -10,6 +10,7 @@ import {
   editarOrdenAbierta,
   esperarRepuesto,
   retomarTrabajo,
+  repuestosDeOrden,
   type RepuestoUsado,
 } from "./acciones";
 import { ESTADOS } from "./estados";
@@ -19,6 +20,8 @@ import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
+import { NIVELES_COMBUSTIBLE } from "@/lib/accesorios-auto";
+import { ACCESORIOS_AUTO } from "@/lib/accesorios-auto";
 
 type Orden = {
   id: string;
@@ -50,6 +53,7 @@ type VehiculoOpcion = {
   anio: number | null;
   color: string | null;
   motor: string | null;
+  vin: string | null;
   propietario: string | null;
   propietarioTelefono: string | null;
   ultimoKilometraje: number | null;
@@ -104,6 +108,7 @@ function Abrir({
   vehiculos,
   vehiculoIdInicial,
   tieneImpresion,
+  inventario,
   onListo,
 }: {
   vehiculos: VehiculoOpcion[];
@@ -111,6 +116,7 @@ function Abrir({
   vehiculoIdInicial?: string;
   /** Plan Serviteca: agrega datos del vehículo y diagrama de daños. */
   tieneImpresion: boolean;
+  inventario: Insumo[];
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -123,6 +129,9 @@ function Abrir({
   const [diagnostico, setDiagnostico] = useState("");
   const [fotos, setFotos] = useState<string[]>([]);
   const [danos, setDanos] = useState<string[]>([]);
+  const [combustible, setCombustible] = useState("");
+  const [accesorios, setAccesorios] = useState<string[]>([]);
+  const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -140,6 +149,9 @@ function Abrir({
       diagnostico,
       fotos,
       danos,
+      combustible,
+      accesorios,
+      piezas,
     });
     setEnviando(false);
 
@@ -210,6 +222,12 @@ function Abrir({
             <DatoVehiculo etiqueta="Año" valor={elegido.anio} />
             <DatoVehiculo etiqueta="Color" valor={elegido.color} />
             <DatoVehiculo etiqueta="Motor" valor={elegido.motor} />
+            <DatoVehiculo etiqueta="VIN / Chasis" valor={elegido.vin} />
+            <DatoVehiculo etiqueta="Cliente" valor={elegido.propietario} />
+            <DatoVehiculo
+              etiqueta="Fono"
+              valor={elegido.propietarioTelefono}
+            />
           </div>
         )}
 
@@ -243,6 +261,32 @@ function Abrir({
             )
           ) : null}
         </label>
+
+        {tieneImpresion && (
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Nivel de combustible
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {NIVELES_COMBUSTIBLE.map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() =>
+                    setCombustible(combustible === n.id ? "" : n.id)
+                  }
+                  className={`rounded-lg border px-4 py-2 text-[14px] transition-colors ${
+                    combustible === n.id
+                      ? "border-foreground bg-foreground/10 text-foreground"
+                      : "border-border hover:bg-background"
+                  }`}
+                >
+                  {n.etiqueta}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <label className="block">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -297,6 +341,47 @@ function Abrir({
           </div>
         )}
 
+        {tieneImpresion && (
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Accesorios que trae
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {ACCESORIOS_AUTO.map((a) => {
+                const activo = accesorios.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() =>
+                      setAccesorios((actual) =>
+                        activo
+                          ? actual.filter((id) => id !== a.id)
+                          : [...actual, a.id]
+                      )
+                    }
+                    className={`rounded-lg border px-4 py-2 text-[14px] transition-colors ${
+                      activo
+                        ? "border-foreground bg-foreground/10 text-foreground"
+                        : "border-border hover:bg-background"
+                    }`}
+                  >
+                    {a.etiqueta}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {tieneImpresion && (
+          <RepuestosUsados
+            piezas={piezas}
+            onCambio={setPiezas}
+            inventario={inventario}
+          />
+        )}
+
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
         <div className="flex flex-col gap-4 sm:flex-row">
@@ -340,6 +425,26 @@ function Cerrar({
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  // Si ya se cotizaron repuestos al abrir la orden (Plan Serviteca), se
+  // precargan acá para no anotarlos dos veces — el mecánico solo los
+  // confirma o ajusta antes de cerrar.
+  useEffect(() => {
+    repuestosDeOrden(orden.id).then((previas) => {
+      if (previas.length === 0) return;
+      setPiezas(
+        previas.map((p) => ({
+          nombre: p.nombre,
+          cantidad: String(p.cantidad),
+          costo: String(p.costoUnitario),
+          precio: String(p.precioUnitario),
+          donde: p.dondeSeCompro ?? "",
+          parteId: p.parteId,
+        }))
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orden.id]);
 
   // Si se detallaron los repuestos, el cobro sale de ellos.
   const cobroRepuestos = piezas.length
@@ -890,6 +995,7 @@ export function ListaOrdenes({
         vehiculos={vehiculos}
         vehiculoIdInicial={vehiculoDesdeUrl ?? undefined}
         tieneImpresion={tieneImpresion}
+        inventario={inventario}
         onListo={() => {
           setAbriendo(false);
           // Limpia el ?abrir= de la URL: un refresh no debe reabrir

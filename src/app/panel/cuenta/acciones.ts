@@ -30,6 +30,7 @@ export async function guardarDatosTaller(datos: {
   rut: string;
   direccion: string;
   telefono: string;
+  logo?: string;
 }) {
   const sesion = await sesionActual();
 
@@ -40,6 +41,7 @@ export async function guardarDatosTaller(datos: {
       rut: datos.rut.trim() || null,
       direccion: datos.direccion.trim() || null,
       telefono: datos.telefono.trim() || null,
+      ...(datos.logo !== undefined ? { image: datos.logo || null } : {}),
     })
     .where(eq(user.id, sesion.user.id));
 }

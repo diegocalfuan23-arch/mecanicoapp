@@ -18,6 +18,7 @@ export default async function Cuenta() {
       rut: user.rut,
       direccion: user.direccion,
       telefono: user.telefono,
+      logo: user.image,
     })
     .from(user)
     .where(eq(user.id, sesion.user.id))
@@ -37,6 +38,7 @@ export default async function Cuenta() {
         rut={datos?.rut ?? ""}
         direccion={datos?.direccion ?? ""}
         telefono={datos?.telefono ?? ""}
+        logo={datos?.logo ?? null}
       />
 
       <div className="mt-6">

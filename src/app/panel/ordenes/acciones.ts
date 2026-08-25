@@ -65,6 +65,8 @@ export async function datosParaImprimir(ordenId: string) {
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
       danos: trabajo.danos,
+      combustible: trabajo.combustible,
+      accesorios: trabajo.accesorios,
       manoObra: trabajo.manoObra,
       repuestos: trabajo.repuestos,
       cargoTraslado: trabajo.cargoTraslado,
@@ -78,9 +80,11 @@ export async function datosParaImprimir(ordenId: string) {
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
+      vin: vehiculo.vin,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
       taller: user.taller,
+      tallerLogo: user.image,
       tallerRut: user.rut,
       tallerDireccion: user.direccion,
       tallerTelefono: user.telefono,
@@ -124,6 +128,7 @@ export async function listarVehiculosParaOrden() {
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
+      vin: vehiculo.vin,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
       ultimoKilometraje: sql<number | null>`coalesce(
@@ -146,6 +151,9 @@ export async function abrirOrden(datos: {
   diagnostico?: string;
   fotos?: string[];
   danos?: string[];
+  combustible?: string;
+  accesorios?: string[];
+  piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
 
@@ -159,8 +167,10 @@ export async function abrirOrden(datos: {
     .from(trabajo)
     .where(eq(trabajo.tallerId, tallerId));
 
+  const ordenId = crypto.randomUUID();
+
   await db.insert(trabajo).values({
-    id: crypto.randomUUID(),
+    id: ordenId,
     tallerId,
     vehiculoId: datos.vehiculoId,
     numero: ultimo + 1,
@@ -169,8 +179,30 @@ export async function abrirOrden(datos: {
     kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
     fotos: datos.fotos ?? [],
     danos: datos.danos ?? [],
+    combustible: datos.combustible || null,
+    accesorios: datos.accesorios ?? [],
     estado: "ingresado",
   });
+
+  // Repuestos cotizados al abrir — sin descontar stock todavía: eso
+  // solo pasa al cerrar la orden, que ya reemplaza y descuenta estas
+  // mismas filas (ver cerrarOrden). Así el mecánico no anota el
+  // repuesto dos veces.
+  const piezas = (datos.piezas ?? []).filter((p) => p.nombre.trim());
+  if (piezas.length) {
+    await db.insert(parteUsada).values(
+      piezas.map((p) => ({
+        id: crypto.randomUUID(),
+        trabajoId: ordenId,
+        parteId: p.parteId || null,
+        nombre: p.nombre.trim(),
+        cantidad: Number(p.cantidad) || 1,
+        costoUnitario: Number(p.costo) || 0,
+        precioUnitario: Number(p.precio) || 0,
+        dondeSeCompro: p.donde.trim() || null,
+      }))
+    );
+  }
 
   revalidatePath("/panel/ordenes");
   revalidatePath("/panel");
@@ -449,6 +481,7 @@ export async function repuestosDeOrden(ordenId: string) {
 
   return db
     .select({
+      parteId: parteUsada.parteId,
       nombre: parteUsada.nombre,
       cantidad: parteUsada.cantidad,
       costoUnitario: parteUsada.costoUnitario,
