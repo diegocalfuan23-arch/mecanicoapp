@@ -128,13 +128,6 @@ export function FormularioVehiculo({
       kilometrajeInicial: texto(vehiculo?.kilometrajeInicial),
       propietarioNombre: texto(vehiculo?.propietario),
       propietarioTelefono: texto(vehiculo?.propietarioTelefono),
-      propietarioEmail: texto(vehiculo?.propietarioEmail),
-      propietarioDireccion: texto(vehiculo?.propietarioDireccion),
-      propietarioComuna: texto(vehiculo?.propietarioComuna),
-      propietarioCiudad: texto(vehiculo?.propietarioCiudad),
-      esEmpresa: vehiculo?.esEmpresa ?? false,
-      empresa: texto(vehiculo?.empresa),
-      empresaRut: texto(vehiculo?.empresaRut),
       copropietario: texto(vehiculo?.copropietario),
       copropietarioTelefono: texto(vehiculo?.copropietarioTelefono),
       primeraVez: vehiculo?.primeraVez ?? true,
@@ -297,54 +290,12 @@ export function FormularioVehiculo({
           })}
         </div>
 
-        {tieneImpresion && (
-          <>
-            <div className="mt-4">
-              {campo("propietarioEmail", "E-mail", {
-                placeholder: "juan@correo.com",
-                type: "email",
-              })}
-            </div>
-
-            <div className="mt-4">
-              {campo("propietarioDireccion", "Dirección", {
-                placeholder: "Av. Alemania 1234",
-              })}
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {campo("propietarioComuna", "Comuna", {
-                placeholder: "Temuco",
-              })}
-              {campo("propietarioCiudad", "Ciudad", {
-                placeholder: "Temuco",
-              })}
-            </div>
-
-            <label className="mt-4 flex items-center gap-3">
-              <input
-                type="checkbox"
-                name="esEmpresa"
-                checked={form.values.esEmpresa}
-                onChange={(e) => {
-                  form.handleChange(e);
-                  if (autoguardar) form.submitForm();
-                }}
-                className="size-4 accent-primary"
-              />
-              <span className="text-[14px]">Es empresa</span>
-            </label>
-
-            {form.values.esEmpresa && (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {campo("empresa", "Nombre de la empresa", {
-                  placeholder: "Transportes Pérez SpA",
-                })}
-                {campo("empresaRut", "RUT de la empresa", {
-                  placeholder: "76.123.456-7",
-                })}
-              </div>
-            )}
-          </>
+        {tieneImpresion && vehiculo?.esEmpresa && (
+          <p className="mt-4 text-[13px] text-muted-foreground">
+            {vehiculo.propietario} es empresa: {vehiculo.empresa || "sin nombre"}
+            {vehiculo.empresaRut ? ` · ${vehiculo.empresaRut}` : ""}. Se edita
+            en Propietarios.
+          </p>
         )}
       </div>
 

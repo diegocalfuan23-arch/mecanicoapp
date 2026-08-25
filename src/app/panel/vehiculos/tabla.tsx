@@ -307,7 +307,7 @@ export function TablaVehiculos({
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.tipo ?? "—"}
+                    {v.tipo ?? "No especifica"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {v.marca ? (
@@ -317,31 +317,31 @@ export function TablaVehiculos({
                           : v.marca}
                       </span>
                     ) : (
-                      "—"
+                      "No especifica"
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.modelo ?? "—"}
+                    {v.modelo ?? "No especifica"}
                     {v.anio && (
                       <span className="text-muted-foreground"> {v.anio}</span>
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.color ?? "—"}
+                    {v.color ?? "No especifica"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.motor ?? "—"}
+                    {v.motor ?? "No especifica"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap tabular-nums">
                     {v.kilometrajeInicial
                       ? v.kilometrajeInicial.toLocaleString("es-CL")
-                      : "—"}
+                      : "No especifica"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.procedencia ?? "—"}
+                    {v.procedencia ?? "No especifica"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {v.propietario ?? "—"}
+                    {v.propietario ?? "No especifica"}
                     {v.copropietario && (
                       <span className="block text-[13px] text-muted-foreground">
                         con {v.copropietario}

@@ -152,7 +152,7 @@ export default async function ImprimirOrden({
                     )
                     .filter(Boolean)
                     .join(", ")
-                : "—"}
+                : "No especifica"}
             </p>
           </div>
         </div>
@@ -266,7 +266,7 @@ function Campo({
       <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         {etiqueta}
       </p>
-      <p>{valor || "—"}</p>
+      <p>{valor || "No especifica"}</p>
     </div>
   );
 }
@@ -283,7 +283,7 @@ function Bloque({
       <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         {etiqueta}
       </p>
-      <p className="mt-1 whitespace-pre-wrap">{texto || "—"}</p>
+      <p className="mt-1 whitespace-pre-wrap">{texto || "No especifica"}</p>
     </div>
   );
 }

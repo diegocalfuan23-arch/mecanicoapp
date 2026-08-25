@@ -27,13 +27,6 @@ export type DatosVehiculo = {
   kilometrajeInicial?: string;
   propietarioNombre?: string;
   propietarioTelefono?: string;
-  propietarioEmail?: string;
-  propietarioDireccion?: string;
-  propietarioComuna?: string;
-  propietarioCiudad?: string;
-  esEmpresa?: boolean;
-  empresa?: string;
-  empresaRut?: string;
   copropietario?: string;
   copropietarioTelefono?: string;
   primeraVez: boolean;
@@ -117,15 +110,11 @@ export async function actualizarVehiculo(
       .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
       .limit(1);
 
+    // Solo el teléfono se toca desde acá: email/dirección/empresa son
+    // datos del cliente que se editan en Propietarios, para no
+    // pisarlos sin querer si este formulario no los muestra.
     const datosCliente = {
       telefono: datos.propietarioTelefono?.trim() || null,
-      email: datos.propietarioEmail?.trim() || null,
-      direccion: datos.propietarioDireccion?.trim() || null,
-      comuna: datos.propietarioComuna?.trim() || null,
-      ciudad: datos.propietarioCiudad?.trim() || null,
-      esEmpresa: datos.esEmpresa ?? false,
-      empresa: datos.empresa?.trim() || null,
-      empresaRut: datos.empresaRut?.trim() || null,
     };
 
     if (existente.length) {
@@ -240,15 +229,11 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
       .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
       .limit(1);
 
+    // Solo el teléfono se toca desde acá: email/dirección/empresa son
+    // datos del cliente que se editan en Propietarios, para no
+    // pisarlos sin querer si este formulario no los muestra.
     const datosCliente = {
       telefono: datos.propietarioTelefono?.trim() || null,
-      email: datos.propietarioEmail?.trim() || null,
-      direccion: datos.propietarioDireccion?.trim() || null,
-      comuna: datos.propietarioComuna?.trim() || null,
-      ciudad: datos.propietarioCiudad?.trim() || null,
-      esEmpresa: datos.esEmpresa ?? false,
-      empresa: datos.empresa?.trim() || null,
-      empresaRut: datos.empresaRut?.trim() || null,
     };
 
     if (existente.length) {
