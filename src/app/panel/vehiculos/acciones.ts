@@ -27,6 +27,13 @@ export type DatosVehiculo = {
   kilometrajeInicial?: string;
   propietarioNombre?: string;
   propietarioTelefono?: string;
+  propietarioEmail?: string;
+  propietarioDireccion?: string;
+  propietarioComuna?: string;
+  propietarioCiudad?: string;
+  esEmpresa?: boolean;
+  empresa?: string;
+  empresaRut?: string;
   copropietario?: string;
   copropietarioTelefono?: string;
   primeraVez: boolean;
@@ -60,6 +67,13 @@ export async function listarVehiculos() {
       comparteHistorial: vehiculo.comparteHistorial,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
+      propietarioEmail: cliente.email,
+      propietarioDireccion: cliente.direccion,
+      propietarioComuna: cliente.comuna,
+      propietarioCiudad: cliente.ciudad,
+      esEmpresa: cliente.esEmpresa,
+      empresa: cliente.empresa,
+      empresaRut: cliente.empresaRut,
     })
     .from(vehiculo)
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
@@ -103,8 +117,23 @@ export async function actualizarVehiculo(
       .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
       .limit(1);
 
+    const datosCliente = {
+      telefono: datos.propietarioTelefono?.trim() || null,
+      email: datos.propietarioEmail?.trim() || null,
+      direccion: datos.propietarioDireccion?.trim() || null,
+      comuna: datos.propietarioComuna?.trim() || null,
+      ciudad: datos.propietarioCiudad?.trim() || null,
+      esEmpresa: datos.esEmpresa ?? false,
+      empresa: datos.empresa?.trim() || null,
+      empresaRut: datos.empresaRut?.trim() || null,
+    };
+
     if (existente.length) {
       propietarioId = existente[0].id;
+      await db
+        .update(cliente)
+        .set({ ...datosCliente, updatedAt: new Date() })
+        .where(eq(cliente.id, propietarioId));
     } else {
       propietarioId = id();
       await db.insert(cliente).values({
@@ -112,7 +141,7 @@ export async function actualizarVehiculo(
         tallerId,
         numero: await siguienteNumeroCliente(tallerId),
         nombre,
-        telefono: datos.propietarioTelefono?.trim() || null,
+        ...datosCliente,
       });
     }
   }
@@ -211,8 +240,23 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
       .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
       .limit(1);
 
+    const datosCliente = {
+      telefono: datos.propietarioTelefono?.trim() || null,
+      email: datos.propietarioEmail?.trim() || null,
+      direccion: datos.propietarioDireccion?.trim() || null,
+      comuna: datos.propietarioComuna?.trim() || null,
+      ciudad: datos.propietarioCiudad?.trim() || null,
+      esEmpresa: datos.esEmpresa ?? false,
+      empresa: datos.empresa?.trim() || null,
+      empresaRut: datos.empresaRut?.trim() || null,
+    };
+
     if (existente.length) {
       propietarioId = existente[0].id;
+      await db
+        .update(cliente)
+        .set({ ...datosCliente, updatedAt: new Date() })
+        .where(eq(cliente.id, propietarioId));
     } else {
       propietarioId = id();
       await db.insert(cliente).values({
@@ -220,7 +264,7 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
         tallerId,
         numero: await siguienteNumeroCliente(tallerId),
         nombre,
-        telefono: datos.propietarioTelefono?.trim() || null,
+        ...datosCliente,
       });
     }
   }
