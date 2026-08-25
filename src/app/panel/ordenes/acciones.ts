@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   trabajo,
@@ -11,7 +12,10 @@ import {
   parte,
   abono,
   user,
+  miembroTaller,
 } from "@/db/schema";
+
+const tecnico = alias(user, "tecnico");
 import { tallerActual, tienePlan } from "@/lib/taller";
 
 export async function listarOrdenes() {
@@ -33,6 +37,7 @@ export async function listarOrdenes() {
       abonado: trabajo.abonado,
       fecha: trabajo.fecha,
       fechaEntrega: trabajo.fechaEntrega,
+      tecnicoId: trabajo.tecnicoId,
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
@@ -102,11 +107,13 @@ export async function datosParaImprimir(ordenId: string) {
       tallerDireccion: user.direccion,
       tallerTelefono: user.telefono,
       tallerEmail: user.email,
+      tecnico: tecnico.name,
     })
     .from(trabajo)
     .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .innerJoin(user, eq(trabajo.tallerId, user.id))
+    .leftJoin(tecnico, eq(trabajo.tecnicoId, tecnico.id))
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
     .limit(1);
 
@@ -123,6 +130,28 @@ export async function datosParaImprimir(ordenId: string) {
     .where(eq(parteUsada.trabajoId, ordenId));
 
   return { orden, piezas };
+}
+
+/**
+ * Quién puede quedar como técnico a cargo de una orden — Plan
+ * Serviteca: el dueño del taller y sus ayudantes del Equipo.
+ */
+export async function listarTecnicos() {
+  const tallerId = await tallerActual();
+
+  const [dueno] = await db
+    .select({ id: user.id, nombre: user.name })
+    .from(user)
+    .where(eq(user.id, tallerId))
+    .limit(1);
+
+  const ayudantes = await db
+    .select({ id: user.id, nombre: user.name })
+    .from(miembroTaller)
+    .innerJoin(user, eq(miembroTaller.userId, user.id))
+    .where(eq(miembroTaller.tallerId, tallerId));
+
+  return dueno ? [dueno, ...ayudantes] : ayudantes;
 }
 
 /**
@@ -191,6 +220,7 @@ export async function abrirOrden(datos: {
   observaciones?: string;
   ordenadoPor?: string;
   ordenadoPorFono?: string;
+  tecnicoId?: string;
   piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
@@ -222,6 +252,7 @@ export async function abrirOrden(datos: {
     observaciones: datos.observaciones?.trim() || null,
     ordenadoPor: datos.ordenadoPor?.trim() || null,
     ordenadoPorFono: datos.ordenadoPorFono?.trim() || null,
+    tecnicoId: datos.tecnicoId || null,
     estado: "ingresado",
   });
 
@@ -264,6 +295,7 @@ export async function editarOrdenAbierta(
     kilometraje: string;
     diagnostico: string;
     descripcion: string;
+    tecnicoId?: string;
   }
 ) {
   const tallerId = await tallerActual();
@@ -275,6 +307,7 @@ export async function editarOrdenAbierta(
       kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
       diagnostico: datos.diagnostico.trim() || null,
       descripcion: datos.descripcion.trim() || null,
+      tecnicoId: datos.tecnicoId || null,
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));

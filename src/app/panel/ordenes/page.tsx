@@ -1,16 +1,22 @@
 import { Suspense } from "react";
-import { listarOrdenes, listarVehiculosParaOrden } from "./acciones";
+import {
+  listarOrdenes,
+  listarVehiculosParaOrden,
+  listarTecnicos,
+} from "./acciones";
 import { listarInventario } from "../inventario/acciones";
 import { tienePlan } from "@/lib/taller";
 import { ListaOrdenes } from "./lista";
 
 export default async function Ordenes() {
-  const [ordenes, vehiculos, inventario, tieneImpresion] = await Promise.all([
-    listarOrdenes(),
-    listarVehiculosParaOrden(),
-    listarInventario(),
-    tienePlan("impresionOrden"),
-  ]);
+  const [ordenes, vehiculos, inventario, tecnicos, tieneImpresion] =
+    await Promise.all([
+      listarOrdenes(),
+      listarVehiculosParaOrden(),
+      listarInventario(),
+      listarTecnicos(),
+      tienePlan("impresionOrden"),
+    ]);
 
   const abiertas = ordenes.filter((o) => o.estado !== "entregado").length;
 
@@ -32,6 +38,7 @@ export default async function Ordenes() {
           ordenes={ordenes}
           vehiculos={vehiculos}
           inventario={inventario}
+          tecnicos={tecnicos}
           tieneImpresion={tieneImpresion}
         />
       </Suspense>

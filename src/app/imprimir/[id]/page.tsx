@@ -235,7 +235,9 @@ export default async function ImprimirOrden({
         {/* Firma */}
         <div className="mt-8 grid grid-cols-2 gap-8 text-center text-[12px]">
           <div>
-            <div className="border-t border-foreground/40 pt-2">Técnico</div>
+            <div className="border-t border-foreground/40 pt-2">
+              {orden.tecnico ? `Técnico: ${orden.tecnico}` : "Técnico"}
+            </div>
           </div>
           <div>
             <div className="border-t border-foreground/40 pt-2">

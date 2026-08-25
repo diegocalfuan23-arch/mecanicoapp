@@ -212,6 +212,13 @@ export const trabajo = pgTable(
     // Número correlativo por taller: OT-1, OT-2…
     numero: integer("numero").notNull(),
 
+    // Quién atendió el trabajo — el dueño o un ayudante del equipo.
+    // Sale impreso en la línea de firma en vez de quedar en blanco —
+    // Plan Serviteca en adelante.
+    tecnicoId: text("tecnico_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+
     // Quien autoriza el trabajo puede no ser el dueño del auto (ej. la
     // esposa, un hijo) — Plan Serviteca en adelante.
     ordenadoPor: text("ordenado_por"),

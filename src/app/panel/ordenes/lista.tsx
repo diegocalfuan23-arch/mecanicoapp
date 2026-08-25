@@ -38,6 +38,7 @@ type Orden = {
   abonado: number;
   fecha: Date;
   fechaEntrega: Date | null;
+  tecnicoId: string | null;
   patente: string;
   marca: string | null;
   modelo: string | null;
@@ -74,6 +75,11 @@ type Insumo = {
   stock: number;
   costo: number;
   precio: number;
+};
+
+type Tecnico = {
+  id: string;
+  nombre: string;
 };
 
 const COLOR_ESTADO: Record<string, string> = {
@@ -118,6 +124,7 @@ function Abrir({
   vehiculoIdInicial,
   tieneImpresion,
   inventario,
+  tecnicos,
   onListo,
 }: {
   vehiculos: VehiculoOpcion[];
@@ -126,6 +133,7 @@ function Abrir({
   /** Plan Serviteca: agrega datos del vehículo y diagrama de daños. */
   tieneImpresion: boolean;
   inventario: Insumo[];
+  tecnicos: Tecnico[];
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -143,6 +151,7 @@ function Abrir({
   const [observaciones, setObservaciones] = useState("");
   const [ordenadoPor, setOrdenadoPor] = useState("");
   const [ordenadoPorFono, setOrdenadoPorFono] = useState("");
+  const [tecnicoId, setTecnicoId] = useState("");
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -166,6 +175,7 @@ function Abrir({
       observaciones,
       ordenadoPor,
       ordenadoPorFono,
+      tecnicoId,
       piezas,
     });
     setEnviando(false);
@@ -290,6 +300,23 @@ function Abrir({
                 className={campoBase()}
               />
             </label>
+          </div>
+        )}
+
+        {tieneImpresion && tecnicos.length > 0 && (
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Técnico a cargo
+            </span>
+            <Selector
+              value={tecnicoId}
+              onChange={setTecnicoId}
+              placeholder="Sin asignar"
+              opciones={tecnicos.map((t) => ({
+                valor: t.id,
+                texto: t.nombre,
+              }))}
+            />
           </div>
         )}
 
@@ -755,9 +782,11 @@ function Cerrar({
  */
 function EditarAbierta({
   orden,
+  tecnicos,
   onListo,
 }: {
   orden: Orden;
+  tecnicos: Tecnico[];
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -767,6 +796,7 @@ function EditarAbierta({
   );
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
+  const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
   const [guardado, setGuardado] = useState(false);
 
   async function guardar() {
@@ -775,6 +805,7 @@ function EditarAbierta({
       kilometraje,
       diagnostico,
       descripcion,
+      tecnicoId,
     });
     setGuardado(true);
     setTimeout(() => setGuardado(false), 1500);
@@ -873,6 +904,33 @@ function EditarAbierta({
             className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
         </label>
+
+        {tecnicos.length > 0 && (
+          <label className="mt-4 block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Técnico a cargo
+            </span>
+            <Selector
+              value={tecnicoId}
+              onChange={async (valor) => {
+                setTecnicoId(valor);
+                await editarOrdenAbierta(orden.id, {
+                  sintoma,
+                  kilometraje,
+                  diagnostico,
+                  descripcion,
+                  tecnicoId: valor,
+                });
+                router.refresh();
+              }}
+              placeholder="Sin asignar"
+              opciones={tecnicos.map((t) => ({
+                valor: t.id,
+                texto: t.nombre,
+              }))}
+            />
+          </label>
+        )}
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <span className="text-[13px] text-muted-foreground">
@@ -1050,11 +1108,13 @@ export function ListaOrdenes({
   ordenes,
   vehiculos,
   inventario,
+  tecnicos,
   tieneImpresion,
 }: {
   ordenes: Orden[];
   vehiculos: VehiculoOpcion[];
   inventario: Insumo[];
+  tecnicos: Tecnico[];
   tieneImpresion: boolean;
 }) {
   const router = useRouter();
@@ -1096,6 +1156,7 @@ export function ListaOrdenes({
         vehiculoIdInicial={vehiculoDesdeUrl ?? undefined}
         tieneImpresion={tieneImpresion}
         inventario={inventario}
+        tecnicos={tecnicos}
         onListo={() => {
           setAbriendo(false);
           // Limpia el ?abrir= de la URL: un refresh no debe reabrir
@@ -1368,6 +1429,7 @@ export function ListaOrdenes({
                 {editandoAbierta === o.id && (
                   <EditarAbierta
                     orden={o}
+                    tecnicos={tecnicos}
                     onListo={() => setEditandoAbierta(null)}
                   />
                 )}
