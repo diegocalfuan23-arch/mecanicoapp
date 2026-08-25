@@ -135,7 +135,7 @@ export async function listarVehiculosParaOrden() {
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
     .where(eq(vehiculo.tallerId, tallerId))
-    .groupBy(vehiculo.id, cliente.nombre)
+    .groupBy(vehiculo.id, cliente.id, cliente.nombre, cliente.telefono)
     .orderBy(vehiculo.patente);
 }
 
