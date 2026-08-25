@@ -137,6 +137,8 @@ function Abrir({
   const [combustible, setCombustible] = useState("");
   const [accesorios, setAccesorios] = useState<string[]>([]);
   const [observaciones, setObservaciones] = useState("");
+  const [ordenadoPor, setOrdenadoPor] = useState("");
+  const [ordenadoPorFono, setOrdenadoPorFono] = useState("");
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -158,6 +160,8 @@ function Abrir({
       combustible,
       accesorios,
       observaciones,
+      ordenadoPor,
+      ordenadoPorFono,
       piezas,
     });
     setEnviando(false);
@@ -243,6 +247,32 @@ function Abrir({
               etiqueta="RUT empresa"
               valor={elegido.empresaRut}
             />
+          </div>
+        )}
+
+        {tieneImpresion && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-[13px] font-medium">
+                Quién ordenó el trabajo (si no es el dueño)
+              </span>
+              <input
+                value={ordenadoPor}
+                onChange={(e) => setOrdenadoPor(e.target.value)}
+                placeholder="Ej. esposa, hijo, otra persona"
+                className={campoBase()}
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-[13px] font-medium">Fono</span>
+              <input
+                value={ordenadoPorFono}
+                onChange={(e) => setOrdenadoPorFono(e.target.value)}
+                placeholder="+56 9 1234 5678"
+                inputMode="tel"
+                className={campoBase()}
+              />
+            </label>
           </div>
         )}
 

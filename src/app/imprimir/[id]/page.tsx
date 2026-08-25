@@ -90,6 +90,12 @@ export default async function ImprimirOrden({
           <Campo etiqueta="E-mail" valor={orden.propietarioEmail ?? ""} />
           <Campo etiqueta="Empresa" valor={orden.empresa ?? ""} />
           <Campo etiqueta="RUT empresa" valor={orden.empresaRut ?? ""} />
+          {orden.ordenadoPor && (
+            <Campo etiqueta="Quién ordenó el trabajo" valor={orden.ordenadoPor} />
+          )}
+          {orden.ordenadoPorFono && (
+            <Campo etiqueta="Fono de quién ordenó" valor={orden.ordenadoPorFono} />
+          )}
         </div>
 
         {/* Diagrama del auto: marcado al abrir la orden, o en blanco para

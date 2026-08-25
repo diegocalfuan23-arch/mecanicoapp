@@ -60,6 +60,8 @@ export async function datosParaImprimir(ordenId: string) {
     .select({
       id: trabajo.id,
       numero: trabajo.numero,
+      ordenadoPor: trabajo.ordenadoPor,
+      ordenadoPorFono: trabajo.ordenadoPorFono,
       sintoma: trabajo.sintoma,
       diagnostico: trabajo.diagnostico,
       descripcion: trabajo.descripcion,
@@ -175,6 +177,8 @@ export async function abrirOrden(datos: {
   combustible?: string;
   accesorios?: string[];
   observaciones?: string;
+  ordenadoPor?: string;
+  ordenadoPorFono?: string;
   piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
@@ -204,6 +208,8 @@ export async function abrirOrden(datos: {
     combustible: datos.combustible || null,
     accesorios: datos.accesorios ?? [],
     observaciones: datos.observaciones?.trim() || null,
+    ordenadoPor: datos.ordenadoPor?.trim() || null,
+    ordenadoPorFono: datos.ordenadoPorFono?.trim() || null,
     estado: "ingresado",
   });
 

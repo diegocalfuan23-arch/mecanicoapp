@@ -206,6 +206,11 @@ export const trabajo = pgTable(
     // Número correlativo por taller: OT-1, OT-2…
     numero: integer("numero").notNull(),
 
+    // Quien autoriza el trabajo puede no ser el dueño del auto (ej. la
+    // esposa, un hijo) — Plan Serviteca en adelante.
+    ordenadoPor: text("ordenado_por"),
+    ordenadoPorFono: text("ordenado_por_fono"),
+
     // Lo que el cliente reporta al dejar el auto, con sus palabras
     sintoma: text("sintoma"),
     // Qué se encontró que causa el síntoma — distinto del síntoma

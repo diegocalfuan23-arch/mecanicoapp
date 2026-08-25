@@ -14,6 +14,8 @@ export const ACCESORIOS_AUTO = [
   { id: "espejos", etiqueta: "Espejos" },
   { id: "focos", etiqueta: "Focos y luces" },
   { id: "plumillas", etiqueta: "Plumillas" },
+  { id: "encendedor", etiqueta: "Encendedor" },
+  { id: "pisos", etiqueta: "Pisos / alfombras" },
 ] as const;
 
 export const NIVELES_COMBUSTIBLE = [
