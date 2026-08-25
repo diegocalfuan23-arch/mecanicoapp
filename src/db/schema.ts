@@ -105,7 +105,9 @@ export const cliente = pgTable(
     telefono: text("telefono"),
     email: text("email"),
     // Cuando el auto es de una empresa, no de una persona natural —
-    // Plan Serviteca en adelante (cotización a nombre de la empresa).
+    // Plan Serviteca en adelante (cotización a nombre de la empresa,
+    // en vez de a nombre de la persona que lo trajo).
+    esEmpresa: boolean("es_empresa").notNull().default(false),
     empresa: text("empresa"),
     empresaRut: text("empresa_rut"),
     notas: text("notas"),
@@ -235,6 +237,9 @@ export const trabajo = pgTable(
 
     // En pesos, sin decimales
     manoObra: integer("mano_obra").notNull().default(0),
+    // Mano de obra específica de frenos, separada de la general — Plan
+    // Serviteca en adelante (aparece como línea propia en la cotización).
+    manoObraFreno: integer("mano_obra_freno").notNull().default(0),
     repuestos: integer("repuestos").notNull().default(0),
     // Ir a comprar el repuesto tiene costo aparte: al menos el pasaje,
     // o un porcentaje del valor de la compra si es más lejos.

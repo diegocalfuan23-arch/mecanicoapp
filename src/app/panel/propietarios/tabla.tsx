@@ -13,6 +13,7 @@ type Propietario = {
   nombre: string;
   telefono: string | null;
   email: string | null;
+  esEmpresa: boolean;
   empresa: string | null;
   empresaRut: string | null;
   notas: string | null;
@@ -78,6 +79,7 @@ function Formulario({
       nombre: propietario?.nombre ?? "",
       telefono: propietario?.telefono ?? "",
       email: propietario?.email ?? "",
+      esEmpresa: propietario?.esEmpresa ?? false,
       empresa: propietario?.empresa ?? "",
       empresaRut: propietario?.empresaRut ?? "",
       notas: propietario?.notas ?? "",
@@ -104,7 +106,7 @@ function Formulario({
     form.touched[c] ? (form.errors[c] as string | undefined) : undefined;
 
   const campo = (
-    name: keyof typeof form.values,
+    name: Exclude<keyof typeof form.values, "esEmpresa">,
     etiqueta: string,
     props?: React.InputHTMLAttributes<HTMLInputElement>
   ) => (
@@ -146,14 +148,28 @@ function Formulario({
             placeholder: "juan@correo.com",
             type: "email",
           })}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {campo("empresa", "Empresa (si aplica)", {
-              placeholder: "Transportes Pérez SpA",
-            })}
-            {campo("empresaRut", "RUT de la empresa", {
-              placeholder: "76.123.456-7",
-            })}
-          </div>
+
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="esEmpresa"
+              checked={form.values.esEmpresa}
+              onChange={form.handleChange}
+              className="size-4 accent-primary"
+            />
+            <span className="text-[14px]">Es empresa</span>
+          </label>
+
+          {form.values.esEmpresa && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {campo("empresa", "Nombre de la empresa", {
+                placeholder: "Transportes Pérez SpA",
+              })}
+              {campo("empresaRut", "RUT de la empresa", {
+                placeholder: "76.123.456-7",
+              })}
+            </div>
+          )}
         </>
       )}
 

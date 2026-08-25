@@ -438,15 +438,18 @@ function Abrir({
 function Cerrar({
   orden,
   inventario,
+  tieneImpresion,
   onListo,
 }: {
   orden: Orden;
   inventario: Insumo[];
+  tieneImpresion: boolean;
   onListo: () => void;
 }) {
   const router = useRouter();
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [manoObra, setManoObra] = useState("");
+  const [manoObraFreno, setManoObraFreno] = useState("");
   const [repuestos, setRepuestos] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
@@ -486,7 +489,10 @@ function Cerrar({
 
   // El IVA se suma encima del neto, no viene incluido.
   const neto =
-    (Number(manoObra) || 0) + cobroRepuestos + (Number(cargoTraslado) || 0);
+    (Number(manoObra) || 0) +
+    (Number(manoObraFreno) || 0) +
+    cobroRepuestos +
+    (Number(cargoTraslado) || 0);
   const iva = conIva ? Math.round(neto * 0.19) : 0;
   const total = neto + iva;
 
@@ -499,6 +505,7 @@ function Cerrar({
       ordenId: orden.id,
       descripcion,
       manoObra,
+      manoObraFreno,
       repuestos,
       cargoTraslado,
       estadoPago,
@@ -555,6 +562,22 @@ function Cerrar({
             className={`${campoBase()} bg-card`}
           />
         </label>
+        {tieneImpresion && (
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Mano de obra freno
+            </span>
+            <input
+              value={miles(manoObraFreno)}
+              onChange={(e) =>
+                setManoObraFreno(soloDigitos(e.target.value))
+              }
+              placeholder="15.000"
+              inputMode="numeric"
+              className={`${campoBase()} bg-card`}
+            />
+          </label>
+        )}
         {/* Cuando se detallan los repuestos abajo, este campo sale
             sobrando: el cobro se calcula solo. */}
         {piezas.length === 0 && (
@@ -1285,6 +1308,7 @@ export function ListaOrdenes({
                   <Cerrar
                     orden={o}
                     inventario={inventario}
+                    tieneImpresion={tieneImpresion}
                     onListo={() => setCerrando(null)}
                   />
                 )}

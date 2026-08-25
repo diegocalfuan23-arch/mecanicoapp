@@ -20,7 +20,11 @@ export default async function ImprimirOrden({
   if (!resultado) notFound();
 
   const { orden, piezas } = resultado;
-  const neto = orden.manoObra + orden.repuestos + orden.cargoTraslado;
+  const neto =
+    orden.manoObra +
+    orden.manoObraFreno +
+    orden.repuestos +
+    orden.cargoTraslado;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 print:p-0">
@@ -169,6 +173,16 @@ export default async function ImprimirOrden({
                 </td>
               </tr>
             ))}
+            {orden.manoObraFreno > 0 && (
+              <tr className="border-b border-foreground/10">
+                <td className="py-2" colSpan={4}>
+                  Mano de obra freno
+                </td>
+                <td className="py-2 text-right">
+                  {pesos(orden.manoObraFreno)}
+                </td>
+              </tr>
+            )}
             {orden.manoObra > 0 && (
               <tr className="border-b border-foreground/10">
                 <td className="py-2" colSpan={4}>

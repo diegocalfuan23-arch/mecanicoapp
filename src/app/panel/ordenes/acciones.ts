@@ -69,6 +69,7 @@ export async function datosParaImprimir(ordenId: string) {
       accesorios: trabajo.accesorios,
       observaciones: trabajo.observaciones,
       manoObra: trabajo.manoObra,
+      manoObraFreno: trabajo.manoObraFreno,
       repuestos: trabajo.repuestos,
       cargoTraslado: trabajo.cargoTraslado,
       iva: trabajo.iva,
@@ -357,6 +358,7 @@ export async function cerrarOrden(datos: {
   ordenId: string;
   descripcion: string;
   manoObra: string;
+  manoObraFreno?: string;
   repuestos: string;
   cargoTraslado: string;
   estadoPago: string;
@@ -375,6 +377,7 @@ export async function cerrarOrden(datos: {
     .map((p) => (tieneInventario ? p : { ...p, parteId: null }));
 
   const manoObra = Number(datos.manoObra) || 0;
+  const manoObraFreno = Number(datos.manoObraFreno) || 0;
   const cargoTraslado = Number(datos.cargoTraslado) || 0;
 
   // Si se detallaron las piezas, el cobro de repuestos sale de ellas;
@@ -388,7 +391,7 @@ export async function cerrarOrden(datos: {
 
   // El IVA se suma encima de lo cobrado. Se redondea porque los pesos
   // chilenos no llevan decimales.
-  const neto = manoObra + repuestos + cargoTraslado;
+  const neto = manoObra + manoObraFreno + repuestos + cargoTraslado;
   const iva = datos.conIva ? Math.round(neto * 0.19) : 0;
   const total = neto + iva;
 
@@ -414,6 +417,7 @@ export async function cerrarOrden(datos: {
     .set({
       descripcion: datos.descripcion.trim(),
       manoObra,
+      manoObraFreno,
       repuestos,
       cargoTraslado,
       iva,
