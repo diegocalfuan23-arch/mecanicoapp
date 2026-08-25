@@ -22,6 +22,7 @@ export async function listarInventario() {
       id: parte.id,
       nombre: parte.nombre,
       codigo: parte.codigo,
+      marca: parte.marca,
       stock: parte.stock,
       stockMinimo: parte.stockMinimo,
       costo: parte.costo,
@@ -35,6 +36,7 @@ export async function listarInventario() {
 export async function guardarInsumo(datos: {
   nombre: string;
   codigo: string;
+  marca: string;
   stock: string;
   stockMinimo: string;
   costo: string;
@@ -54,6 +56,7 @@ export async function guardarInsumo(datos: {
     tallerId,
     nombre,
     codigo: datos.codigo.trim() || null,
+    marca: datos.marca.trim() || null,
     stock: Number(datos.stock) || 0,
     stockMinimo: Number(datos.stockMinimo) || 0,
     costo: Number(datos.costo) || 0,
@@ -69,6 +72,7 @@ export async function actualizarInsumo(
   datos: {
     nombre: string;
     codigo: string;
+    marca: string;
     stock: string;
     stockMinimo: string;
     costo: string;
@@ -89,6 +93,7 @@ export async function actualizarInsumo(
     .set({
       nombre,
       codigo: datos.codigo.trim() || null,
+      marca: datos.marca.trim() || null,
       stock: Number(datos.stock) || 0,
       stockMinimo: Number(datos.stockMinimo) || 0,
       costo: Number(datos.costo) || 0,

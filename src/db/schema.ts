@@ -302,6 +302,8 @@ export const parte = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     nombre: text("nombre").notNull(),
     codigo: text("codigo"),
+    // Bosch, NGK, Monroe... — Plan Serviteca en adelante.
+    marca: text("marca"),
     stock: integer("stock").notNull().default(0),
     stockMinimo: integer("stock_minimo").notNull().default(0),
     costo: integer("costo").notNull().default(0),

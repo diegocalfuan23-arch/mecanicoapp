@@ -74,6 +74,8 @@ type VehiculoOpcion = {
 type Insumo = {
   id: string;
   nombre: string;
+  codigo: string | null;
+  marca: string | null;
   stock: number;
   costo: number;
   precio: number;

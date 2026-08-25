@@ -7,6 +7,8 @@ import type { RepuestoUsado } from "@/app/panel/ordenes/acciones";
 type InsumoInventario = {
   id: string;
   nombre: string;
+  codigo: string | null;
+  marca: string | null;
   stock: number;
   costo: number;
   precio: number;
@@ -49,8 +51,12 @@ function CampoNombre({
       : inventario;
 
   function elegir(insumo: InsumoInventario) {
-    onCambiar("nombre", insumo.nombre);
+    onCambiar(
+      "nombre",
+      insumo.marca ? `${insumo.nombre} (${insumo.marca})` : insumo.nombre
+    );
     onCambiar("parteId", insumo.id);
+    onCambiar("codigo", insumo.codigo ?? "");
     onCambiar("costo", String(insumo.costo));
     onCambiar("precio", String(insumo.precio));
     setAbierto(false);
@@ -91,7 +97,21 @@ function CampoNombre({
                   onClick={() => elegir(i)}
                   className="flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
                 >
-                  <span className="truncate">{i.nombre}</span>
+                  <span className="min-w-0 truncate">
+                    {i.nombre}
+                    {i.marca && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {i.marca}
+                      </span>
+                    )}
+                    {i.codigo && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {i.codigo}
+                      </span>
+                    )}
+                  </span>
                   <span className="shrink-0 text-[12px] text-muted-foreground">
                     {i.stock} en stock
                   </span>

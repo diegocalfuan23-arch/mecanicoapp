@@ -13,6 +13,7 @@ type Insumo = {
   id: string;
   nombre: string;
   codigo: string | null;
+  marca: string | null;
   stock: number;
   stockMinimo: number;
   costo: number;
@@ -33,6 +34,7 @@ function Formulario({
   const editando = !!insumo;
   const [nombre, setNombre] = useState(insumo?.nombre ?? "");
   const [codigo, setCodigo] = useState(insumo?.codigo ?? "");
+  const [marca, setMarca] = useState(insumo?.marca ?? "");
   const [stock, setStock] = useState(insumo ? String(insumo.stock) : "");
   const [stockMinimo, setStockMinimo] = useState(
     insumo ? String(insumo.stockMinimo) : ""
@@ -46,7 +48,7 @@ function Formulario({
   async function guardar() {
     if (!nombre.trim()) return;
     setError(null);
-    const datos = { nombre, codigo, stock, stockMinimo, costo, precio };
+    const datos = { nombre, codigo, marca, stock, stockMinimo, costo, precio };
     const res = editando
       ? await actualizarInsumo(insumo.id, datos)
       : await guardarInsumo(datos);
@@ -123,6 +125,18 @@ function Formulario({
               onChange={(e) => setCodigo(e.target.value)}
               onBlur={alSalir}
               placeholder="Interno o del proveedor"
+              className={campoBase}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Marca (opcional)
+            </span>
+            <input
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              onBlur={alSalir}
+              placeholder="Bosch, NGK, Monroe…"
               className={campoBase}
             />
           </label>
@@ -329,9 +343,9 @@ export function TablaInventario({ insumos }: { insumos: Insumo[] }) {
                       </span>
                     )}
                   </div>
-                  {i.codigo && (
+                  {(i.marca || i.codigo) && (
                     <p className="mt-1 truncate text-[13px] text-muted-foreground">
-                      {i.codigo}
+                      {[i.marca, i.codigo].filter(Boolean).join(" · ")}
                     </p>
                   )}
                   <p className="mt-4 text-2xl font-bold">{i.stock}</p>
@@ -359,7 +373,7 @@ export function TablaInventario({ insumos }: { insumos: Insumo[] }) {
             <table className="w-full border-collapse text-[14px]">
               <thead>
                 <tr className="border-b border-border bg-card">
-                  {["Nombre", "Código", "Stock", "Costo", "Precio", "Acciones"].map(
+                  {["Nombre", "Código", "Marca", "Stock", "Costo", "Precio", "Acciones"].map(
                     (c) => (
                       <th
                         key={c}
@@ -384,7 +398,10 @@ export function TablaInventario({ insumos }: { insumos: Insumo[] }) {
                         {i.nombre}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-muted-foreground">
-                        {i.codigo ?? "—"}
+                        {i.codigo ?? "No especifica"}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-muted-foreground">
+                        {i.marca ?? "No especifica"}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap tabular-nums">
                         {i.stock}
