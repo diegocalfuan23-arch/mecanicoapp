@@ -99,6 +99,7 @@ export async function datosParaImprimir(ordenId: string) {
       propietarioDireccion: cliente.direccion,
       propietarioComuna: cliente.comuna,
       propietarioCiudad: cliente.ciudad,
+      esEmpresa: cliente.esEmpresa,
       empresa: cliente.empresa,
       empresaRut: cliente.empresaRut,
       taller: user.taller,
@@ -181,6 +182,7 @@ export async function listarVehiculosParaOrden() {
       propietarioDireccion: cliente.direccion,
       propietarioComuna: cliente.comuna,
       propietarioCiudad: cliente.ciudad,
+      esEmpresa: cliente.esEmpresa,
       empresa: cliente.empresa,
       empresaRut: cliente.empresaRut,
       ultimoKilometraje: sql<number | null>`coalesce(
@@ -202,6 +204,7 @@ export async function listarVehiculosParaOrden() {
       cliente.direccion,
       cliente.comuna,
       cliente.ciudad,
+      cliente.esEmpresa,
       cliente.empresa,
       cliente.empresaRut
     )

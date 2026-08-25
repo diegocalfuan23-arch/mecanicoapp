@@ -64,6 +64,7 @@ type VehiculoOpcion = {
   propietarioDireccion: string | null;
   propietarioComuna: string | null;
   propietarioCiudad: string | null;
+  esEmpresa: boolean | null;
   empresa: string | null;
   empresaRut: string | null;
   ultimoKilometraje: number | null;
@@ -269,11 +270,15 @@ function Abrir({
             />
             <DatoVehiculo etiqueta="Comuna" valor={elegido.propietarioComuna} />
             <DatoVehiculo etiqueta="Ciudad" valor={elegido.propietarioCiudad} />
-            <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
-            <DatoVehiculo
-              etiqueta="RUT empresa"
-              valor={elegido.empresaRut}
-            />
+            {elegido.esEmpresa && (
+              <>
+                <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
+                <DatoVehiculo
+                  etiqueta="RUT empresa"
+                  valor={elegido.empresaRut}
+                />
+              </>
+            )}
           </div>
         )}
 

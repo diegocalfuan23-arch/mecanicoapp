@@ -98,8 +98,12 @@ export default async function ImprimirOrden({
           <Campo etiqueta="Dirección" valor={orden.propietarioDireccion ?? ""} />
           <Campo etiqueta="Comuna" valor={orden.propietarioComuna ?? ""} />
           <Campo etiqueta="Ciudad" valor={orden.propietarioCiudad ?? ""} />
-          <Campo etiqueta="Empresa" valor={orden.empresa ?? ""} />
-          <Campo etiqueta="RUT empresa" valor={orden.empresaRut ?? ""} />
+          {orden.esEmpresa && (
+            <>
+              <Campo etiqueta="Empresa" valor={orden.empresa ?? ""} />
+              <Campo etiqueta="RUT empresa" valor={orden.empresaRut ?? ""} />
+            </>
+          )}
           {orden.ordenadoPor && (
             <Campo etiqueta="Quién ordenó el trabajo" valor={orden.ordenadoPor} />
           )}
