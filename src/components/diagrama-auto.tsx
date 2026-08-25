@@ -36,22 +36,45 @@ export function DiagramaAuto({
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-      <svg viewBox="0 0 120 200" className="h-56 w-auto shrink-0">
+    <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+      <svg viewBox="0 0 120 200" className="h-72 w-auto shrink-0">
+        {/* Carrocería: contorno bien marcado, no solo líneas sueltas */}
         <rect
-          x="20"
-          y="4"
-          width="80"
-          height="192"
-          rx="26"
-          fill="none"
+          x="18"
+          y="2"
+          width="84"
+          height="196"
+          rx="30"
+          fill="currentColor"
+          className="text-card"
           stroke="currentColor"
-          strokeWidth="1.5"
-          className="text-border"
+          strokeWidth="2"
+          style={{ color: "var(--color-border)" }}
         />
+        {/* Parabrisas delantero y trasero, para que se lea como auto real */}
+        <rect
+          x="34"
+          y="56"
+          width="52"
+          height="10"
+          rx="3"
+          fill="currentColor"
+          className="text-background"
+        />
+        <rect
+          x="34"
+          y="146"
+          width="52"
+          height="10"
+          rx="3"
+          fill="currentColor"
+          className="text-background"
+        />
+
         {ZONAS.map((z) => {
           const marca = marcas.find((m) => m.zona === z.id);
           const tipo = TIPOS.find((t) => t.id === marca?.tipo);
+          const activa = zonaAbierta === z.id;
           return (
             <g key={z.id}>
               <rect
@@ -64,19 +87,33 @@ export function DiagramaAuto({
                   setZonaAbierta(zonaAbierta === z.id ? null : z.id)
                 }
                 className={`cursor-pointer stroke-border transition-colors ${
-                  marca ? "fill-acento/15" : "fill-transparent hover:fill-foreground/5"
+                  marca
+                    ? "fill-acento/20"
+                    : activa
+                      ? "fill-foreground/10"
+                      : "fill-background hover:fill-foreground/5"
                 }`}
                 strokeWidth="1"
               />
-              {tipo && (
+              {tipo ? (
                 <text
                   x={z.x + z.w / 2}
                   y={z.y + z.h / 2}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  className="pointer-events-none fill-acento text-[14px] font-bold"
+                  className="pointer-events-none fill-acento text-[16px] font-bold"
                 >
                   {tipo.letra}
+                </text>
+              ) : (
+                <text
+                  x={z.x + z.w / 2}
+                  y={z.y + z.h / 2}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="pointer-events-none fill-muted-foreground text-[7px]"
+                >
+                  {z.etiquetaCorta}
                 </text>
               )}
             </g>

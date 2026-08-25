@@ -4,13 +4,13 @@
  * orden impresa — Plan Serviteca.
  */
 export const ZONAS_AUTO = [
-  { id: "capot", etiqueta: "Capó", x: 30, y: 8, w: 60, h: 40 },
-  { id: "techo", etiqueta: "Techo", x: 30, y: 62, w: 60, h: 76 },
-  { id: "maletero", etiqueta: "Maletero", x: 30, y: 152, w: 60, h: 40 },
-  { id: "puerta_del_izq", etiqueta: "Puerta del. izq.", x: 8, y: 62, w: 22, h: 38 },
-  { id: "puerta_tras_izq", etiqueta: "Puerta tras. izq.", x: 8, y: 100, w: 22, h: 38 },
-  { id: "puerta_del_der", etiqueta: "Puerta del. der.", x: 90, y: 62, w: 22, h: 38 },
-  { id: "puerta_tras_der", etiqueta: "Puerta tras. der.", x: 90, y: 100, w: 22, h: 38 },
+  { id: "capot", etiqueta: "Capó", etiquetaCorta: "Capó", x: 30, y: 8, w: 60, h: 40 },
+  { id: "techo", etiqueta: "Techo", etiquetaCorta: "Techo", x: 30, y: 70, w: 60, h: 60 },
+  { id: "maletero", etiqueta: "Maletero", etiquetaCorta: "Maletero", x: 30, y: 152, w: 60, h: 40 },
+  { id: "puerta_del_izq", etiqueta: "Puerta del. izq.", etiquetaCorta: "Del. izq.", x: 8, y: 68, w: 22, h: 30 },
+  { id: "puerta_tras_izq", etiqueta: "Puerta tras. izq.", etiquetaCorta: "Tras. izq.", x: 8, y: 100, w: 22, h: 30 },
+  { id: "puerta_del_der", etiqueta: "Puerta del. der.", etiquetaCorta: "Del. der.", x: 90, y: 68, w: 22, h: 30 },
+  { id: "puerta_tras_der", etiqueta: "Puerta tras. der.", etiquetaCorta: "Tras. der.", x: 90, y: 100, w: 22, h: 30 },
 ] as const;
 
 export const TIPOS_DANO = [

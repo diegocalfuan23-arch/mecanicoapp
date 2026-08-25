@@ -248,7 +248,7 @@ function DiagramaAutoImpreso({ danos }: { danos: string[] }) {
               strokeWidth="0.75"
               strokeOpacity="0.4"
             />
-            {tipo && (
+            {tipo ? (
               <text
                 x={z.x + z.w / 2}
                 y={z.y + z.h / 2}
@@ -257,6 +257,16 @@ function DiagramaAutoImpreso({ danos }: { danos: string[] }) {
                 className="text-[13px] font-bold"
               >
                 {tipo.letra}
+              </text>
+            ) : (
+              <text
+                x={z.x + z.w / 2}
+                y={z.y + z.h / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="fill-current text-[6px] opacity-40"
+              >
+                {z.etiquetaCorta}
               </text>
             )}
           </g>
