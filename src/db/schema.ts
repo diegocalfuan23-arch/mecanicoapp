@@ -202,6 +202,10 @@ export const trabajo = pgTable(
     // Lo que efectivamente se hizo; se completa al cerrar la orden
     descripcion: text("descripcion"),
     kilometraje: integer("kilometraje"),
+    // Estado del auto al recibirlo — Plan Serviteca en adelante. Cada
+    // marca es {zona, tipo}, tipo: abolladura · rayadura · quebrado.
+    // Ver el diagrama del auto en el formulario de abrir orden.
+    danos: text("danos").array().notNull().default([]),
 
     // ingresado · en_proceso · esperando_repuesto · terminado · entregado
     estado: text("estado").notNull().default("ingresado"),

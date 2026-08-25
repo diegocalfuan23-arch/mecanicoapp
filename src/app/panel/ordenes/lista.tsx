@@ -18,6 +18,7 @@ import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { RepuestosUsados } from "@/components/repuestos-usados";
+import { DiagramaAuto } from "@/components/diagrama-auto";
 
 type Orden = {
   id: string;
@@ -46,7 +47,11 @@ type VehiculoOpcion = {
   patente: string;
   marca: string | null;
   modelo: string | null;
+  anio: number | null;
+  color: string | null;
+  motor: string | null;
   propietario: string | null;
+  propietarioTelefono: string | null;
   ultimoKilometraje: number | null;
 };
 
@@ -78,14 +83,34 @@ function campoBase(error?: boolean) {
   }`;
 }
 
+function DatoVehiculo({
+  etiqueta,
+  valor,
+}: {
+  etiqueta: string;
+  valor: string | number | null;
+}) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        {etiqueta}
+      </p>
+      <p className="text-[14px]">{valor ?? "—"}</p>
+    </div>
+  );
+}
+
 function Abrir({
   vehiculos,
   vehiculoIdInicial,
+  tieneImpresion,
   onListo,
 }: {
   vehiculos: VehiculoOpcion[];
   /** Al llegar desde "Nueva visita" en la ficha del vehículo. */
   vehiculoIdInicial?: string;
+  /** Plan Serviteca: agrega datos del vehículo y diagrama de daños. */
+  tieneImpresion: boolean;
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -97,6 +122,7 @@ function Abrir({
   const [sintoma, setSintoma] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [fotos, setFotos] = useState<string[]>([]);
+  const [danos, setDanos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -113,6 +139,7 @@ function Abrir({
       sintoma,
       diagnostico,
       fotos,
+      danos,
     });
     setEnviando(false);
 
@@ -177,6 +204,14 @@ function Abrir({
             }))}
           />
         </div>
+
+        {tieneImpresion && elegido && (
+          <div className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-background p-4 sm:grid-cols-3">
+            <DatoVehiculo etiqueta="Año" valor={elegido.anio} />
+            <DatoVehiculo etiqueta="Color" valor={elegido.color} />
+            <DatoVehiculo etiqueta="Motor" valor={elegido.motor} />
+          </div>
+        )}
 
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
@@ -252,6 +287,15 @@ function Abrir({
         </label>
 
         <FotosVehiculo fotos={fotos} onCambio={setFotos} onError={setError} />
+
+        {tieneImpresion && (
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Estado del vehículo al ingresar
+            </span>
+            <DiagramaAuto value={danos} onChange={setDanos} />
+          </div>
+        )}
 
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
@@ -845,6 +889,7 @@ export function ListaOrdenes({
       <Abrir
         vehiculos={vehiculos}
         vehiculoIdInicial={vehiculoDesdeUrl ?? undefined}
+        tieneImpresion={tieneImpresion}
         onListo={() => {
           setAbriendo(false);
           // Limpia el ?abrir= de la URL: un refresh no debe reabrir

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { datosParaImprimir } from "@/app/panel/ordenes/acciones";
 import { BotonImprimir } from "./boton-imprimir";
 import { pesos, fecha } from "@/lib/formato";
+import { ZONAS_AUTO, TIPOS_DANO, marcasDesdeDanos } from "@/lib/zonas-auto";
 
 export default async function ImprimirOrden({
   params,
@@ -70,17 +71,20 @@ export default async function ImprimirOrden({
           <Campo etiqueta="Fono" valor={orden.propietarioTelefono ?? ""} />
         </div>
 
-        {/* Diagrama del auto, para marcar daños a mano al recibirlo */}
+        {/* Diagrama del auto: marcado al abrir la orden, o en blanco para
+            completar a mano si no se marcó nada en pantalla. */}
         <div className="border-b border-foreground/30 py-4">
           <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
             Estado del vehículo al ingresar
           </p>
           <div className="flex items-center gap-6">
-            <DiagramaAuto />
+            <DiagramaAutoImpreso danos={orden.danos} />
             <ul className="text-[12px] text-muted-foreground">
-              <li>X — Abolladuras</li>
-              <li>O — Rayaduras</li>
-              <li>D — Quebrado</li>
+              {TIPOS_DANO.map((t) => (
+                <li key={t.id}>
+                  {t.letra} — {t.etiqueta}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -205,8 +209,13 @@ function Total({ etiqueta, valor }: { etiqueta: string; valor: number }) {
   );
 }
 
-/** Vista superior en blanco, para marcar daños a mano sobre el papel. */
-function DiagramaAuto() {
+/**
+ * Vista superior del auto con las marcas hechas al abrir la orden. Si
+ * no se marcó nada en pantalla, queda en blanco para completar a mano.
+ */
+function DiagramaAutoImpreso({ danos }: { danos: string[] }) {
+  const marcas = marcasDesdeDanos(danos);
+
   return (
     <svg
       viewBox="0 0 120 200"
@@ -215,38 +224,44 @@ function DiagramaAuto() {
     >
       <rect
         x="20"
-        y="10"
+        y="4"
         width="80"
-        height="180"
-        rx="24"
+        height="192"
+        rx="26"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
       />
-      <line
-        x1="20"
-        y1="60"
-        x2="100"
-        y2="60"
-        stroke="currentColor"
-        strokeWidth="1"
-      />
-      <line
-        x1="20"
-        y1="140"
-        x2="100"
-        y2="140"
-        stroke="currentColor"
-        strokeWidth="1"
-      />
-      <line
-        x1="60"
-        y1="60"
-        x2="60"
-        y2="140"
-        stroke="currentColor"
-        strokeWidth="1"
-      />
+      {ZONAS_AUTO.map((z) => {
+        const marca = marcas.find((m) => m.zona === z.id);
+        const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
+        return (
+          <g key={z.id}>
+            <rect
+              x={z.x}
+              y={z.y}
+              width={z.w}
+              height={z.h}
+              rx="4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.75"
+              strokeOpacity="0.4"
+            />
+            {tipo && (
+              <text
+                x={z.x + z.w / 2}
+                y={z.y + z.h / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-[13px] font-bold"
+              >
+                {tipo.letra}
+              </text>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }

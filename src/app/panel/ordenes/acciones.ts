@@ -64,6 +64,7 @@ export async function datosParaImprimir(ordenId: string) {
       diagnostico: trabajo.diagnostico,
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
+      danos: trabajo.danos,
       manoObra: trabajo.manoObra,
       repuestos: trabajo.repuestos,
       cargoTraslado: trabajo.cargoTraslado,
@@ -120,7 +121,11 @@ export async function listarVehiculosParaOrden() {
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
+      anio: vehiculo.anio,
+      color: vehiculo.color,
+      motor: vehiculo.motor,
       propietario: cliente.nombre,
+      propietarioTelefono: cliente.telefono,
       ultimoKilometraje: sql<number | null>`coalesce(
         max(${trabajo.kilometraje}),
         ${vehiculo.kilometrajeInicial}
@@ -140,6 +145,7 @@ export async function abrirOrden(datos: {
   sintoma?: string;
   diagnostico?: string;
   fotos?: string[];
+  danos?: string[];
 }) {
   const tallerId = await tallerActual();
 
@@ -162,6 +168,7 @@ export async function abrirOrden(datos: {
     diagnostico: datos.diagnostico?.trim() || null,
     kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
     fotos: datos.fotos ?? [],
+    danos: datos.danos ?? [],
     estado: "ingresado",
   });
 
