@@ -68,6 +68,8 @@ export type VehiculoEditable = {
   color: string | null;
   tipo: string | null;
   motor: string | null;
+  cilindrada: string | null;
+  movil: string | null;
   ejes: number | null;
   procedencia: string | null;
   kilometrajeInicial: number | null;
@@ -87,12 +89,15 @@ export function FormularioVehiculo({
   onListo,
   vehiculo,
   autoguardar = false,
+  tieneImpresion = false,
 }: {
   onListo: () => void;
   /** Si viene, el formulario edita esa ficha en vez de crear una nueva. */
   vehiculo?: VehiculoEditable;
   /** Guarda solo al salir de cada campo, sin botón "Guardar cambios". */
   autoguardar?: boolean;
+  /** Plan Serviteca: agrega cilindrada y patente de móvil/flota. */
+  tieneImpresion?: boolean;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
@@ -109,6 +114,8 @@ export function FormularioVehiculo({
       color: texto(vehiculo?.color),
       tipo: texto(vehiculo?.tipo),
       motor: texto(vehiculo?.motor),
+      cilindrada: texto(vehiculo?.cilindrada),
+      movil: texto(vehiculo?.movil),
       ejes: texto(vehiculo?.ejes),
       procedencia: texto(vehiculo?.procedencia),
       kilometrajeInicial: texto(vehiculo?.kilometrajeInicial),
@@ -245,6 +252,8 @@ export function FormularioVehiculo({
           {campo("color", "Color", { placeholder: "Plateado" })}
           {selector("tipo", "Tipo de vehículo", TIPOS)}
           {campo("motor", "Motor", { placeholder: "2.4 diésel" })}
+          {tieneImpresion &&
+            campo("cilindrada", "Cilindrada", { placeholder: "1.6" })}
           {campo("ejes", "Cantidad de ejes", {
             placeholder: "2",
             inputMode: "numeric",
@@ -255,6 +264,10 @@ export function FormularioVehiculo({
             placeholder: "125.000",
             inputMode: "numeric",
           })}
+          {tieneImpresion &&
+            campo("movil", "Móvil (patente de flota)", {
+              placeholder: "Si es distinta a la patente",
+            })}
         </div>
       </div>
 

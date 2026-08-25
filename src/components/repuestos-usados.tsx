@@ -14,6 +14,7 @@ type InsumoInventario = {
 
 export const repuestoVacio = (): RepuestoUsado => ({
   nombre: "",
+  codigo: "",
   cantidad: "1",
   costo: "",
   precio: "",
@@ -179,7 +180,18 @@ export function RepuestosUsados({
                 </button>
               </div>
 
-              <div className="mt-2 grid gap-2 sm:grid-cols-4">
+              <div className="mt-2 grid gap-2 sm:grid-cols-5">
+                <label className="block">
+                  <span className="mb-1 block text-[12px] text-muted-foreground">
+                    Código
+                  </span>
+                  <input
+                    value={p.codigo ?? ""}
+                    onChange={(e) => cambiar(i, "codigo", e.target.value)}
+                    placeholder="Opcional"
+                    className={campo}
+                  />
+                </label>
                 <label className="block">
                   <span className="mb-1 block text-[12px] text-muted-foreground">
                     Cantidad

@@ -67,6 +67,7 @@ export async function datosParaImprimir(ordenId: string) {
       danos: trabajo.danos,
       combustible: trabajo.combustible,
       accesorios: trabajo.accesorios,
+      observaciones: trabajo.observaciones,
       manoObra: trabajo.manoObra,
       repuestos: trabajo.repuestos,
       cargoTraslado: trabajo.cargoTraslado,
@@ -80,9 +81,14 @@ export async function datosParaImprimir(ordenId: string) {
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
+      cilindrada: vehiculo.cilindrada,
       vin: vehiculo.vin,
+      movil: vehiculo.movil,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
+      propietarioEmail: cliente.email,
+      empresa: cliente.empresa,
+      empresaRut: cliente.empresaRut,
       taller: user.taller,
       tallerLogo: user.image,
       tallerRut: user.rut,
@@ -102,6 +108,7 @@ export async function datosParaImprimir(ordenId: string) {
   const piezas = await db
     .select({
       nombre: parteUsada.nombre,
+      codigo: parteUsada.codigo,
       cantidad: parteUsada.cantidad,
       precioUnitario: parteUsada.precioUnitario,
     })
@@ -128,9 +135,14 @@ export async function listarVehiculosParaOrden() {
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
+      cilindrada: vehiculo.cilindrada,
       vin: vehiculo.vin,
+      movil: vehiculo.movil,
       propietario: cliente.nombre,
       propietarioTelefono: cliente.telefono,
+      propietarioEmail: cliente.email,
+      empresa: cliente.empresa,
+      empresaRut: cliente.empresaRut,
       ultimoKilometraje: sql<number | null>`coalesce(
         max(${trabajo.kilometraje}),
         ${vehiculo.kilometrajeInicial}
@@ -140,7 +152,15 @@ export async function listarVehiculosParaOrden() {
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
     .where(eq(vehiculo.tallerId, tallerId))
-    .groupBy(vehiculo.id, cliente.id, cliente.nombre, cliente.telefono)
+    .groupBy(
+      vehiculo.id,
+      cliente.id,
+      cliente.nombre,
+      cliente.telefono,
+      cliente.email,
+      cliente.empresa,
+      cliente.empresaRut
+    )
     .orderBy(vehiculo.patente);
 }
 
@@ -153,6 +173,7 @@ export async function abrirOrden(datos: {
   danos?: string[];
   combustible?: string;
   accesorios?: string[];
+  observaciones?: string;
   piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
@@ -181,6 +202,7 @@ export async function abrirOrden(datos: {
     danos: datos.danos ?? [],
     combustible: datos.combustible || null,
     accesorios: datos.accesorios ?? [],
+    observaciones: datos.observaciones?.trim() || null,
     estado: "ingresado",
   });
 
@@ -196,6 +218,7 @@ export async function abrirOrden(datos: {
         trabajoId: ordenId,
         parteId: p.parteId || null,
         nombre: p.nombre.trim(),
+        codigo: p.codigo?.trim() || null,
         cantidad: Number(p.cantidad) || 1,
         costoUnitario: Number(p.costo) || 0,
         precioUnitario: Number(p.precio) || 0,
@@ -325,6 +348,8 @@ export type RepuestoUsado = {
   donde: string;
   /** Si viene del inventario (insumo con stock), su id — para descontarlo al cerrar. */
   parteId?: string | null;
+  /** Código del repuesto en la cotización impresa — texto libre, no el parteId. */
+  codigo?: string;
 };
 
 /** Se completa cuando el trabajo ya está hecho: qué se hizo y cuánto salió. */
@@ -442,6 +467,7 @@ export async function cerrarOrden(datos: {
         trabajoId: datos.ordenId,
         parteId: p.parteId || null,
         nombre: p.nombre.trim(),
+        codigo: p.codigo?.trim() || null,
         cantidad: Number(p.cantidad) || 1,
         costoUnitario: Number(p.costo) || 0,
         precioUnitario: Number(p.precio) || 0,
@@ -483,6 +509,7 @@ export async function repuestosDeOrden(ordenId: string) {
     .select({
       parteId: parteUsada.parteId,
       nombre: parteUsada.nombre,
+      codigo: parteUsada.codigo,
       cantidad: parteUsada.cantidad,
       costoUnitario: parteUsada.costoUnitario,
       precioUnitario: parteUsada.precioUnitario,

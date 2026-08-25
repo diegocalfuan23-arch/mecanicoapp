@@ -15,6 +15,9 @@ export async function listarPropietarios() {
       id: cliente.id,
       nombre: cliente.nombre,
       telefono: cliente.telefono,
+      email: cliente.email,
+      empresa: cliente.empresa,
+      empresaRut: cliente.empresaRut,
       notas: cliente.notas,
       trato: cliente.trato,
       formaPago: cliente.formaPago,
@@ -42,6 +45,9 @@ export async function listarPropietarios() {
 export type DatosPropietario = {
   nombre: string;
   telefono?: string;
+  email?: string;
+  empresa?: string;
+  empresaRut?: string;
   notas?: string;
   trato: string;
   formaPago?: string;
@@ -66,6 +72,9 @@ export async function guardarPropietario(datos: DatosPropietario) {
     tallerId,
     nombre,
     telefono: datos.telefono?.trim() || null,
+    email: datos.email?.trim() || null,
+    empresa: datos.empresa?.trim() || null,
+    empresaRut: datos.empresaRut?.trim() || null,
     notas: datos.notas?.trim() || null,
     trato: datos.trato || "normal",
     formaPago: datos.formaPago?.trim() || null,
@@ -105,6 +114,9 @@ export async function actualizarPropietario(
     .set({
       nombre,
       telefono: datos.telefono?.trim() || null,
+      email: datos.email?.trim() || null,
+      empresa: datos.empresa?.trim() || null,
+      empresaRut: datos.empresaRut?.trim() || null,
       notas: datos.notas?.trim() || null,
       trato: datos.trato || "normal",
       formaPago: datos.formaPago?.trim() || null,

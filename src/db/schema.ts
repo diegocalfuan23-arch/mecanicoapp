@@ -103,6 +103,11 @@ export const cliente = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     nombre: text("nombre").notNull(),
     telefono: text("telefono"),
+    email: text("email"),
+    // Cuando el auto es de una empresa, no de una persona natural —
+    // Plan Serviteca en adelante (cotización a nombre de la empresa).
+    empresa: text("empresa"),
+    empresaRut: text("empresa_rut"),
     notas: text("notas"),
 
     /**
@@ -141,6 +146,11 @@ export const vehiculo = pgTable(
     // auto · camioneta · SUV · furgón · moto · camión · bus
     tipo: text("tipo"),
     motor: text("motor"),
+    // Cilindrada, ej. "1.6", "2.0" — Plan Serviteca en adelante.
+    cilindrada: text("cilindrada"),
+    // Patente del móvil de flota/empresa, distinta de la patente del
+    // vehículo si aplica — Plan Serviteca en adelante.
+    movil: text("movil"),
     ejes: integer("ejes"),
     // Japonés, coreano, europeo, americano, chino
     procedencia: text("procedencia"),
@@ -212,6 +222,9 @@ export const trabajo = pgTable(
     // reclamo al retirarlo ("no traía la rueda de repuesto"). Cada
     // elemento es el id del accesorio que SÍ trae — ausencia = no trae.
     accesorios: text("accesorios").array().notNull().default([]),
+    // Nota libre de la orden, aparte de síntoma/diagnóstico/descripción
+    // — Plan Serviteca en adelante.
+    observaciones: text("observaciones"),
 
     // ingresado · en_proceso · esperando_repuesto · terminado · entregado
     estado: text("estado").notNull().default("ingresado"),
@@ -288,6 +301,10 @@ export const parteUsada = pgTable(
     }),
     // Se guarda el nombre por si la parte se borra del inventario
     nombre: text("nombre").notNull(),
+    // Código interno del repuesto en la cotización impresa — no es el
+    // parteId (que es interno de la app), es el código que el taller
+    // usa en su papel — Plan Serviteca en adelante.
+    codigo: text("codigo"),
     cantidad: integer("cantidad").notNull().default(1),
     // Lo que se le cobra al cliente por unidad
     precioUnitario: integer("precio_unitario").notNull().default(0),

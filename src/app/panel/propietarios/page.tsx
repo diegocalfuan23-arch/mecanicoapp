@@ -1,8 +1,12 @@
 import { listarPropietarios } from "./acciones";
+import { tienePlan } from "@/lib/taller";
 import { TablaPropietarios } from "./tabla";
 
 export default async function Propietarios() {
-  const propietarios = await listarPropietarios();
+  const [propietarios, tieneImpresion] = await Promise.all([
+    listarPropietarios(),
+    tienePlan("impresionOrden"),
+  ]);
   // Cliente es el que volvió: dos visitas o más.
   const clientes = propietarios.filter((p) => p.visitas >= 2).length;
 
@@ -19,7 +23,10 @@ export default async function Propietarios() {
         </p>
       </div>
 
-      <TablaPropietarios propietarios={propietarios} />
+      <TablaPropietarios
+        propietarios={propietarios}
+        tieneImpresion={tieneImpresion}
+      />
     </>
   );
 }

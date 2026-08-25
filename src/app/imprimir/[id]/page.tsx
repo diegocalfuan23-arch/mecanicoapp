@@ -78,9 +78,14 @@ export default async function ImprimirOrden({
             }
           />
           <Campo etiqueta="Motor" valor={orden.motor ?? ""} />
+          <Campo etiqueta="Cilindrada" valor={orden.cilindrada ?? ""} />
           <Campo etiqueta="VIN / Chasis" valor={orden.vin ?? ""} />
+          <Campo etiqueta="Móvil" valor={orden.movil ?? ""} />
           <Campo etiqueta="Cliente" valor={orden.propietario ?? ""} />
           <Campo etiqueta="Fono" valor={orden.propietarioTelefono ?? ""} />
+          <Campo etiqueta="E-mail" valor={orden.propietarioEmail ?? ""} />
+          <Campo etiqueta="Empresa" valor={orden.empresa ?? ""} />
+          <Campo etiqueta="RUT empresa" valor={orden.empresaRut ?? ""} />
         </div>
 
         {/* Diagrama del auto: marcado al abrir la orden, o en blanco para
@@ -135,10 +140,17 @@ export default async function ImprimirOrden({
           <Bloque etiqueta="Qué se hizo" texto={orden.descripcion} />
         </div>
 
+        {orden.observaciones && (
+          <div className="border-b border-foreground/30 py-4">
+            <Bloque etiqueta="Observaciones" texto={orden.observaciones} />
+          </div>
+        )}
+
         {/* Detalle de repuestos y mano de obra */}
         <table className="w-full border-collapse text-[12px]">
           <thead>
             <tr className="border-b border-foreground/30 text-left">
+              <th className="py-2">Código</th>
               <th className="py-2">Detalle</th>
               <th className="py-2 text-right">Cantidad</th>
               <th className="py-2 text-right">Precio</th>
@@ -148,6 +160,7 @@ export default async function ImprimirOrden({
           <tbody>
             {piezas.map((p, i) => (
               <tr key={i} className="border-b border-foreground/10">
+                <td className="py-2">{p.codigo ?? ""}</td>
                 <td className="py-2">{p.nombre}</td>
                 <td className="py-2 text-right">{p.cantidad}</td>
                 <td className="py-2 text-right">{pesos(p.precioUnitario)}</td>
@@ -158,7 +171,7 @@ export default async function ImprimirOrden({
             ))}
             {orden.manoObra > 0 && (
               <tr className="border-b border-foreground/10">
-                <td className="py-2" colSpan={3}>
+                <td className="py-2" colSpan={4}>
                   Mano de obra
                 </td>
                 <td className="py-2 text-right">{pesos(orden.manoObra)}</td>
@@ -166,7 +179,7 @@ export default async function ImprimirOrden({
             )}
             {orden.cargoTraslado > 0 && (
               <tr className="border-b border-foreground/10">
-                <td className="py-2" colSpan={3}>
+                <td className="py-2" colSpan={4}>
                   Cargo por traslado
                 </td>
                 <td className="py-2 text-right">

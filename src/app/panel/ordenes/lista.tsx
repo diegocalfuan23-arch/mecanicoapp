@@ -53,9 +53,14 @@ type VehiculoOpcion = {
   anio: number | null;
   color: string | null;
   motor: string | null;
+  cilindrada: string | null;
   vin: string | null;
+  movil: string | null;
   propietario: string | null;
   propietarioTelefono: string | null;
+  propietarioEmail: string | null;
+  empresa: string | null;
+  empresaRut: string | null;
   ultimoKilometraje: number | null;
 };
 
@@ -131,6 +136,7 @@ function Abrir({
   const [danos, setDanos] = useState<string[]>([]);
   const [combustible, setCombustible] = useState("");
   const [accesorios, setAccesorios] = useState<string[]>([]);
+  const [observaciones, setObservaciones] = useState("");
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -151,6 +157,7 @@ function Abrir({
       danos,
       combustible,
       accesorios,
+      observaciones,
       piezas,
     });
     setEnviando(false);
@@ -222,11 +229,19 @@ function Abrir({
             <DatoVehiculo etiqueta="Año" valor={elegido.anio} />
             <DatoVehiculo etiqueta="Color" valor={elegido.color} />
             <DatoVehiculo etiqueta="Motor" valor={elegido.motor} />
+            <DatoVehiculo etiqueta="Cilindrada" valor={elegido.cilindrada} />
             <DatoVehiculo etiqueta="VIN / Chasis" valor={elegido.vin} />
+            <DatoVehiculo etiqueta="Móvil" valor={elegido.movil} />
             <DatoVehiculo etiqueta="Cliente" valor={elegido.propietario} />
             <DatoVehiculo
               etiqueta="Fono"
               valor={elegido.propietarioTelefono}
+            />
+            <DatoVehiculo etiqueta="E-mail" valor={elegido.propietarioEmail} />
+            <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
+            <DatoVehiculo
+              etiqueta="RUT empresa"
+              valor={elegido.empresaRut}
             />
           </div>
         )}
@@ -380,6 +395,21 @@ function Abrir({
             onCambio={setPiezas}
             inventario={inventario}
           />
+        )}
+
+        {tieneImpresion && (
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Observaciones
+            </span>
+            <textarea
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Cualquier otra nota sobre esta orden"
+              rows={2}
+              className={`${campoBase()} resize-y`}
+            />
+          </label>
         )}
 
         {error && <p className="text-[13px] text-destructive">{error}</p>}

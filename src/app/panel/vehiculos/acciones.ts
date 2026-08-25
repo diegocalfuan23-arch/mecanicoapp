@@ -19,6 +19,8 @@ export type DatosVehiculo = {
   color?: string;
   tipo?: string;
   motor?: string;
+  cilindrada?: string;
+  movil?: string;
   ejes?: string;
   procedencia?: string;
   kilometrajeInicial?: string;
@@ -45,6 +47,8 @@ export async function listarVehiculos() {
       color: vehiculo.color,
       tipo: vehiculo.tipo,
       motor: vehiculo.motor,
+      cilindrada: vehiculo.cilindrada,
+      movil: vehiculo.movil,
       ejes: vehiculo.ejes,
       procedencia: vehiculo.procedencia,
       kilometrajeInicial: vehiculo.kilometrajeInicial,
@@ -122,6 +126,8 @@ export async function actualizarVehiculo(
       color: datos.color?.trim() || null,
       tipo: datos.tipo || null,
       motor: datos.motor?.trim() || null,
+      cilindrada: datos.cilindrada?.trim() || null,
+      movil: datos.movil?.trim() || null,
       ejes: datos.ejes ? Number(datos.ejes) : null,
       procedencia: datos.procedencia || null,
       kilometrajeInicial: datos.kilometrajeInicial
@@ -227,6 +233,8 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
     color: datos.color?.trim() || null,
     tipo: datos.tipo || null,
     motor: datos.motor?.trim() || null,
+    cilindrada: datos.cilindrada?.trim() || null,
+    movil: datos.movil?.trim() || null,
     ejes: datos.ejes ? Number(datos.ejes) : null,
     procedencia: datos.procedencia || null,
     kilometrajeInicial: datos.kilometrajeInicial

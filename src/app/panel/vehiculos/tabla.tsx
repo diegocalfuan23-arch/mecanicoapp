@@ -77,7 +77,13 @@ function Acciones({ v, onBorrar }: { v: Vehiculo; onBorrar: () => void }) {
   );
 }
 
-export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
+export function TablaVehiculos({
+  vehiculos,
+  tieneImpresion,
+}: {
+  vehiculos: Vehiculo[];
+  tieneImpresion: boolean;
+}) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [editando, setEditando] = useState<Vehiculo | null>(null);
@@ -129,6 +135,7 @@ export function TablaVehiculos({ vehiculos }: { vehiculos: Vehiculo[] }) {
             key={editando?.id ?? "nuevo"}
             vehiculo={editando ?? undefined}
             autoguardar={!!editando}
+            tieneImpresion={tieneImpresion}
             onListo={() => {
               setAbierto(false);
               setEditando(null);

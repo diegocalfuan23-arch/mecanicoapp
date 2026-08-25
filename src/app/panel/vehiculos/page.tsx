@@ -2,13 +2,17 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { listarVehiculos } from "./acciones";
+import { tienePlan } from "@/lib/taller";
 import { TablaVehiculos } from "./tabla";
 
 export default async function Vehiculos() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
 
-  const vehiculos = await listarVehiculos();
+  const [vehiculos, tieneImpresion] = await Promise.all([
+    listarVehiculos(),
+    tienePlan("impresionOrden"),
+  ]);
 
   return (
     <>
@@ -21,7 +25,7 @@ export default async function Vehiculos() {
         </p>
       </div>
 
-      <TablaVehiculos vehiculos={vehiculos} />
+      <TablaVehiculos vehiculos={vehiculos} tieneImpresion={tieneImpresion} />
     </>
   );
 }

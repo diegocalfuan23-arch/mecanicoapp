@@ -12,6 +12,9 @@ type Propietario = {
   id: string;
   nombre: string;
   telefono: string | null;
+  email: string | null;
+  empresa: string | null;
+  empresaRut: string | null;
   notas: string | null;
   trato: string;
   formaPago: string | null;
@@ -59,9 +62,12 @@ const esquema = Yup.object({
 function Formulario({
   onListo,
   propietario,
+  tieneImpresion,
 }: {
   onListo: () => void;
   propietario?: Propietario;
+  /** Plan Serviteca: agrega email y datos de empresa/RUT. */
+  tieneImpresion: boolean;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
@@ -71,6 +77,9 @@ function Formulario({
     initialValues: {
       nombre: propietario?.nombre ?? "",
       telefono: propietario?.telefono ?? "",
+      email: propietario?.email ?? "",
+      empresa: propietario?.empresa ?? "",
+      empresaRut: propietario?.empresaRut ?? "",
       notas: propietario?.notas ?? "",
       trato: propietario?.trato ?? "normal",
       formaPago: propietario?.formaPago ?? "",
@@ -130,6 +139,24 @@ function Formulario({
           inputMode: "tel",
         })}
       </div>
+
+      {tieneImpresion && (
+        <>
+          {campo("email", "E-mail", {
+            placeholder: "juan@correo.com",
+            type: "email",
+          })}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {campo("empresa", "Empresa (si aplica)", {
+              placeholder: "Transportes Pérez SpA",
+            })}
+            {campo("empresaRut", "RUT de la empresa", {
+              placeholder: "76.123.456-7",
+            })}
+          </div>
+        </>
+      )}
+
       {campo("notas", "Notas", { placeholder: "Lo que quieras recordar" })}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -191,8 +218,10 @@ function Formulario({
 
 export function TablaPropietarios({
   propietarios,
+  tieneImpresion,
 }: {
   propietarios: Propietario[];
+  tieneImpresion: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [editando, setEditando] = useState<Propietario | null>(null);
@@ -217,6 +246,7 @@ export function TablaPropietarios({
           <Formulario
             key={editando?.id ?? "nuevo"}
             propietario={editando ?? undefined}
+            tieneImpresion={tieneImpresion}
             onListo={() => {
               setAbierto(false);
               setEditando(null);
