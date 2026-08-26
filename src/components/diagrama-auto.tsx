@@ -355,7 +355,12 @@ function SiluetaSuperior({
   );
 }
 
-/** Silueta lateral: techo curvo, capó y maletero en pendiente, ruedas. */
+/**
+ * Silueta lateral, proporción de sedán: capó bajo y curvo, parabrisas
+ * inclinado, techo y luneta en una sola franja de vidrio, maletero
+ * corto, con sombra de contacto y un leve volumen en el techo — se
+ * dibujó a mano hasta que se leyera como un auto real, no una caja.
+ */
 function SiluetaLateral({
   marcas,
   zonaAbierta,
@@ -366,56 +371,79 @@ function SiluetaLateral({
   onZona: (id: string | null) => void;
 }) {
   return (
-    <svg viewBox="0 0 192 90" className="h-40 w-auto text-border">
-      {/* Carrocería de perfil, proporción de sedán: capó bajo adelante,
-          parabrisas inclinado, techo horizontal, luneta trasera y
-          maletero corto atrás — apoyado sobre la línea de las ruedas. */}
+    <svg viewBox="0 0 200 100" className="h-40 w-auto text-border">
+      {/* Sombra de contacto en el piso */}
+      <ellipse cx="100" cy="86" rx="92" ry="4" className="fill-black/35" />
+
+      {/* Carrocería */}
       <path
-        d="M 4 66
-           L 4 58
-           C 4 52 8 48 14 48
-           L 22 48
-           C 26 34 34 24 46 20
-           L 56 18
-           C 62 10 72 6 84 6
-           L 122 6
-           C 136 6 148 12 156 22
-           L 168 34
-           L 178 38
-           C 184 40 188 45 188 51
-           L 188 62
-           C 188 66 185 68 181 68
-           L 170 68
-           C 170 59 163 52 154 52
-           C 145 52 138 59 138 68
-           L 58 68
-           C 58 59 51 52 42 52
-           C 33 52 26 59 26 68
-           L 11 68
-           C 7 68 4 68 4 66 Z"
+        d="M 6 68
+           C 6 60 10 55 18 54
+           L 26 53
+           C 30 38 40 26 54 21
+           L 62 19
+           C 70 10 82 5 96 5
+           L 130 5
+           C 146 5 160 12 170 24
+           L 178 34
+           C 184 33 190 36 192 42
+           C 193.5 45.5 194 49 194 53
+           L 194 62
+           C 194 66 191 68 187 68
+           L 176 68
+           C 176 58 168 50 158 50
+           C 148 50 140 58 140 68
+           L 62 68
+           C 62 58 54 50 44 50
+           C 34 50 26 58 26 68
+           L 12 68
+           C 8 68 6 68 6 68 Z"
         fill="currentColor"
         className="text-card"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinejoin="round"
         style={{ color: "var(--color-border)" }}
       />
-      {/* Parabrisas, techo y luneta trasera — una sola franja de vidrio
-          continua, como se ve un auto real de perfil. */}
+
+      {/* Franja de luz superior, da volumen al techo/capó */}
       <path
-        d="M 60 18
-           C 66 12 74 9 84 9
-           L 122 9
-           C 133 9 143 14 150 22
-           L 154 27
-           L 68 27
-           Z"
-        fill="currentColor"
-        className="text-background"
+        d="M 30 40
+           C 40 28 52 22 62 21
+           C 70 12 82 8 96 8
+           L 128 8
+           C 142 8 154 14 163 24
+           L 30 40 Z"
+        className="fill-white/5"
       />
-      {/* Ruedas */}
-      <circle cx="42" cy="68" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
-      <circle cx="154" cy="68" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
+
+      {/* Cristales: parabrisas + techo + luneta, franja continua */}
+      <path
+        d="M 64 20
+           C 71 12 81 9 96 9
+           L 128 9
+           C 140 9 150 15 158 25
+           L 163 31
+           L 70 31
+           Z"
+        className="fill-background"
+      />
+      <line x1="112" y1="9" x2="112" y2="31" stroke="currentColor" strokeWidth="1" className="text-card" />
+
+      {/* Manijas y línea de la puerta */}
+      <rect x="95" y="42" width="10" height="2.2" rx="1.1" className="fill-background/50" />
+      <rect x="140" y="42" width="10" height="2.2" rx="1.1" className="fill-background/50" />
+      <line x1="122" y1="31" x2="122" y2="68" stroke="currentColor" strokeWidth="1" className="text-background/40" />
+
+      {/* Parachoques, un poco más oscuros que la carrocería */}
+      <path d="M 176 50 C 184 50 190 54 191 61 L 191 66 C 191 67.5 189.5 68 188 68 L 176 68 Z" className="fill-black/20" />
+      <path d="M 26 53 C 20 54 12 57 8 62 L 6 66 C 6 67.5 7.5 68 9 68 L 26 68 Z" className="fill-black/20" />
+
+      {/* Ruedas: llanta + neumático */}
+      <circle cx="44" cy="68" r="14" className="fill-background" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="44" cy="68" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.6" />
+      <circle cx="158" cy="68" r="14" className="fill-background" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="158" cy="68" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.6" />
 
       {ZONAS_LATERAL.map((z) => (
         <Zona

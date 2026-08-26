@@ -458,53 +458,53 @@ function SiluetaLateralImpresa({ danos }: { danos: string[] }) {
 
   return (
     <svg
-      viewBox="0 0 192 90"
+      viewBox="0 0 200 100"
       className="h-24 w-auto shrink-0"
       aria-label="Diagrama del vehículo, vista lateral"
     >
       <path
-        d="M 4 66
-           L 4 58
-           C 4 52 8 48 14 48
-           L 22 48
-           C 26 34 34 24 46 20
-           L 56 18
-           C 62 10 72 6 84 6
-           L 122 6
-           C 136 6 148 12 156 22
-           L 168 34
-           L 178 38
-           C 184 40 188 45 188 51
-           L 188 62
-           C 188 66 185 68 181 68
-           L 170 68
-           C 170 59 163 52 154 52
-           C 145 52 138 59 138 68
-           L 58 68
-           C 58 59 51 52 42 52
-           C 33 52 26 59 26 68
-           L 11 68
-           C 7 68 4 68 4 66 Z"
+        d="M 6 68
+           C 6 60 10 55 18 54
+           L 26 53
+           C 30 38 40 26 54 21
+           L 62 19
+           C 70 10 82 5 96 5
+           L 130 5
+           C 146 5 160 12 170 24
+           L 178 34
+           C 184 33 190 36 192 42
+           C 193.5 45.5 194 49 194 53
+           L 194 62
+           C 194 66 191 68 187 68
+           L 176 68
+           C 176 58 168 50 158 50
+           C 148 50 140 58 140 68
+           L 62 68
+           C 62 58 54 50 44 50
+           C 34 50 26 58 26 68
+           L 12 68
+           C 8 68 6 68 6 68 Z"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       <path
-        d="M 60 18
-           C 66 12 74 9 84 9
-           L 122 9
-           C 133 9 143 14 150 22
-           L 154 27
-           L 68 27
+        d="M 64 20
+           C 71 12 81 9 96 9
+           L 128 9
+           C 140 9 150 15 158 25
+           L 163 31
+           L 70 31
            Z"
         fill="none"
         stroke="currentColor"
         strokeWidth="1"
         strokeOpacity="0.5"
       />
-      <circle cx="42" cy="68" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="154" cy="68" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="122" y1="31" x2="122" y2="68" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.4" />
+      <circle cx="44" cy="68" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="158" cy="68" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />
       {ZONAS_LATERAL.map((z) => {
         const marca = marcas.find((m) => m.zona === z.id);
         const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
