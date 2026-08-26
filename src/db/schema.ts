@@ -245,6 +245,10 @@ export const trabajo = pgTable(
     // Nota libre de la orden, aparte de síntoma/diagnóstico/descripción
     // — Plan Serviteca en adelante.
     observaciones: text("observaciones"),
+    // Checklist de servicios del catálogo fijo (ids de
+    // lib/servicios-catalogo.ts) marcados al cerrar — Plan Serviteca,
+    // pedido por Senna. Aparte del texto libre de "descripcion".
+    serviciosRealizados: text("servicios_realizados").array().notNull().default([]),
 
     // ingresado · en_proceso · esperando_repuesto · terminado · entregado
     estado: text("estado").notNull().default("ingresado"),

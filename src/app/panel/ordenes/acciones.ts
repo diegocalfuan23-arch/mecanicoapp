@@ -75,6 +75,7 @@ export async function datosParaImprimir(ordenId: string) {
       combustible: trabajo.combustible,
       accesorios: trabajo.accesorios,
       observaciones: trabajo.observaciones,
+      serviciosRealizados: trabajo.serviciosRealizados,
       manoObra: trabajo.manoObra,
       manoObraFreno: trabajo.manoObraFreno,
       repuestos: trabajo.repuestos,
@@ -86,6 +87,7 @@ export async function datosParaImprimir(ordenId: string) {
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
+      tipo: vehiculo.tipo,
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
@@ -169,6 +171,7 @@ export async function listarVehiculosParaOrden() {
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
+      tipo: vehiculo.tipo,
       anio: vehiculo.anio,
       color: vehiculo.color,
       motor: vehiculo.motor,
@@ -420,6 +423,7 @@ export async function cerrarOrden(datos: {
   montoAbonado?: string;
   conIva?: boolean;
   piezas?: RepuestoUsado[];
+  servicios?: string[];
 }) {
   const tallerId = await tallerActual();
 
@@ -427,6 +431,10 @@ export async function cerrarOrden(datos: {
   // fuerce el envío de un parteId no se descuenta nada del inventario
   // de nadie — se guarda igual como repuesto puntual (sin id).
   const tieneInventario = await tienePlan("inventario");
+  // El checklist de servicios es del Plan Serviteca — igual que
+  // manoObraFreno, ignorar lo que llegue sin ese plan.
+  const tieneImpresion = await tienePlan("impresionOrden");
+  const servicios = tieneImpresion ? (datos.servicios ?? []) : [];
   const piezas = (datos.piezas ?? [])
     .filter((p) => p.nombre.trim())
     .map((p) => (tieneInventario ? p : { ...p, parteId: null }));
@@ -477,6 +485,7 @@ export async function cerrarOrden(datos: {
       cargoTraslado,
       iva,
       total,
+      serviciosRealizados: servicios,
       estadoPago,
       abonado,
       fechaPago: estadoPago === "pagado" ? new Date() : null,
@@ -550,6 +559,19 @@ export async function cerrarOrden(datos: {
   revalidatePath("/panel/pagos");
   revalidatePath("/panel");
   return { ok: true };
+}
+
+/** El checklist de servicios ya marcado, para precargarlo al reabrir el cierre. */
+export async function serviciosDeOrden(ordenId: string) {
+  const tallerId = await tallerActual();
+
+  const [orden] = await db
+    .select({ servicios: trabajo.serviciosRealizados })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  return orden?.servicios ?? [];
 }
 
 /** Los repuestos de una orden, con lo que costaron y lo que se cobró. */

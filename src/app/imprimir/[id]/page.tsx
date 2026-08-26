@@ -4,8 +4,14 @@ import { auth } from "@/lib/auth";
 import { datosParaImprimir } from "@/app/panel/ordenes/acciones";
 import { BotonImprimir } from "./boton-imprimir";
 import { pesos, fecha } from "@/lib/formato";
-import { ZONAS_AUTO, TIPOS_DANO, marcasDesdeDanos } from "@/lib/zonas-auto";
-import { ACCESORIOS_AUTO, NIVELES_COMBUSTIBLE } from "@/lib/accesorios-auto";
+import {
+  ZONAS_SUPERIOR,
+  ZONAS_LATERAL,
+  TIPOS_DANO,
+  marcasDesdeDanos,
+} from "@/lib/zonas-auto";
+import { NIVELES_COMBUSTIBLE, accesoriosParaTipo } from "@/lib/accesorios-auto";
+import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
 export default async function ImprimirOrden({
   params,
@@ -59,7 +65,10 @@ export default async function ImprimirOrden({
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold">ORDEN DE TRABAJO</p>
-            <p>N° OT-{orden.numero}</p>
+            <p>N° OT: {orden.numero}</p>
+            {orden.propietarioNumero && (
+              <p>N° Cliente: {orden.propietarioNumero}</p>
+            )}
             <p>{fecha(orden.fecha)}</p>
           </div>
         </div>
@@ -118,8 +127,9 @@ export default async function ImprimirOrden({
           <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
             Estado del vehículo al ingresar
           </p>
-          <div className="flex items-center gap-6">
-            <DiagramaAutoImpreso danos={orden.danos} />
+          <div className="flex flex-wrap items-center gap-6">
+            <SiluetaSuperiorImpresa danos={orden.danos} />
+            <SiluetaLateralImpresa danos={orden.danos} />
             <ul className="text-[12px] text-muted-foreground">
               {TIPOS_DANO.map((t) => (
                 <li key={t.id}>
@@ -130,8 +140,10 @@ export default async function ImprimirOrden({
           </div>
         </div>
 
-        {/* Combustible y accesorios al recibir */}
-        <div className="grid gap-4 border-b border-foreground/30 py-4 sm:grid-cols-2">
+        {/* Combustible y accesorios al recibir — checklist Sí/No, como
+            la recepción de vehículos en papel: sirve de respaldo ante
+            un reclamo al retirar ("no traía la rueda de repuesto"). */}
+        <div className="border-b border-foreground/30 py-4">
           <Campo
             etiqueta="Nivel de combustible"
             valor={
@@ -139,23 +151,40 @@ export default async function ImprimirOrden({
                 ?.etiqueta ?? ""
             }
           />
-          <div>
-            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              Accesorios que trae
-            </p>
-            <p className="mt-1">
-              {orden.accesorios.length > 0
-                ? orden.accesorios
-                    .map(
-                      (id) =>
-                        ACCESORIOS_AUTO.find((a) => a.id === id)?.etiqueta
-                    )
-                    .filter(Boolean)
-                    .join(", ")
-                : "No especifica"}
-            </p>
+          <p className="mt-3 mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Accesorios que trae
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4">
+            {accesoriosParaTipo(orden.tipo).map((a) => (
+              <label key={a.id} className="flex items-center gap-2">
+                <span className="flex size-3.5 items-center justify-center border border-foreground/50 text-[9px] leading-none">
+                  {orden.accesorios.includes(a.id) ? "✓" : ""}
+                </span>
+                {a.etiqueta}
+              </label>
+            ))}
           </div>
         </div>
+
+        {/* Servicios realizados — checklist del catálogo, Plan Serviteca
+            (pedido por Senna), aparte del texto libre de más abajo. */}
+        {orden.serviciosRealizados.length > 0 && (
+          <div className="border-b border-foreground/30 py-4">
+            <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Servicios realizados
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+              {SERVICIOS_CATALOGO
+                .filter((s) => orden.serviciosRealizados.includes(s.id))
+                .map((s) => (
+                  <p key={s.id}>
+                    <span className="text-muted-foreground">{s.codigo}</span>{" "}
+                    {s.etiqueta}
+                  </p>
+                ))}
+            </div>
+          </div>
+        )}
 
         {/* Síntoma, diagnóstico, procedimiento */}
         <div className="grid gap-4 border-b border-foreground/30 py-4 sm:grid-cols-3">
@@ -236,6 +265,20 @@ export default async function ImprimirOrden({
           </div>
         </div>
 
+        {/* Cláusula de autorización — texto genérico, igual para todo
+            taller en Plan Serviteca, al estilo de la orden en papel. */}
+        <div className="mt-6 border-t border-foreground/30 pt-4 text-[10px] leading-relaxed text-muted-foreground">
+          <p>
+            Autorizo los trabajos arriba descritos. El taller no responde por
+            accesorios no especificados en esta orden al momento de la
+            recepción, ni por daños ocasionados por incendios, robos,
+            accidentes u otra causa ajena a su voluntad. Todo trabajo
+            terminado será cancelado antes de retirar el vehículo. Después de
+            48 horas de terminada la reparación y notificado el cliente, se
+            cobrará estacionamiento según tarifa del taller.
+          </p>
+        </div>
+
         {/* Firma */}
         <div className="mt-8 grid grid-cols-2 gap-8 text-center text-[12px]">
           <div>
@@ -297,30 +340,37 @@ function Total({ etiqueta, valor }: { etiqueta: string; valor: number }) {
   );
 }
 
-/**
- * Vista superior del auto con las marcas hechas al abrir la orden. Si
- * no se marcó nada en pantalla, queda en blanco para completar a mano.
- */
-function DiagramaAutoImpreso({ danos }: { danos: string[] }) {
+/** Vista superior del auto con las marcas hechas al abrir la orden. */
+function SiluetaSuperiorImpresa({ danos }: { danos: string[] }) {
   const marcas = marcasDesdeDanos(danos);
 
   return (
     <svg
       viewBox="0 0 120 200"
-      className="h-32 w-auto shrink-0"
+      className="h-40 w-auto shrink-0"
       aria-label="Diagrama del vehículo, vista superior"
     >
-      <rect
-        x="20"
-        y="4"
-        width="80"
-        height="192"
-        rx="26"
+      <path
+        d="M 60 2
+           C 82 2 96 10 100 30
+           L 100 66
+           C 108 68 112 74 112 84
+           L 112 118
+           C 112 128 108 134 100 136
+           L 100 170
+           C 96 190 82 198 60 198
+           C 38 198 24 190 20 170
+           L 20 136
+           C 12 134 8 128 8 118
+           L 8 84
+           C 8 74 12 68 20 66
+           L 20 30
+           C 24 10 38 2 60 2 Z"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
       />
-      {ZONAS_AUTO.map((z) => {
+      {ZONAS_SUPERIOR.map((z) => {
         const marca = marcas.find((m) => m.zona === z.id);
         const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
         return (
@@ -353,6 +403,85 @@ function DiagramaAutoImpreso({ danos }: { danos: string[] }) {
                 textAnchor="middle"
                 dominantBaseline="central"
                 className="fill-current text-[6px] opacity-40"
+              >
+                {z.etiquetaCorta}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** Vista lateral (perfil) del auto con las marcas hechas al abrir la orden. */
+function SiluetaLateralImpresa({ danos }: { danos: string[] }) {
+  const marcas = marcasDesdeDanos(danos);
+
+  return (
+    <svg
+      viewBox="0 0 192 90"
+      className="h-24 w-auto shrink-0"
+      aria-label="Diagrama del vehículo, vista lateral"
+    >
+      <path
+        d="M 4 62
+           C 4 46 10 32 26 30
+           L 34 30
+           C 40 12 56 4 78 4
+           L 118 4
+           C 136 4 148 14 154 30
+           L 166 30
+           C 180 30 188 42 188 56
+           L 188 62
+           C 188 68 184 70 178 70
+           L 172 70
+           C 172 62 166 56 158 56
+           C 150 56 144 62 144 70
+           L 52 70
+           C 52 62 46 56 38 56
+           C 30 56 24 62 24 70
+           L 14 70
+           C 8 70 4 68 4 62 Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle cx="38" cy="70" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="158" cy="70" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      {ZONAS_LATERAL.map((z) => {
+        const marca = marcas.find((m) => m.zona === z.id);
+        const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
+        return (
+          <g key={z.id}>
+            <rect
+              x={z.x}
+              y={z.y}
+              width={z.w}
+              height={z.h}
+              rx="3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.75"
+              strokeOpacity="0.4"
+            />
+            {tipo ? (
+              <text
+                x={z.x + z.w / 2}
+                y={z.y + z.h / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="text-[11px] font-bold"
+              >
+                {tipo.letra}
+              </text>
+            ) : (
+              <text
+                x={z.x + z.w / 2}
+                y={z.y + z.h / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className="fill-current text-[5px] opacity-40"
               >
                 {z.etiquetaCorta}
               </text>

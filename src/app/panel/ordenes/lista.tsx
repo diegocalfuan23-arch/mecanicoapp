@@ -11,6 +11,7 @@ import {
   esperarRepuesto,
   retomarTrabajo,
   repuestosDeOrden,
+  serviciosDeOrden,
   type RepuestoUsado,
 } from "./acciones";
 import { ESTADOS } from "./estados";
@@ -20,8 +21,8 @@ import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
-import { NIVELES_COMBUSTIBLE } from "@/lib/accesorios-auto";
-import { ACCESORIOS_AUTO } from "@/lib/accesorios-auto";
+import { NIVELES_COMBUSTIBLE, accesoriosParaTipo } from "@/lib/accesorios-auto";
+import { GRUPOS_SERVICIOS } from "@/lib/servicios-catalogo";
 
 type Orden = {
   id: string;
@@ -51,6 +52,7 @@ type VehiculoOpcion = {
   patente: string;
   marca: string | null;
   modelo: string | null;
+  tipo: string | null;
   anio: number | null;
   color: string | null;
   motor: string | null;
@@ -229,6 +231,13 @@ function Abrir({
               const v = vehiculos.find((x) => x.id === id);
               setKilometraje(
                 v?.ultimoKilometraje ? String(v.ultimoKilometraje) : ""
+              );
+              // Si el vehículo nuevo es de otro tipo (ej. cambia a
+              // moto), se quitan los accesorios marcados que ya no
+              // corresponden — una moto no trae "vidrios sin daño".
+              const validos = accesoriosParaTipo(v?.tipo).map((a) => a.id);
+              setAccesorios((actual) =>
+                actual.filter((a) => (validos as string[]).includes(a))
               );
             }}
             autoFocus
@@ -464,7 +473,7 @@ function Abrir({
               Accesorios que trae
             </span>
             <div className="flex flex-wrap gap-2">
-              {ACCESORIOS_AUTO.map((a) => {
+              {accesoriosParaTipo(elegido?.tipo).map((a) => {
                 const activo = accesorios.includes(a.id);
                 return (
                   <button
@@ -558,8 +567,15 @@ function Cerrar({
   const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
+  const [servicios, setServicios] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  function alternarServicio(id: string) {
+    setServicios((actual) =>
+      actual.includes(id) ? actual.filter((s) => s !== id) : [...actual, id]
+    );
+  }
 
   // Si ya se cotizaron repuestos al abrir la orden (Plan Serviteca), se
   // precargan acá para no anotarlos dos veces — el mecánico solo los
@@ -578,6 +594,12 @@ function Cerrar({
         }))
       );
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orden.id]);
+
+  useEffect(() => {
+    if (!tieneImpresion) return;
+    serviciosDeOrden(orden.id).then(setServicios);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orden.id]);
 
@@ -614,6 +636,7 @@ function Cerrar({
       montoAbonado: estadoPago === "fiado" ? montoAbonado : "",
       conIva,
       piezas,
+      servicios,
     });
     setEnviando(false);
 
@@ -737,6 +760,43 @@ function Cerrar({
             className={`${campoBase()} bg-card`}
           />
         </label>
+      )}
+
+      {/* Checklist de servicios del catálogo — Plan Serviteca, pedido por
+          Senna. Aparte del texto libre de arriba: sirve para marcar
+          rápido lo típico (cambio de aceite, balanceo...) sin escribirlo. */}
+      {tieneImpresion && (
+        <div className="mt-4 rounded-lg border border-border bg-card p-4">
+          <span className="mb-3 block text-[13px] font-medium">
+            Servicios realizados
+          </span>
+          <div className="flex flex-col gap-4">
+            {GRUPOS_SERVICIOS.map((g) => (
+              <div key={g.grupo}>
+                <p className="mb-2 text-[12px] font-medium text-muted-foreground">
+                  {g.grupo}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {g.items.map((s) => (
+                    <label
+                      key={s.id}
+                      className="flex items-center gap-2 text-[14px]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={servicios.includes(s.id)}
+                        onChange={() => alternarServicio(s.id)}
+                        className="size-4 accent-primary"
+                      />
+                      <span className="text-muted-foreground">{s.codigo}</span>
+                      {s.etiqueta}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       <div className="mt-4">
