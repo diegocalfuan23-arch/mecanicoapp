@@ -21,7 +21,13 @@ import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
-import { NIVELES_COMBUSTIBLE, accesoriosParaTipo } from "@/lib/accesorios-auto";
+import {
+  NIVELES_COMBUSTIBLE,
+  accesoriosParaTipo,
+  esAccesorioLibre,
+  codificarAccesorioLibre,
+  textoAccesorioLibre,
+} from "@/lib/accesorios-auto";
 import { GRUPOS_SERVICIOS } from "@/lib/servicios-catalogo";
 
 type Orden = {
@@ -152,8 +158,10 @@ function Abrir({
   const [diagnostico, setDiagnostico] = useState("");
   const [fotos, setFotos] = useState<string[]>([]);
   const [danos, setDanos] = useState<string[]>([]);
+  const [danoOtro, setDanoOtro] = useState("");
   const [combustible, setCombustible] = useState("");
   const [accesorios, setAccesorios] = useState<string[]>([]);
+  const [accesorioLibre, setAccesorioLibre] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [ordenadoPor, setOrdenadoPor] = useState("");
   const [ordenadoPorFono, setOrdenadoPorFono] = useState("");
@@ -176,6 +184,7 @@ function Abrir({
       diagnostico,
       fotos,
       danos,
+      danoOtro,
       combustible,
       accesorios,
       observaciones,
@@ -464,6 +473,17 @@ function Abrir({
               Estado del vehículo al ingresar
             </span>
             <DiagramaAuto value={danos} onChange={setDanos} />
+            <label className="mt-3 block">
+              <span className="mb-1 block text-[12px] text-muted-foreground">
+                Otro daño no cubierto por el diagrama (opcional)
+              </span>
+              <input
+                value={danoOtro}
+                onChange={(e) => setDanoOtro(e.target.value)}
+                placeholder="Ej: parabrisas trizado, retrovisor roto"
+                className={`${campoBase()} bg-card`}
+              />
+            </label>
           </div>
         )}
 
@@ -496,6 +516,53 @@ function Abrir({
                   </button>
                 );
               })}
+              {accesorios
+                .filter((a) => esAccesorioLibre(a))
+                .map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() =>
+                      setAccesorios((actual) => actual.filter((x) => x !== a))
+                    }
+                    className="rounded-lg border border-foreground bg-foreground/10 px-4 py-2 text-[14px] text-foreground"
+                  >
+                    {textoAccesorioLibre(a)} ✕
+                  </button>
+                ))}
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              <input
+                value={accesorioLibre}
+                onChange={(e) => setAccesorioLibre(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  if (!accesorioLibre.trim()) return;
+                  setAccesorios((actual) => [
+                    ...actual,
+                    codificarAccesorioLibre(accesorioLibre),
+                  ]);
+                  setAccesorioLibre("");
+                }}
+                placeholder="Otro accesorio (ej: cadenas de nieve)"
+                className={`${campoBase()} bg-card`}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!accesorioLibre.trim()) return;
+                  setAccesorios((actual) => [
+                    ...actual,
+                    codificarAccesorioLibre(accesorioLibre),
+                  ]);
+                  setAccesorioLibre("");
+                }}
+                className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+              >
+                Agregar
+              </button>
             </div>
           </div>
         )}

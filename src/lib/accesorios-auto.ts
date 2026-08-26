@@ -39,6 +39,31 @@ export function accesoriosParaTipo(tipo: string | null | undefined) {
   });
 }
 
+/**
+ * Un accesorio que trae el auto pero no está en el catálogo fijo (ej.
+ * "Cadenas de nieve") se guarda como texto libre con este prefijo, en
+ * la misma columna trabajo.accesorios — sin tabla ni columna aparte.
+ */
+const PREFIJO_OTRO = "otro:";
+
+export function esAccesorioLibre(valor: string) {
+  return valor.startsWith(PREFIJO_OTRO);
+}
+
+export function codificarAccesorioLibre(texto: string) {
+  return `${PREFIJO_OTRO}${texto.trim()}`;
+}
+
+export function textoAccesorioLibre(valor: string) {
+  return valor.slice(PREFIJO_OTRO.length);
+}
+
+/** Etiqueta a mostrar para cualquier valor guardado en accesorios[]. */
+export function etiquetaAccesorio(valor: string) {
+  if (esAccesorioLibre(valor)) return textoAccesorioLibre(valor);
+  return ACCESORIOS_AUTO.find((a) => a.id === valor)?.etiqueta ?? valor;
+}
+
 export const NIVELES_COMBUSTIBLE = [
   { id: "vacio", etiqueta: "Vacío" },
   { id: "1/4", etiqueta: "1/4" },

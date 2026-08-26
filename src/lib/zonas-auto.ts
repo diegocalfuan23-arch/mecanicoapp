@@ -21,13 +21,13 @@ export const ZONAS_SUPERIOR = [
  * que se aclare en observaciones.
  */
 export const ZONAS_LATERAL = [
-  { id: "paragolpe_del", etiqueta: "Paragolpe delantero", etiquetaCorta: "Parag. del.", x: 4, y: 30, w: 22, h: 34 },
-  { id: "capot_lateral", etiqueta: "Capó (lateral)", etiquetaCorta: "Capó", x: 26, y: 20, w: 34, h: 30 },
-  { id: "puerta_del_lateral", etiqueta: "Puerta delantera", etiquetaCorta: "Puerta del.", x: 60, y: 22, w: 38, h: 48 },
-  { id: "puerta_tras_lateral", etiqueta: "Puerta trasera", etiquetaCorta: "Puerta tras.", x: 98, y: 22, w: 38, h: 48 },
-  { id: "maletero_lateral", etiqueta: "Maletero (lateral)", etiquetaCorta: "Maletero", x: 136, y: 20, w: 30, h: 30 },
-  { id: "paragolpe_tras", etiqueta: "Paragolpe trasero", etiquetaCorta: "Parag. tras.", x: 166, y: 30, w: 22, h: 34 },
-  { id: "techo_lateral", etiqueta: "Techo (lateral)", etiquetaCorta: "Techo", x: 60, y: 4, w: 76, h: 16 },
+  { id: "paragolpe_del", etiqueta: "Paragolpe delantero", etiquetaCorta: "Parag. del.", x: 4, y: 46, w: 16, h: 22 },
+  { id: "capot_lateral", etiqueta: "Capó (lateral)", etiquetaCorta: "Capó", x: 22, y: 32, w: 34, h: 20 },
+  { id: "puerta_del_lateral", etiqueta: "Puerta delantera", etiquetaCorta: "Puerta del.", x: 58, y: 28, w: 38, h: 40 },
+  { id: "puerta_tras_lateral", etiqueta: "Puerta trasera", etiquetaCorta: "Puerta tras.", x: 98, y: 28, w: 38, h: 40 },
+  { id: "maletero_lateral", etiqueta: "Maletero (lateral)", etiquetaCorta: "Maletero", x: 158, y: 38, w: 24, h: 30 },
+  { id: "paragolpe_tras", etiqueta: "Paragolpe trasero", etiquetaCorta: "Parag. tras.", x: 172, y: 52, w: 13, h: 16 },
+  { id: "techo_lateral", etiqueta: "Techo (lateral)", etiquetaCorta: "Techo", x: 66, y: 10, w: 52, h: 10 },
 ] as const;
 
 export const ZONAS_AUTO = ZONAS_SUPERIOR;

@@ -278,47 +278,55 @@ function SiluetaLateral({
 }) {
   return (
     <svg viewBox="0 0 192 90" className="h-40 w-auto text-border">
-      {/* Carrocería de perfil: capó bajo adelante, techo arqueado, cola
-          atrás — silueta reconocible de auto visto de lado. */}
+      {/* Carrocería de perfil, proporción de sedán: capó bajo adelante,
+          parabrisas inclinado, techo horizontal, luneta trasera y
+          maletero corto atrás — apoyado sobre la línea de las ruedas. */}
       <path
-        d="M 4 62
-           C 4 46 10 32 26 30
-           L 34 30
-           C 40 12 56 4 78 4
-           L 118 4
-           C 136 4 148 14 154 30
-           L 166 30
-           C 180 30 188 42 188 56
+        d="M 4 66
+           L 4 58
+           C 4 52 8 48 14 48
+           L 22 48
+           C 26 34 34 24 46 20
+           L 56 18
+           C 62 10 72 6 84 6
+           L 122 6
+           C 136 6 148 12 156 22
+           L 168 34
+           L 178 38
+           C 184 40 188 45 188 51
            L 188 62
-           C 188 68 184 70 178 70
-           L 172 70
-           C 172 62 166 56 158 56
-           C 150 56 144 62 144 70
-           L 52 70
-           C 52 62 46 56 38 56
-           C 30 56 24 62 24 70
-           L 14 70
-           C 8 70 4 68 4 62 Z"
+           C 188 66 185 68 181 68
+           L 170 68
+           C 170 59 163 52 154 52
+           C 145 52 138 59 138 68
+           L 58 68
+           C 58 59 51 52 42 52
+           C 33 52 26 59 26 68
+           L 11 68
+           C 7 68 4 68 4 66 Z"
         fill="currentColor"
         className="text-card"
         stroke="currentColor"
         strokeWidth="2"
+        strokeLinejoin="round"
         style={{ color: "var(--color-border)" }}
       />
-      {/* Ventanas */}
+      {/* Parabrisas, techo y luneta trasera — una sola franja de vidrio
+          continua, como se ve un auto real de perfil. */}
       <path
-        d="M 62 30 L 68 14 L 108 14 L 116 30 Z"
-        fill="currentColor"
-        className="text-background"
-      />
-      <path
-        d="M 120 30 L 114 16 L 148 26 L 154 30 Z"
+        d="M 60 18
+           C 66 12 74 9 84 9
+           L 122 9
+           C 133 9 143 14 150 22
+           L 154 27
+           L 68 27
+           Z"
         fill="currentColor"
         className="text-background"
       />
       {/* Ruedas */}
-      <circle cx="38" cy="70" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
-      <circle cx="158" cy="70" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
+      <circle cx="42" cy="68" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
+      <circle cx="154" cy="68" r="12" className="fill-background" stroke="currentColor" strokeWidth="2" />
 
       {ZONAS_LATERAL.map((z) => (
         <Zona

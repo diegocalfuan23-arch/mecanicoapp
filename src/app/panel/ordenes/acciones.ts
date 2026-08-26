@@ -72,6 +72,7 @@ export async function datosParaImprimir(ordenId: string) {
       descripcion: trabajo.descripcion,
       kilometraje: trabajo.kilometraje,
       danos: trabajo.danos,
+      danoOtro: trabajo.danoOtro,
       combustible: trabajo.combustible,
       accesorios: trabajo.accesorios,
       observaciones: trabajo.observaciones,
@@ -222,6 +223,7 @@ export async function abrirOrden(datos: {
   diagnostico?: string;
   fotos?: string[];
   danos?: string[];
+  danoOtro?: string;
   combustible?: string;
   accesorios?: string[];
   observaciones?: string;
@@ -254,6 +256,7 @@ export async function abrirOrden(datos: {
     kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
     fotos: datos.fotos ?? [],
     danos: datos.danos ?? [],
+    danoOtro: datos.danoOtro?.trim() || null,
     combustible: datos.combustible || null,
     accesorios: datos.accesorios ?? [],
     observaciones: datos.observaciones?.trim() || null,

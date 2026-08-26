@@ -10,7 +10,12 @@ import {
   TIPOS_DANO,
   marcasDesdeDanos,
 } from "@/lib/zonas-auto";
-import { NIVELES_COMBUSTIBLE, accesoriosParaTipo } from "@/lib/accesorios-auto";
+import {
+  NIVELES_COMBUSTIBLE,
+  accesoriosParaTipo,
+  esAccesorioLibre,
+  textoAccesorioLibre,
+} from "@/lib/accesorios-auto";
 import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
 
 export default async function ImprimirOrden({
@@ -138,6 +143,12 @@ export default async function ImprimirOrden({
               ))}
             </ul>
           </div>
+          {orden.danoOtro && (
+            <p className="mt-2 text-[12px]">
+              <span className="text-muted-foreground">Otro daño: </span>
+              {orden.danoOtro}
+            </p>
+          )}
         </div>
 
         {/* Combustible y accesorios al recibir — checklist Sí/No, como
@@ -161,6 +172,14 @@ export default async function ImprimirOrden({
                   {orden.accesorios.includes(a.id) ? "✓" : ""}
                 </span>
                 {a.etiqueta}
+              </label>
+            ))}
+            {orden.accesorios.filter(esAccesorioLibre).map((a) => (
+              <label key={a} className="flex items-center gap-2">
+                <span className="flex size-3.5 items-center justify-center border border-foreground/50 text-[9px] leading-none">
+                  ✓
+                </span>
+                {textoAccesorioLibre(a)}
               </label>
             ))}
           </div>
@@ -425,30 +444,48 @@ function SiluetaLateralImpresa({ danos }: { danos: string[] }) {
       aria-label="Diagrama del vehículo, vista lateral"
     >
       <path
-        d="M 4 62
-           C 4 46 10 32 26 30
-           L 34 30
-           C 40 12 56 4 78 4
-           L 118 4
-           C 136 4 148 14 154 30
-           L 166 30
-           C 180 30 188 42 188 56
+        d="M 4 66
+           L 4 58
+           C 4 52 8 48 14 48
+           L 22 48
+           C 26 34 34 24 46 20
+           L 56 18
+           C 62 10 72 6 84 6
+           L 122 6
+           C 136 6 148 12 156 22
+           L 168 34
+           L 178 38
+           C 184 40 188 45 188 51
            L 188 62
-           C 188 68 184 70 178 70
-           L 172 70
-           C 172 62 166 56 158 56
-           C 150 56 144 62 144 70
-           L 52 70
-           C 52 62 46 56 38 56
-           C 30 56 24 62 24 70
-           L 14 70
-           C 8 70 4 68 4 62 Z"
+           C 188 66 185 68 181 68
+           L 170 68
+           C 170 59 163 52 154 52
+           C 145 52 138 59 138 68
+           L 58 68
+           C 58 59 51 52 42 52
+           C 33 52 26 59 26 68
+           L 11 68
+           C 7 68 4 68 4 66 Z"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
+        strokeLinejoin="round"
       />
-      <circle cx="38" cy="70" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="158" cy="70" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M 60 18
+           C 66 12 74 9 84 9
+           L 122 9
+           C 133 9 143 14 150 22
+           L 154 27
+           L 68 27
+           Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeOpacity="0.5"
+      />
+      <circle cx="42" cy="68" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="154" cy="68" r="12" fill="none" stroke="currentColor" strokeWidth="1.5" />
       {ZONAS_LATERAL.map((z) => {
         const marca = marcas.find((m) => m.zona === z.id);
         const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
