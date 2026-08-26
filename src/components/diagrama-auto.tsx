@@ -220,6 +220,13 @@ type ZonaClickable = {
   h: number;
 };
 
+/**
+ * fontSize en unidades del propio viewBox (no una clase Tailwind con
+ * px fijos): la vista lateral se dibuja mucho más grande en pantalla
+ * que en el PDF, y un texto en px absolutos queda gigante frente a
+ * cajas angostas — la letra del daño llegaba a tapar la caja entera y
+ * las etiquetas de zona se veían amontonadas y cortadas.
+ */
 function Zona({
   z,
   marca,
@@ -232,6 +239,13 @@ function Zona({
   onClick: () => void;
 }) {
   const tipo = TIPOS.find((t) => t.id === marca?.tipo);
+  // La letra del daño no puede ser más grande que la caja donde vive.
+  const tamLetra = Math.min(z.w, z.h) * 0.5;
+  const tamEtiqueta = Math.min(z.w * 0.16, z.h * 0.28, 6.5);
+  // Una caja angosta (paragolpes) no tiene espacio para ningún tamaño
+  // legible de "Parag. del." — mejor sin etiqueta que una ilegible.
+  const cabeEtiqueta = z.w >= 20 && tamEtiqueta >= 3.5;
+
   return (
     <g>
       <rect
@@ -256,21 +270,23 @@ function Zona({
           y={z.y + z.h / 2}
           textAnchor="middle"
           dominantBaseline="central"
-          className="pointer-events-none fill-acento text-[16px] font-bold"
+          fontSize={tamLetra}
+          className="pointer-events-none fill-acento font-bold"
         >
           {tipo.letra}
         </text>
-      ) : (
+      ) : cabeEtiqueta ? (
         <text
           x={z.x + z.w / 2}
           y={z.y + z.h / 2}
           textAnchor="middle"
           dominantBaseline="central"
-          className="pointer-events-none fill-muted-foreground text-[7px]"
+          fontSize={tamEtiqueta}
+          className="pointer-events-none fill-muted-foreground"
         >
           {z.etiquetaCorta}
         </text>
-      )}
+      ) : null}
     </g>
   );
 }
