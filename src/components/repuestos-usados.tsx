@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Autocomplete } from "@base-ui/react/autocomplete";
 import { miles, soloDigitos, pesos } from "@/lib/formato";
 import type { RepuestoUsado } from "@/app/panel/ordenes/acciones";
 
@@ -29,6 +29,12 @@ export const repuestoVacio = (): RepuestoUsado => ({
  * sugerencias para elegirlo (así se conecta a un id real y se puede
  * descontar del stock); si no, queda como texto libre — un repuesto
  * puntual comprado sobre la marcha, que no descuenta nada.
+ *
+ * Usa Autocomplete de Base UI (Portal + Positioner) en vez de un menú
+ * absolute a mano: la tabla que lo contiene tiene overflow-x-auto para
+ * el scroll horizontal en el celular, y overflow-x distinto de visible
+ * fuerza a overflow-y a recortar también (CSS lo exige) — un dropdown
+ * absolute quedaba invisible, recortado por ese mismo contenedor.
  */
 function CampoNombre({
   pieza,
@@ -41,16 +47,8 @@ function CampoNombre({
   onCambiar: (campo: keyof RepuestoUsado, valor: string | null) => void;
   className: string;
 }) {
-  const [abierto, setAbierto] = useState(false);
-
-  const coincidencias =
-    pieza.nombre.trim().length > 0
-      ? inventario.filter((i) =>
-          i.nombre.toLowerCase().includes(pieza.nombre.trim().toLowerCase())
-        )
-      : inventario;
-
-  function elegir(insumo: InsumoInventario) {
+  function elegir(insumo: InsumoInventario | null) {
+    if (!insumo) return;
     onCambiar(
       "nombre",
       insumo.marca ? `${insumo.nombre} (${insumo.marca})` : insumo.nombre
@@ -59,43 +57,41 @@ function CampoNombre({
     onCambiar("codigo", insumo.codigo ?? "");
     onCambiar("costo", String(insumo.costo));
     onCambiar("precio", String(insumo.precio));
-    setAbierto(false);
   }
 
   return (
-    <div className="relative min-w-0 flex-1">
-      <input
-        value={pieza.nombre}
-        onChange={(e) => {
-          onCambiar("nombre", e.target.value);
-          // Si venía de una elección del inventario y ahora se
-          // reescribe a mano, deja de ser ese ítem.
-          if (pieza.parteId) onCambiar("parteId", null);
-        }}
-        onFocus={() => setAbierto(true)}
-        onBlur={() => setTimeout(() => setAbierto(false), 150)}
-        placeholder="Qué se compró"
-        className={className}
-      />
-      {pieza.parteId && (
-        <span className="mt-1 block text-[12px] text-muted-foreground">
-          Del inventario
-        </span>
-      )}
-      {abierto && inventario.length > 0 && (
-        <ul className="scroll-discreto absolute top-full left-0 z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg">
-          {coincidencias.length === 0 ? (
-            <li className="px-4 py-2 text-[13px] text-muted-foreground">
+    <Autocomplete.Root
+      items={inventario}
+      itemToStringValue={(i) => i.nombre}
+      value={pieza.nombre}
+      onValueChange={(valor) => {
+        onCambiar("nombre", valor);
+        // Si venía de una elección del inventario y ahora se reescribe
+        // a mano, deja de ser ese ítem.
+        if (pieza.parteId) onCambiar("parteId", null);
+      }}
+    >
+      <div className="relative min-w-0 flex-1">
+        <Autocomplete.Input placeholder="Qué se compró" className={className} />
+        {pieza.parteId && (
+          <span className="mt-1 block text-[12px] text-muted-foreground">
+            Del inventario
+          </span>
+        )}
+      </div>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner className="z-50 outline-none" sideOffset={4}>
+          <Autocomplete.Popup className="scroll-discreto max-h-48 w-(--anchor-width) overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
+            <Autocomplete.Empty className="px-4 py-2 text-[13px] text-muted-foreground">
               Sin coincidencias — queda como repuesto puntual
-            </li>
-          ) : (
-            coincidencias.map((i) => (
-              <li key={i.id}>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
+            </Autocomplete.Empty>
+            <Autocomplete.List>
+              {(i: InsumoInventario) => (
+                <Autocomplete.Item
+                  key={i.id}
+                  value={i}
                   onClick={() => elegir(i)}
-                  className="flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
+                  className="flex w-full cursor-pointer items-center justify-between gap-2 px-4 py-2 text-left text-[14px] outline-none transition-colors data-highlighted:bg-background"
                 >
                   <span className="min-w-0 truncate">
                     {i.nombre}
@@ -115,13 +111,13 @@ function CampoNombre({
                   <span className="shrink-0 text-[12px] text-muted-foreground">
                     {i.stock} en stock
                   </span>
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      )}
-    </div>
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete.Root>
   );
 }
 
