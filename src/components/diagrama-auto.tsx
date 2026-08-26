@@ -31,15 +31,19 @@ export function DiagramaAuto({
   const [vista, setVista] = useState<"superior" | "lateral">("superior");
   const [zonaAbierta, setZonaAbierta] = useState<string | null>(null);
   const [detalleEditando, setDetalleEditando] = useState("");
+  // El tipo elegido en el panel abierto, aparte de "marcas" (que viene
+  // de la prop value): mostrar el input de detalle no puede depender
+  // de que el padre ya haya vuelto a bajar el value actualizado tras
+  // el clic — con estado propio, el input aparece en el mismo clic.
+  const [tipoElegido, setTipoElegido] = useState<string | null>(null);
 
   const zonas = vista === "superior" ? ZONAS_SUPERIOR : ZONAS_LATERAL;
-  const marcaAbierta = marcas.find((m) => m.zona === zonaAbierta);
 
   function abrirZona(zona: string | null) {
     setZonaAbierta(zona);
-    setDetalleEditando(
-      zona ? (marcas.find((m) => m.zona === zona)?.detalle ?? "") : ""
-    );
+    const marca = zona ? marcas.find((m) => m.zona === zona) : undefined;
+    setDetalleEditando(marca?.detalle ?? "");
+    setTipoElegido(marca?.tipo ?? null);
   }
 
   /**
@@ -64,6 +68,7 @@ export function DiagramaAuto({
   function cerrarZona() {
     setZonaAbierta(null);
     setDetalleEditando("");
+    setTipoElegido(null);
   }
 
   return (
@@ -119,9 +124,12 @@ export function DiagramaAuto({
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => marcar(zonaAbierta, t.id)}
+                  onClick={() => {
+                    setTipoElegido(t.id);
+                    marcar(zonaAbierta, t.id);
+                  }}
                   className={`rounded-lg border px-3 py-1 text-[13px] transition-colors ${
-                    marcaAbierta?.tipo === t.id
+                    tipoElegido === t.id
                       ? "border-foreground bg-foreground/10"
                       : "border-border hover:bg-card"
                   }`}
@@ -141,13 +149,13 @@ export function DiagramaAuto({
               </button>
             </div>
 
-            {marcaAbierta && (
+            {tipoElegido && (
               <>
                 <input
                   value={detalleEditando}
                   onChange={(e) => {
                     setDetalleEditando(e.target.value);
-                    marcar(zonaAbierta, marcaAbierta.tipo, e.target.value);
+                    marcar(zonaAbierta, tipoElegido, e.target.value);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
