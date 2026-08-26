@@ -143,6 +143,25 @@ export default async function ImprimirOrden({
               ))}
             </ul>
           </div>
+          {marcasDesdeDanos(orden.danos).some((m) => m.detalle) && (
+            <ul className="mt-2 flex flex-col gap-0.5 text-[12px]">
+              {marcasDesdeDanos(orden.danos)
+                .filter((m) => m.detalle)
+                .map((m) => {
+                  const zona =
+                    ZONAS_SUPERIOR.find((z) => z.id === m.zona) ??
+                    ZONAS_LATERAL.find((z) => z.id === m.zona);
+                  return (
+                    <li key={m.zona}>
+                      <span className="text-muted-foreground">
+                        {zona?.etiqueta}:{" "}
+                      </span>
+                      {m.detalle}
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
           {orden.danoOtro && (
             <p className="mt-2 text-[12px]">
               <span className="text-muted-foreground">Otro daño: </span>

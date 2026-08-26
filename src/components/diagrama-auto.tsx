@@ -30,14 +30,40 @@ export function DiagramaAuto({
   const marcas = aMarcas(value);
   const [vista, setVista] = useState<"superior" | "lateral">("superior");
   const [zonaAbierta, setZonaAbierta] = useState<string | null>(null);
+  const [detalleEditando, setDetalleEditando] = useState("");
 
   const zonas = vista === "superior" ? ZONAS_SUPERIOR : ZONAS_LATERAL;
+  const marcaAbierta = marcas.find((m) => m.zona === zonaAbierta);
 
-  function marcar(zona: string, tipo: string | null) {
+  function abrirZona(zona: string | null) {
+    setZonaAbierta(zona);
+    setDetalleEditando(
+      zona ? (marcas.find((m) => m.zona === zona)?.detalle ?? "") : ""
+    );
+  }
+
+  /**
+   * Guarda la marca sin cerrar el panel — elegir el tipo (X/O/D) dejaba
+   * el panel abierto un instante y se cerraba enseguida, así que el
+   * input de detalle (que depende de que zonaAbierta siga activo)
+   * nunca llegaba a mostrarse. Ahora solo "Sin daño" o confirmar el
+   * detalle cierran el panel — ver cerrarZona más abajo.
+   *
+   * Recibe el detalle como parámetro (no lee el estado) porque, al
+   * escribir, setDetalleEditando y esta llamada ocurren en el mismo
+   * evento síncrono — el estado todavía no se actualizó cuando se
+   * necesita acá, y el detalle guardado quedaría un carácter atrasado.
+   */
+  function marcar(zona: string, tipo: string | null, detalleTexto = detalleEditando) {
     const sinZona = marcas.filter((m) => m.zona !== zona);
-    const nuevas = tipo ? [...sinZona, { zona, tipo }] : sinZona;
+    const detalle = detalleTexto.trim() || undefined;
+    const nuevas = tipo ? [...sinZona, { zona, tipo, detalle }] : sinZona;
     onChange(aDanos(nuevas));
+  }
+
+  function cerrarZona() {
     setZonaAbierta(null);
+    setDetalleEditando("");
   }
 
   return (
@@ -67,13 +93,13 @@ export function DiagramaAuto({
           <SiluetaSuperior
             marcas={marcas}
             zonaAbierta={zonaAbierta}
-            onZona={setZonaAbierta}
+            onZona={abrirZona}
           />
         ) : (
           <SiluetaLateral
             marcas={marcas}
             zonaAbierta={zonaAbierta}
-            onZona={setZonaAbierta}
+            onZona={abrirZona}
           />
         )}
       </div>
@@ -84,27 +110,63 @@ export function DiagramaAuto({
         </p>
 
         {zonaAbierta && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background p-3">
-            <span className="text-[13px] text-muted-foreground">
-              {zonas.find((z) => z.id === zonaAbierta)?.etiqueta}:
-            </span>
-            {TIPOS.map((t) => (
+          <div className="mb-3 rounded-lg border border-border bg-background p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[13px] text-muted-foreground">
+                {zonas.find((z) => z.id === zonaAbierta)?.etiqueta}:
+              </span>
+              {TIPOS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => marcar(zonaAbierta, t.id)}
+                  className={`rounded-lg border px-3 py-1 text-[13px] transition-colors ${
+                    marcaAbierta?.tipo === t.id
+                      ? "border-foreground bg-foreground/10"
+                      : "border-border hover:bg-card"
+                  }`}
+                >
+                  {t.letra} — {t.etiqueta}
+                </button>
+              ))}
               <button
-                key={t.id}
                 type="button"
-                onClick={() => marcar(zonaAbierta, t.id)}
-                className="rounded-lg border border-border px-3 py-1 text-[13px] transition-colors hover:bg-card"
+                onClick={() => {
+                  marcar(zonaAbierta, null);
+                  cerrarZona();
+                }}
+                className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
-                {t.letra} — {t.etiqueta}
+                Sin daño
               </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => marcar(zonaAbierta, null)}
-              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              Sin daño
-            </button>
+            </div>
+
+            {marcaAbierta && (
+              <>
+                <input
+                  value={detalleEditando}
+                  onChange={(e) => {
+                    setDetalleEditando(e.target.value);
+                    marcar(zonaAbierta, marcaAbierta.tipo, e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      cerrarZona();
+                    }
+                  }}
+                  placeholder="Detalle de este daño (opcional): golpe de 10cm cerca del logo"
+                  className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2 text-[13px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+                />
+                <button
+                  type="button"
+                  onClick={cerrarZona}
+                  className="mt-2 text-[13px] font-medium text-foreground underline underline-offset-4"
+                >
+                  Listo
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -126,6 +188,9 @@ export function DiagramaAuto({
                 <li key={m.zona}>
                   {zona?.etiqueta}:{" "}
                   {TIPOS.find((t) => t.id === m.tipo)?.etiqueta}
+                  {m.detalle && (
+                    <span className="text-foreground"> — {m.detalle}</span>
+                  )}
                 </li>
               );
             })}
@@ -136,7 +201,7 @@ export function DiagramaAuto({
   );
 }
 
-type Marca = { zona: string; tipo: string };
+type Marca = { zona: string; tipo: string; detalle?: string };
 type ZonaClickable = {
   id: string;
   etiqueta: string;

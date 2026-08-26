@@ -167,7 +167,7 @@ export function RepuestosUsados({
 
       {piezas.length > 0 && (
         <div className="scroll-discreto mb-2 overflow-x-auto rounded-lg border border-border">
-          <table className="w-full min-w-[760px] border-collapse text-[14px]">
+          <table className="w-full min-w-230 border-collapse text-[14px]">
             <thead>
               <tr className="border-b border-border bg-card text-left text-[12px] text-muted-foreground">
                 <th className="px-3 py-2 font-medium">Código</th>
@@ -190,7 +190,7 @@ export function RepuestosUsados({
                         value={p.codigo ?? ""}
                         onChange={(e) => cambiar(i, "codigo", e.target.value)}
                         placeholder="Opcional"
-                        className={`${campo} w-24`}
+                        className={`${campo} w-28`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
@@ -208,7 +208,7 @@ export function RepuestosUsados({
                           cambiar(i, "cantidad", soloDigitos(e.target.value))
                         }
                         inputMode="numeric"
-                        className={`${campo} w-16`}
+                        className={`${campo} w-20`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
@@ -219,7 +219,7 @@ export function RepuestosUsados({
                         }
                         placeholder="18.000"
                         inputMode="numeric"
-                        className={`${campo} w-24`}
+                        className={`${campo} w-28`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
@@ -230,7 +230,7 @@ export function RepuestosUsados({
                         }
                         placeholder="25.000"
                         inputMode="numeric"
-                        className={`${campo} w-24`}
+                        className={`${campo} w-28`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top whitespace-nowrap tabular-nums">
@@ -241,7 +241,7 @@ export function RepuestosUsados({
                         value={p.donde}
                         onChange={(e) => cambiar(i, "donde", e.target.value)}
                         placeholder="Desarmaduría"
-                        className={`${campo} w-32`}
+                        className={`${campo} w-36`}
                       />
                     </td>
                     <td className="px-2 py-2 align-top">

@@ -38,17 +38,30 @@ export const TIPOS_DANO = [
   { id: "quebrado", letra: "D", etiqueta: "Quebrado" },
 ] as const;
 
-export type MarcaDano = { zona: string; tipo: string };
+export type MarcaDano = { zona: string; tipo: string; detalle?: string };
 
+/**
+ * Cada marca se guarda como "zona:tipo:detalle" en trabajo.danos. El
+ * detalle va codificado (encodeURIComponent) porque es texto libre del
+ * mecánico y puede traer ":" — sin codificar, un detalle como "18:00"
+ * partiría el string en el lugar equivocado.
+ */
 export function marcasDesdeDanos(danos: string[]): MarcaDano[] {
   return danos
-    .map((d) => {
-      const [zona, tipo] = d.split(":");
-      return zona && tipo ? { zona, tipo } : null;
+    .map((d): MarcaDano | null => {
+      const [zona, tipo, detalle] = d.split(":");
+      if (!zona || !tipo) return null;
+      const marca: MarcaDano = { zona, tipo };
+      if (detalle) marca.detalle = decodeURIComponent(detalle);
+      return marca;
     })
     .filter((m): m is MarcaDano => m !== null);
 }
 
 export function danosDesdeMarcas(marcas: MarcaDano[]): string[] {
-  return marcas.map((m) => `${m.zona}:${m.tipo}`);
+  return marcas.map((m) =>
+    m.detalle
+      ? `${m.zona}:${m.tipo}:${encodeURIComponent(m.detalle)}`
+      : `${m.zona}:${m.tipo}`
+  );
 }
