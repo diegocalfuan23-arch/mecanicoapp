@@ -1013,6 +1013,7 @@ function Cerrar({
           onCambio={setPiezas}
           inventario={inventario}
           mostrarDonde={!tieneImpresion}
+          buscadorInventario={tieneImpresion}
         />
       </div>
 

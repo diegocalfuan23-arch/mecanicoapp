@@ -181,6 +181,125 @@ function BuscadorRepuesto({
 }
 
 /**
+ * Alternativa a BuscadorRepuesto para talleres sin inventario cargado
+ * (Plan Taller/Prueba): dos campos manuales — mano de obra y
+ * repuesto — cada uno con su descripción y precio, que se agregan
+ * por separado a la misma tabla. Pedido real de Tío Lalo: "cambio de
+ * embrague" no es un ítem de inventario, es un concepto con un precio
+ * puesto a mano.
+ */
+function CamposManuales({
+  onAgregar,
+}: {
+  onAgregar: (repuesto: RepuestoUsado) => void;
+}) {
+  const [manoObraTexto, setManoObraTexto] = useState("");
+  const [manoObraPrecio, setManoObraPrecio] = useState("");
+  const [repuestoTexto, setRepuestoTexto] = useState("");
+  const [repuestoPrecio, setRepuestoPrecio] = useState("");
+
+  const campo =
+    "w-full rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
+
+  function agregarManoObra() {
+    if (!manoObraTexto.trim()) return;
+    onAgregar({
+      ...repuestoVacio(),
+      nombre: manoObraTexto.trim(),
+      precio: manoObraPrecio,
+    });
+    setManoObraTexto("");
+    setManoObraPrecio("");
+  }
+
+  function agregarRepuesto() {
+    if (!repuestoTexto.trim()) return;
+    onAgregar({
+      ...repuestoVacio(),
+      nombre: repuestoTexto.trim(),
+      precio: repuestoPrecio,
+    });
+    setRepuestoTexto("");
+    setRepuestoPrecio("");
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="flex gap-2">
+        <input
+          value={manoObraTexto}
+          onChange={(e) => setManoObraTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              agregarManoObra();
+            }
+          }}
+          placeholder="Qué se hizo (ej. cambio de embrague)"
+          className={campo}
+        />
+        <input
+          value={miles(manoObraPrecio)}
+          onChange={(e) => setManoObraPrecio(soloDigitos(e.target.value))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              agregarManoObra();
+            }
+          }}
+          inputMode="numeric"
+          placeholder="Precio"
+          className={`${campo} w-28 shrink-0`}
+        />
+        <button
+          type="button"
+          onClick={agregarManoObra}
+          disabled={!manoObraTexto.trim()}
+          className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          Agregar
+        </button>
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={repuestoTexto}
+          onChange={(e) => setRepuestoTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              agregarRepuesto();
+            }
+          }}
+          placeholder="Repuesto (ej. masa de embrague)"
+          className={campo}
+        />
+        <input
+          value={miles(repuestoPrecio)}
+          onChange={(e) => setRepuestoPrecio(soloDigitos(e.target.value))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              agregarRepuesto();
+            }
+          }}
+          inputMode="numeric"
+          placeholder="Precio"
+          className={`${campo} w-28 shrink-0`}
+        />
+        <button
+          type="button"
+          onClick={agregarRepuesto}
+          disabled={!repuestoTexto.trim()}
+          className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          Agregar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
  * El nombre de un repuesto ya agregado a la tabla — solo texto libre
  * para corregirlo a mano; buscar/elegir del inventario pasa por
  * BuscadorRepuesto, no por acá.
@@ -224,11 +343,13 @@ export function RepuestosUsados({
   onCambio,
   inventario = [],
   mostrarDonde = true,
+  buscadorInventario = true,
 }: {
   piezas: RepuestoUsado[];
   onCambio: (piezas: RepuestoUsado[]) => void;
   inventario?: InsumoInventario[];
   mostrarDonde?: boolean;
+  buscadorInventario?: boolean;
 }) {
   const cambiar = (
     i: number,
@@ -258,10 +379,14 @@ export function RepuestosUsados({
         Repuestos que se compraron
       </span>
 
-      <BuscadorRepuesto
-        inventario={inventario}
-        onAgregar={(repuesto) => onCambio([...piezas, repuesto])}
-      />
+      {buscadorInventario ? (
+        <BuscadorRepuesto
+          inventario={inventario}
+          onAgregar={(repuesto) => onCambio([...piezas, repuesto])}
+        />
+      ) : (
+        <CamposManuales onAgregar={(repuesto) => onCambio([...piezas, repuesto])} />
+      )}
 
       {piezas.length > 0 && (
         <div className="scroll-discreto mb-2 overflow-x-auto rounded-lg border border-border">
