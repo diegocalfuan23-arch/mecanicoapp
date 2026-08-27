@@ -620,13 +620,11 @@ function Abrir({
 
 function Cerrar({
   orden,
-  inventario,
   tieneImpresion,
   tecnicos,
   onListo,
 }: {
   orden: Orden;
-  inventario: Insumo[];
   tieneImpresion: boolean;
   tecnicos: Tecnico[];
   onListo: () => void;
@@ -639,7 +637,6 @@ function Cerrar({
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
-  const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [manoObra, setManoObra] = useState("");
   const [manoObraFreno, setManoObraFreno] = useState("");
   const [repuestos, setRepuestos] = useState("");
@@ -690,6 +687,9 @@ function Cerrar({
   // formulario que el cierre (antes era un modal aparte): un solo
   // lugar para ver y editar la orden, se cierre hoy o no.
   const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
+  // "Qué se hizo" ya no se escribe aparte: sale de las descripciones
+  // de los procedimientos anotados arriba, en orden.
+  const descripcion = procedimientos.map((p) => p.descripcion).join(", ");
 
   useEffect(() => {
     procedimientosDeOrden(orden.id).then((items) => {
@@ -861,27 +861,6 @@ function Cerrar({
         />
       </div>
 
-      <label className="mt-4 block">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[13px] font-medium">Qué se hizo</span>
-          <Dictar
-            onTexto={(texto) =>
-              setDescripcion((actual) =>
-                actual ? `${actual} ${texto}` : texto
-              )
-            }
-          />
-        </div>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Cambio de pastillas delanteras y rectificado de discos"
-          rows={2}
-          autoFocus
-          className={`${campoBase()} resize-y bg-card`}
-        />
-      </label>
-
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
@@ -1007,16 +986,6 @@ function Cerrar({
         </div>
       )}
 
-      <div className="mt-4">
-        <RepuestosUsados
-          piezas={piezas}
-          onCambio={setPiezas}
-          inventario={inventario}
-          mostrarDonde={!tieneImpresion}
-          buscadorInventario={tieneImpresion}
-        />
-      </div>
-
       <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
         <input
           type="checkbox"
@@ -1134,9 +1103,7 @@ function Procedimientos({
 
   return (
     <div>
-      <span className="mb-2 block text-[13px] font-medium">
-        Lo que se ha hecho y cuánto lleva
-      </span>
+      <span className="mb-2 block text-[13px] font-medium">Qué se hizo</span>
 
       {items.length > 0 && (
         <ul className="mb-2 flex flex-col gap-2">
@@ -1169,36 +1136,37 @@ function Procedimientos({
         </ul>
       )}
 
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
-        <input
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Ej: Cambio de embrague"
-          className={campo}
-        />
+      <textarea
+        value={descripcion}
+        onChange={(e) => setDescripcion(e.target.value)}
+        placeholder="Cambio de pastillas delanteras y rectificado de discos"
+        rows={2}
+        className={`${campo} resize-y`}
+      />
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
         <input
           value={miles(manoObra)}
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
           placeholder="Mano de obra"
           inputMode="numeric"
-          className={`${campo} sm:w-32`}
+          className={campo}
         />
         <input
           value={miles(repuesto)}
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
           placeholder="Repuesto"
           inputMode="numeric"
-          className={`${campo} sm:w-32`}
+          className={campo}
         />
-        <button
-          type="button"
-          onClick={agregar}
-          disabled={enviando || !descripcion.trim()}
-          className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          Agregar
-        </button>
       </div>
+      <button
+        type="button"
+        onClick={agregar}
+        disabled={enviando || !descripcion.trim()}
+        className="mt-2 w-full rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:w-auto"
+      >
+        Agregar
+      </button>
 
       <p className="mt-2 text-[14px] text-muted-foreground">
         Lleva gastado:{" "}
@@ -1679,7 +1647,6 @@ export function ListaOrdenes({
                   <div onClick={(e) => e.stopPropagation()}>
                     <Cerrar
                       orden={o}
-                      inventario={inventario}
                       tieneImpresion={tieneImpresion}
                       tecnicos={tecnicos}
                       onListo={() => setCerrando(null)}
