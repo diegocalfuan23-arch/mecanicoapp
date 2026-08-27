@@ -1182,26 +1182,29 @@ function Procedimientos({
         rows={2}
         className={`${campo} resize-y`}
       />
-      <input
-        value={repuestoNombre}
-        onChange={(e) => setRepuestoNombre(e.target.value)}
-        placeholder="Repuesto comprado (ej. pastillas delanteras)"
-        className={`${campo} mt-2`}
-      />
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-2">
+        <span className="text-[14px] text-muted-foreground">Mano de obra</span>
         <input
           value={miles(manoObra)}
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-          placeholder="Mano de obra"
+          placeholder="0"
           inputMode="numeric"
+          className={`${campo} w-32`}
+        />
+      </div>
+      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-2">
+        <input
+          value={repuestoNombre}
+          onChange={(e) => setRepuestoNombre(e.target.value)}
+          placeholder="Repuesto comprado (ej. pastillas delanteras)"
           className={campo}
         />
         <input
           value={miles(repuesto)}
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
-          placeholder="Repuesto"
+          placeholder="0"
           inputMode="numeric"
-          className={campo}
+          className={`${campo} w-32`}
         />
       </div>
       <div className="mt-2 flex gap-2">
