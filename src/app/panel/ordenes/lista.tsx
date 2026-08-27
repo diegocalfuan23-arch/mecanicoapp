@@ -11,9 +11,12 @@ import {
   esperarRepuesto,
   retomarTrabajo,
   repuestosDeOrden,
-  guardarRepuestosAbierta,
   serviciosDeOrden,
+  procedimientosDeOrden,
+  agregarProcedimiento,
+  quitarProcedimiento,
   type RepuestoUsado,
+  type Procedimiento,
 } from "./acciones";
 import { ESTADOS } from "./estados";
 import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
@@ -619,14 +622,23 @@ function Cerrar({
   orden,
   inventario,
   tieneImpresion,
+  tecnicos,
   onListo,
 }: {
   orden: Orden;
   inventario: Insumo[];
   tieneImpresion: boolean;
+  tecnicos: Tecnico[];
   onListo: () => void;
 }) {
   const router = useRouter();
+  const [sintoma, setSintoma] = useState(orden.sintoma ?? "");
+  const [kilometraje, setKilometraje] = useState(
+    orden.kilometraje ? String(orden.kilometraje) : ""
+  );
+  const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
+  const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
+  const [guardadoAbierta, setGuardadoAbierta] = useState(false);
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
   const [manoObra, setManoObra] = useState("");
   const [manoObraFreno, setManoObraFreno] = useState("");
@@ -663,7 +675,6 @@ function Cerrar({
         }))
       );
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orden.id]);
 
   useEffect(() => {
@@ -671,6 +682,44 @@ function Cerrar({
     serviciosDeOrden(orden.id).then(setServicios);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orden.id]);
+
+  // Lo que se va haciendo mientras la orden sigue abierta, línea por
+  // línea con su costo — pedido real de Tío Lalo: cambia algo (ej.
+  // "cambio de embrague"), anota mano de obra + repuesto de esa
+  // línea, y ve el total acumulado del cliente. Vive en el mismo
+  // formulario que el cierre (antes era un modal aparte): un solo
+  // lugar para ver y editar la orden, se cierre hoy o no.
+  const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
+
+  useEffect(() => {
+    procedimientosDeOrden(orden.id).then((items) => {
+      setProcedimientos(items);
+      // Esa misma suma precarga mano de obra/repuestos del cierre,
+      // para no volver a escribir lo mismo — solo si el campo sigue
+      // vacío: si el mecánico ya escribió algo a mano, no se pisa.
+      if (items.length === 0) return;
+      const sumaManoObra = items.reduce((s, p) => s + p.manoObra, 0);
+      const sumaRepuesto = items.reduce((s, p) => s + p.repuesto, 0);
+      setManoObra((actual) => actual || (sumaManoObra ? String(sumaManoObra) : ""));
+      setRepuestos((actual) => actual || (sumaRepuesto ? String(sumaRepuesto) : ""));
+    });
+  }, [orden.id]);
+
+  // Guarda síntoma/diagnóstico/técnico sin cerrar la orden — separado
+  // de enviar(), que sí cierra. El mecánico puede ir dejando esto al
+  // día sin tener que completar el cierre financiero todavía.
+  async function guardarAbierta() {
+    await editarOrdenAbierta(orden.id, {
+      sintoma,
+      kilometraje,
+      diagnostico,
+      descripcion,
+      tecnicoId,
+    });
+    setGuardadoAbierta(true);
+    setTimeout(() => setGuardadoAbierta(false), 1500);
+    router.refresh();
+  }
 
   // Si se detallaron los repuestos, el cobro sale de ellos.
   const cobroRepuestos = piezas.length
@@ -723,6 +772,96 @@ function Cerrar({
       className="mt-4 rounded-lg border border-border bg-background p-4"
     >
       <label className="block">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[13px] font-medium">Qué reporta el cliente</span>
+          <Dictar
+            onTexto={(texto) =>
+              setSintoma((a) => (a ? `${a} ${texto}` : texto))
+            }
+          />
+        </div>
+        <textarea
+          value={sintoma}
+          onChange={(e) => setSintoma(e.target.value)}
+          onBlur={guardarAbierta}
+          placeholder="Suena adelante al frenar"
+          rows={2}
+          className={`${campoBase()} resize-y bg-card`}
+        />
+      </label>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-2 block text-[13px] font-medium">
+            Kilometraje
+          </span>
+          <input
+            value={miles(kilometraje)}
+            onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
+            onBlur={guardarAbierta}
+            placeholder="128.500"
+            inputMode="numeric"
+            className={`${campoBase()} bg-card`}
+          />
+        </label>
+
+        {tecnicos.length > 0 && (
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Técnico a cargo
+            </span>
+            <Selector
+              value={tecnicoId}
+              onChange={async (valor) => {
+                setTecnicoId(valor);
+                await editarOrdenAbierta(orden.id, {
+                  sintoma,
+                  kilometraje,
+                  diagnostico,
+                  descripcion,
+                  tecnicoId: valor,
+                });
+                router.refresh();
+              }}
+              className="bg-card"
+              placeholder="Sin asignar"
+              opciones={tecnicos.map((t) => ({
+                valor: t.id,
+                texto: t.nombre,
+              }))}
+            />
+          </div>
+        )}
+      </div>
+
+      <label className="mt-4 block">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[13px] font-medium">Diagnóstico</span>
+          <Dictar
+            onTexto={(texto) =>
+              setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
+            }
+          />
+        </div>
+        <textarea
+          value={diagnostico}
+          onChange={(e) => setDiagnostico(e.target.value)}
+          onBlur={guardarAbierta}
+          placeholder="Retenes de la caja desgastados, causando la fuga"
+          rows={2}
+          className={`${campoBase()} resize-y bg-card`}
+        />
+      </label>
+
+      <div className="mt-4">
+        <Procedimientos
+          ordenId={orden.id}
+          items={procedimientos}
+          onCambio={setProcedimientos}
+        />
+      </div>
+
+      <label className="mt-4 block">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <span className="text-[13px] font-medium">Qué se hizo</span>
           <Dictar
@@ -912,7 +1051,7 @@ function Cerrar({
 
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
-      <div className="mt-4 flex gap-4">
+      <div className="mt-4 flex flex-wrap items-center gap-4">
         <button
           type="submit"
           disabled={enviando}
@@ -922,230 +1061,148 @@ function Cerrar({
         </button>
         <button
           type="button"
+          onClick={guardarAbierta}
+          className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
+        >
+          Guardar sin cerrar
+        </button>
+        <button
+          type="button"
           onClick={onListo}
           className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
         >
           Cancelar
         </button>
+        {guardadoAbierta && (
+          <span className="text-[13px] text-muted-foreground">Guardado</span>
+        )}
       </div>
     </form>
   );
 }
 
 /**
- * Editar una orden que sigue abierta, sin cerrarla — para cuando se
- * encuentra algo aparte del diagnóstico inicial. Guarda solo al salir
- * del campo, sin botón: no hay montos que calcular acá, a diferencia
- * de Cerrar.
+ * Lo que se va haciendo mientras la orden sigue abierta, línea por
+ * línea, con su costo — pedido real de Tío Lalo: cambia algo (ej.
+ * "cambio de embrague"), anota mano de obra + repuesto de esa línea,
+ * y ve el total acumulado del cliente sin esperar a cerrar la orden.
+ * Cada línea se guarda al tocar "Agregar" — no hay edición inline,
+ * solo agregar y quitar, para mantenerlo simple y rápido de anotar.
  */
-function EditarAbierta({
-  orden,
-  tecnicos,
-  inventario,
-  tieneImpresion,
-  onListo,
+function Procedimientos({
+  ordenId,
+  items,
+  onCambio,
 }: {
-  orden: Orden;
-  tecnicos: Tecnico[];
-  inventario: Insumo[];
-  tieneImpresion: boolean;
-  onListo: () => void;
+  ordenId: string;
+  items: Procedimiento[];
+  onCambio: (items: Procedimiento[]) => void;
 }) {
-  const router = useRouter();
-  const [sintoma, setSintoma] = useState(orden.sintoma ?? "");
-  const [kilometraje, setKilometraje] = useState(
-    orden.kilometraje ? String(orden.kilometraje) : ""
-  );
-  const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
-  const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
-  const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
-  const [guardado, setGuardado] = useState(false);
+  const [descripcion, setDescripcion] = useState("");
+  const [manoObra, setManoObra] = useState("");
+  const [repuesto, setRepuesto] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  // Repuestos y precio de la orden mientras sigue abierta: caso real
-  // de Tío Lalo, va cambiando piezas (bujía $4.000, amortiguadores
-  // $60.000...) y quiere ver cuánto lleva el cliente sin esperar al
-  // cierre. Se cargan aparte (no vienen en "orden") porque viven en
-  // su propia tabla — mismo patrón que ya usa Cerrar más abajo.
-  const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
+  const total = items.reduce((s, p) => s + p.manoObra + p.repuesto, 0);
 
-  useEffect(() => {
-    repuestosDeOrden(orden.id).then((previas) => {
-      setPiezas(
-        previas.map((p) => ({
-          nombre: p.nombre,
-          codigo: p.codigo ?? "",
-          cantidad: String(p.cantidad),
-          costo: String(p.costoUnitario),
-          precio: String(p.precioUnitario),
-          donde: p.dondeSeCompro ?? "",
-          parteId: p.parteId,
-        }))
-      );
+  async function agregar() {
+    if (!descripcion.trim()) return;
+    if (!Number(manoObra) && !Number(repuesto)) return;
+    setEnviando(true);
+    const res = await agregarProcedimiento(ordenId, {
+      descripcion: descripcion.trim(),
+      manoObra,
+      repuesto,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orden.id]);
-
-  async function guardar() {
-    await editarOrdenAbierta(orden.id, {
-      sintoma,
-      kilometraje,
-      diagnostico,
-      descripcion,
-      tecnicoId,
-    });
-    setGuardado(true);
-    setTimeout(() => setGuardado(false), 1500);
-    router.refresh();
+    setEnviando(false);
+    if (res?.ok && res.item) {
+      onCambio([...items, res.item]);
+      setDescripcion("");
+      setManoObra("");
+      setRepuesto("");
+    }
   }
 
-  async function guardarPiezas(nuevas: RepuestoUsado[]) {
-    setPiezas(nuevas);
-    await guardarRepuestosAbierta(orden.id, nuevas);
-    router.refresh();
+  async function quitar(id: string) {
+    onCambio(items.filter((p) => p.id !== id));
+    await quitarProcedimiento(id);
   }
 
-  // El botón "Volver" competía con el onBlur del campo enfocado: al
-  // tocarlo, el blur disparaba guardar() (async) al mismo tiempo que
-  // el click, y el re-render de por medio hacía que el click se
-  // perdiera. Guardar primero y recién ahí cerrar evita la carrera.
-  async function volver() {
-    await guardar();
-    onListo();
-  }
+  const campo =
+    "w-full rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        aria-label="Cerrar"
-        onClick={volver}
-        className="absolute inset-0 bg-black/60"
-      />
-      <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
-        <label className="block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">
-              Qué reporta el cliente
-            </span>
-            <Dictar
-              onTexto={(texto) =>
-                setSintoma((a) => (a ? `${a} ${texto}` : texto))
-              }
-            />
-          </div>
-          <textarea
-            value={sintoma}
-            onChange={(e) => setSintoma(e.target.value)}
-            onBlur={guardar}
-            placeholder="Suena adelante al frenar"
-            rows={3}
-            autoFocus
-            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-        </label>
+    <div>
+      <span className="mb-2 block text-[13px] font-medium">
+        Lo que se ha hecho y cuánto lleva
+      </span>
 
-        <label className="mt-4 block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Kilometraje
-          </span>
-          <input
-            value={miles(kilometraje)}
-            onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
-            onBlur={guardar}
-            placeholder="128.500"
-            inputMode="numeric"
-            className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-        </label>
+      {items.length > 0 && (
+        <ul className="mb-2 flex flex-col gap-2">
+          {items.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[14px]"
+            >
+              <span className="min-w-0 flex-1 truncate">{p.descripcion}</span>
+              <span className="shrink-0 text-muted-foreground">
+                {pesos(p.manoObra + p.repuesto)}
+              </span>
+              <button
+                type="button"
+                onClick={() => quitar(p.id)}
+                aria-label="Quitar"
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                  <path
+                    d="M6 6l8 8M14 6l-8 8"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <label className="mt-4 block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Diagnóstico</span>
-            <Dictar
-              onTexto={(texto) =>
-                setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
-              }
-            />
-          </div>
-          <textarea
-            value={diagnostico}
-            onChange={(e) => setDiagnostico(e.target.value)}
-            onBlur={guardar}
-            placeholder="Retenes de la caja desgastados, causando la fuga"
-            rows={2}
-            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-        </label>
-
-        <label className="mt-4 block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">
-              Qué se está haciendo
-            </span>
-            <Dictar
-              onTexto={(texto) =>
-                setDescripcion((a) => (a ? `${a} ${texto}` : texto))
-              }
-            />
-          </div>
-          <textarea
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            onBlur={guardar}
-            placeholder="Se desarmó la caja y se fue a comprar los retenes"
-            rows={3}
-            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-        </label>
-
-        <div className="mt-4">
-          <RepuestosUsados
-            piezas={piezas}
-            onCambio={guardarPiezas}
-            inventario={inventario}
-            mostrarDonde={!tieneImpresion}
-          />
-        </div>
-
-        {tecnicos.length > 0 && (
-          <label className="mt-4 block">
-            <span className="mb-2 block text-[13px] font-medium">
-              Técnico a cargo
-            </span>
-            <Selector
-              value={tecnicoId}
-              onChange={async (valor) => {
-                setTecnicoId(valor);
-                await editarOrdenAbierta(orden.id, {
-                  sintoma,
-                  kilometraje,
-                  diagnostico,
-                  descripcion,
-                  tecnicoId: valor,
-                });
-                router.refresh();
-              }}
-              placeholder="Sin asignar"
-              opciones={tecnicos.map((t) => ({
-                valor: t.id,
-                texto: t.nombre,
-              }))}
-            />
-          </label>
-        )}
-
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <span className="text-[13px] text-muted-foreground">
-            {guardado ? "Guardado" : "Los cambios se guardan solos"}
-          </span>
-          <button
-            type="button"
-            onClick={volver}
-            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-          >
-            Volver
-          </button>
-        </div>
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+        <input
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="Ej: Cambio de embrague"
+          className={campo}
+        />
+        <input
+          value={miles(manoObra)}
+          onChange={(e) => setManoObra(soloDigitos(e.target.value))}
+          placeholder="Mano de obra"
+          inputMode="numeric"
+          className={`${campo} sm:w-32`}
+        />
+        <input
+          value={miles(repuesto)}
+          onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
+          placeholder="Repuesto"
+          inputMode="numeric"
+          className={`${campo} sm:w-32`}
+        />
+        <button
+          type="button"
+          onClick={agregar}
+          disabled={enviando || !descripcion.trim()}
+          className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          Agregar
+        </button>
       </div>
+
+      <p className="mt-2 text-[14px] text-muted-foreground">
+        Lleva gastado:{" "}
+        <span className="font-medium text-foreground">{pesos(total)}</span>
+      </p>
     </div>
   );
 }
@@ -1326,7 +1383,6 @@ export function ListaOrdenes({
   const [abriendo, setAbriendo] = useState(!!vehiculoDesdeUrl);
   const [cerrando, setCerrando] = useState<string | null>(null);
   const [esperando, setEsperando] = useState<string | null>(null);
-  const [editandoAbierta, setEditandoAbierta] = useState<string | null>(null);
   const [editandoDescripcion, setEditandoDescripcion] = useState<
     string | null
   >(null);
@@ -1428,7 +1484,7 @@ export function ListaOrdenes({
                 key={o.id}
                 onClick={
                   puedeEditarAbierta
-                    ? () => setEditandoAbierta(o.id)
+                    ? () => setCerrando(editando ? null : o.id)
                     : puedeEditarDescripcion
                       ? () => setEditandoDescripcion(o.id)
                       : undefined
@@ -1624,6 +1680,7 @@ export function ListaOrdenes({
                       orden={o}
                       inventario={inventario}
                       tieneImpresion={tieneImpresion}
+                      tecnicos={tecnicos}
                       onListo={() => setCerrando(null)}
                     />
                   </div>
@@ -1633,17 +1690,6 @@ export function ListaOrdenes({
                     <EsperarRepuesto
                       ordenId={o.id}
                       onListo={() => setEsperando(null)}
-                    />
-                  </div>
-                )}
-                {editandoAbierta === o.id && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <EditarAbierta
-                      orden={o}
-                      tecnicos={tecnicos}
-                      inventario={inventario}
-                      tieneImpresion={tieneImpresion}
-                      onListo={() => setEditandoAbierta(null)}
                     />
                   </div>
                 )}

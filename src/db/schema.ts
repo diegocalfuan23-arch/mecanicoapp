@@ -352,6 +352,31 @@ export const parteUsada = pgTable(
   (t) => [index("parte_usada_trabajo_idx").on(t.trabajoId)]
 );
 
+/**
+ * Lo que se va haciendo mientras la orden sigue abierta, línea por
+ * línea — pedido real de Tío Lalo: cambia algo (ej. "cambio de
+ * embrague"), anota cuánto costó de mano de obra y de repuesto, y
+ * quiere ver el total acumulado del cliente sin esperar a cerrar la
+ * orden. Al cerrar, la suma de estas líneas precarga los campos
+ * finales de mano de obra y repuestos — no reemplaza a parteUsada
+ * (que es detalle fino de repuestos con descuento de inventario),
+ * es el monto grueso de "qué se ha hecho y cuánto lleva".
+ */
+export const procedimiento = pgTable(
+  "procedimiento",
+  {
+    id: text("id").primaryKey(),
+    trabajoId: text("trabajo_id")
+      .notNull()
+      .references(() => trabajo.id, { onDelete: "cascade" }),
+    descripcion: text("descripcion").notNull(),
+    manoObra: integer("mano_obra").notNull().default(0),
+    repuesto: integer("repuesto").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("procedimiento_trabajo_idx").on(t.trabajoId)]
+);
+
 export const abono = pgTable(
   "abono",
   {

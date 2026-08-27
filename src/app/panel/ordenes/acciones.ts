@@ -13,6 +13,7 @@ import {
   abono,
   user,
   miembroTaller,
+  procedimiento,
 } from "@/db/schema";
 
 const tecnico = alias(user, "tecnico");
@@ -326,18 +327,49 @@ export async function editarOrdenAbierta(
   return { ok: true };
 }
 
+/** Una línea de "lo que se ha hecho" mientras la orden sigue abierta. */
+export type Procedimiento = {
+  id: string;
+  descripcion: string;
+  manoObra: number;
+  repuesto: number;
+};
+
+/** Las líneas de procedimiento ya cargadas, para precargarlas al reabrir. */
+export async function procedimientosDeOrden(
+  ordenId: string
+): Promise<Procedimiento[]> {
+  const tallerId = await tallerActual();
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return [];
+
+  return db
+    .select({
+      id: procedimiento.id,
+      descripcion: procedimiento.descripcion,
+      manoObra: procedimiento.manoObra,
+      repuesto: procedimiento.repuesto,
+    })
+    .from(procedimiento)
+    .where(eq(procedimiento.trabajoId, ordenId))
+    .orderBy(procedimiento.createdAt);
+}
+
 /**
- * Repuestos y su precio mientras la orden sigue abierta — caso real
- * de Tío Lalo: va comprando y cambiando piezas (bujía $4.000,
- * amortiguadores $60.000...) antes de cerrar, y quiere ver cuánto
- * lleva gastado el cliente sin esperar al cierre. Mismo patrón de
- * "reemplazar todas" que cerrarOrden, pero sin tocar el inventario:
- * el descuento de stock sigue pasando solo al cerrar, para no
- * descontar dos veces si la orden se sigue editando después.
+ * Una línea de "lo que se ha hecho" mientras la orden sigue abierta —
+ * caso real de Tío Lalo: cambia algo (ej. "cambio de embrague"),
+ * anota mano de obra + repuesto de esa línea, y ve el total
+ * acumulado del cliente sin esperar a cerrar la orden.
  */
-export async function guardarRepuestosAbierta(
+export async function agregarProcedimiento(
   ordenId: string,
-  piezas: RepuestoUsado[]
+  datos: { descripcion: string; manoObra: string; repuesto: string }
 ) {
   const tallerId = await tallerActual();
 
@@ -348,29 +380,54 @@ export async function guardarRepuestosAbierta(
     .limit(1);
 
   if (!duena) return { error: "Orden no encontrada." };
+  if (!datos.descripcion.trim()) return { error: "Escribe qué se hizo." };
 
-  const validas = piezas.filter((p) => p.nombre.trim());
+  const nuevo = {
+    id: crypto.randomUUID(),
+    trabajoId: ordenId,
+    descripcion: datos.descripcion.trim(),
+    manoObra: Number(datos.manoObra) || 0,
+    repuesto: Number(datos.repuesto) || 0,
+  };
 
-  await db.delete(parteUsada).where(eq(parteUsada.trabajoId, ordenId));
-
-  if (validas.length) {
-    await db.insert(parteUsada).values(
-      validas.map((p) => ({
-        id: crypto.randomUUID(),
-        trabajoId: ordenId,
-        parteId: p.parteId || null,
-        nombre: p.nombre.trim(),
-        codigo: p.codigo?.trim() || null,
-        cantidad: Number(p.cantidad) || 1,
-        costoUnitario: Number(p.costo) || 0,
-        precioUnitario: Number(p.precio) || 0,
-        dondeSeCompro: p.donde.trim() || null,
-      }))
-    );
-  }
+  await db.insert(procedimiento).values(nuevo);
 
   revalidatePath("/panel/ordenes");
-  return { ok: true };
+  return {
+    ok: true,
+    item: {
+      id: nuevo.id,
+      descripcion: nuevo.descripcion,
+      manoObra: nuevo.manoObra,
+      repuesto: nuevo.repuesto,
+    },
+  };
+}
+
+export async function quitarProcedimiento(id: string) {
+  const tallerId = await tallerActual();
+
+  // Confirma que la línea pertenece a una orden del taller actual
+  // antes de borrar — procedimiento no tiene tallerId propio.
+  const [linea] = await db
+    .select({ trabajoId: procedimiento.trabajoId })
+    .from(procedimiento)
+    .where(eq(procedimiento.id, id))
+    .limit(1);
+
+  if (!linea) return;
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, linea.trabajoId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return;
+
+  await db.delete(procedimiento).where(eq(procedimiento.id, id));
+
+  revalidatePath("/panel/ordenes");
 }
 
 /**
