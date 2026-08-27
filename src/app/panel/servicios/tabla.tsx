@@ -15,9 +15,11 @@ const campo =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
 /**
- * Agrega o corrige un servicio — mismo formulario para ambos casos,
- * el grupo se escribe a mano (no hay selector) para poder crear uno
- * nuevo sin pasos extra: si coincide con uno existente, se agrupa ahí.
+ * Agrega o corrige un servicio, en un modal — mismo formulario para
+ * ambos casos, el grupo se escribe a mano (no hay selector) para
+ * poder crear uno nuevo sin pasos extra: si coincide con uno
+ * existente, se agrupa ahí. Optimista: se ve en la lista al instante,
+ * sin esperar la respuesta del servidor para cerrar el modal.
  */
 function Formulario({
   servicio,
@@ -32,43 +34,47 @@ function Formulario({
   const [codigo, setCodigo] = useState(servicio?.codigo ?? "");
   const [etiqueta, setEtiqueta] = useState(servicio?.etiqueta ?? "");
   const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
 
-  async function enviar(e: React.FormEvent) {
+  function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setEnviando(true);
 
     const datos = { grupo: grupo.trim(), codigo: codigo.trim(), etiqueta: etiqueta.trim() };
+    if (!datos.grupo) return setError("Escribe el nombre del grupo.");
+    if (!datos.etiqueta) return setError("Escribe el nombre del servicio.");
 
     if (servicio) {
-      const res = await editarServicio(servicio.id, datos);
-      setEnviando(false);
-      if (res?.error) {
-        setError(res.error);
-        return;
-      }
       onListo({ ...servicio, ...datos });
+      editarServicio(servicio.id, datos);
       return;
     }
 
-    const res = await crearServicio(datos);
-    setEnviando(false);
-    if (res?.error) {
-      setError(res.error);
-      return;
-    }
-    onListo(res.item);
+    const optimista: Servicio = {
+      id: `tmp-${crypto.randomUUID()}`,
+      ...datos,
+      orden: 0,
+    };
+    onListo(optimista);
+    crearServicio(datos);
   }
 
   return (
-    <form
-      onSubmit={enviar}
-      className="rounded-lg border border-border bg-card p-4"
-    >
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto_2fr]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Cerrar"
+        onClick={() => onListo()}
+        className="absolute inset-0 bg-black/60"
+      />
+      <form
+        onSubmit={enviar}
+        className="relative w-full max-w-md rounded-lg border border-border bg-background p-4"
+      >
+        <h2 className="mb-4 text-[15px] font-medium">
+          {servicio ? "Corregir servicio" : "Nuevo servicio"}
+        </h2>
+
         <label className="block">
-          <span className="mb-1 block text-[12px] text-muted-foreground">
+          <span className="mb-1 block text-[13px] text-muted-foreground">
             Grupo
           </span>
           <input
@@ -79,49 +85,50 @@ function Formulario({
             className={campo}
           />
         </label>
-        <label className="block">
-          <span className="mb-1 block text-[12px] text-muted-foreground">
-            Código
-          </span>
-          <input
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            placeholder="1"
-            className={`${campo} sm:w-20`}
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-[12px] text-muted-foreground">
-            Servicio
-          </span>
-          <input
-            value={etiqueta}
-            onChange={(e) => setEtiqueta(e.target.value)}
-            placeholder="Cambio de aceite motor"
-            className={campo}
-          />
-        </label>
-      </div>
+        <div className="mt-3 grid grid-cols-[auto_1fr] gap-3">
+          <label className="block">
+            <span className="mb-1 block text-[13px] text-muted-foreground">
+              Código
+            </span>
+            <input
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              placeholder="1"
+              className={`${campo} w-20`}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[13px] text-muted-foreground">
+              Servicio
+            </span>
+            <input
+              value={etiqueta}
+              onChange={(e) => setEtiqueta(e.target.value)}
+              placeholder="Cambio de aceite motor"
+              className={campo}
+            />
+          </label>
+        </div>
 
-      {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
+        {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
-      <div className="mt-3 flex gap-2">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {enviando ? "Guardando…" : servicio ? "Guardar cambios" : "Agregar"}
-        </button>
-        <button
-          type="button"
-          onClick={() => onListo()}
-          className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+        <div className="mt-4 flex gap-2">
+          <button
+            type="submit"
+            className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            {servicio ? "Guardar cambios" : "Agregar"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onListo()}
+            className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-card"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -152,15 +159,13 @@ export function TablaServicios({ servicios }: { servicios: Servicio[] }) {
       </div>
 
       {agregando !== null && (
-        <div className="mt-4">
-          <Formulario
-            grupoSugerido={agregando || undefined}
-            onListo={(item) => {
-              if (item) setItems((actuales) => [...actuales, item]);
-              setAgregando(null);
-            }}
-          />
-        </div>
+        <Formulario
+          grupoSugerido={agregando || undefined}
+          onListo={(item) => {
+            if (item) setItems((actuales) => [...actuales, item]);
+            setAgregando(null);
+          }}
+        />
       )}
 
       {items.length === 0 && agregando === null ? (
@@ -193,57 +198,55 @@ export function TablaServicios({ servicios }: { servicios: Servicio[] }) {
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {items
                   .filter((s) => s.grupo === grupo)
-                  .map((s) =>
-                    editandoId === s.id ? (
-                      <li key={s.id} className="sm:col-span-2 lg:col-span-3">
-                        <Formulario
-                          servicio={s}
-                          onListo={(item) => {
-                            if (item) {
-                              setItems((actuales) =>
-                                actuales.map((a) => (a.id === s.id ? item : a))
-                              );
-                            }
-                            setEditandoId(null);
-                          }}
-                        />
-                      </li>
-                    ) : (
-                      <li
-                        key={s.id}
-                        className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[14px]"
+                  .map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[14px]"
+                    >
+                      <button
+                        onClick={() => setEditandoId(s.id)}
+                        className="min-w-0 flex-1 truncate text-left"
                       >
-                        <button
-                          onClick={() => setEditandoId(s.id)}
-                          className="min-w-0 flex-1 truncate text-left"
-                        >
-                          <span className="text-muted-foreground">
-                            {s.codigo}
-                          </span>{" "}
-                          {s.etiqueta}
-                        </button>
-                        <button
-                          onClick={() => quitar(s.id)}
-                          disabled={quitandoId === s.id}
-                          aria-label="Quitar"
-                          className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-40"
-                        >
-                          <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                            <path
-                              d="M6 6l8 8M14 6l-8 8"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      </li>
-                    )
-                  )}
+                        <span className="text-muted-foreground">
+                          {s.codigo}
+                        </span>{" "}
+                        {s.etiqueta}
+                      </button>
+                      <button
+                        onClick={() => quitar(s.id)}
+                        disabled={quitandoId === s.id}
+                        aria-label="Quitar"
+                        className="shrink-0 text-muted-foreground hover:text-destructive disabled:opacity-40"
+                      >
+                        <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                          <path
+                            d="M6 6l8 8M14 6l-8 8"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}
         </div>
+      )}
+
+      {editandoId !== null && (
+        <Formulario
+          servicio={items.find((s) => s.id === editandoId)}
+          onListo={(item) => {
+            if (item) {
+              setItems((actuales) =>
+                actuales.map((a) => (a.id === editandoId ? item : a))
+              );
+            }
+            setEditandoId(null);
+          }}
+        />
       )}
     </div>
   );
