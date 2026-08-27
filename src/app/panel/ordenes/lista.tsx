@@ -1567,32 +1567,45 @@ export function ListaOrdenes({
                   )}
                 </div>
 
+                {/* stopPropagation: la tarjeta entera abre "Editar
+                    orden abierta" al hacer clic (más abajo, onClick del
+                    <li>) — sin esto, escribir en cualquier campo de
+                    estos formularios burbujeaba hasta la tarjeta y
+                    abría ese modal encima por error. */}
                 {editando && (
-                  <Cerrar
-                    orden={o}
-                    inventario={inventario}
-                    tieneImpresion={tieneImpresion}
-                    onListo={() => setCerrando(null)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Cerrar
+                      orden={o}
+                      inventario={inventario}
+                      tieneImpresion={tieneImpresion}
+                      onListo={() => setCerrando(null)}
+                    />
+                  </div>
                 )}
                 {esperando === o.id && (
-                  <EsperarRepuesto
-                    ordenId={o.id}
-                    onListo={() => setEsperando(null)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EsperarRepuesto
+                      ordenId={o.id}
+                      onListo={() => setEsperando(null)}
+                    />
+                  </div>
                 )}
                 {editandoAbierta === o.id && (
-                  <EditarAbierta
-                    orden={o}
-                    tecnicos={tecnicos}
-                    onListo={() => setEditandoAbierta(null)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EditarAbierta
+                      orden={o}
+                      tecnicos={tecnicos}
+                      onListo={() => setEditandoAbierta(null)}
+                    />
+                  </div>
                 )}
                 {editandoDescripcion === o.id && (
-                  <EditarDescripcion
-                    orden={o}
-                    onListo={() => setEditandoDescripcion(null)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EditarDescripcion
+                      orden={o}
+                      onListo={() => setEditandoDescripcion(null)}
+                    />
+                  </div>
                 )}
               </li>
             );

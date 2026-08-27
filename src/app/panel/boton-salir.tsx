@@ -10,7 +10,7 @@ export function BotonSalir() {
     <button
       onClick={async () => {
         await authClient.signOut();
-        router.push("/");
+        router.push("/entrar");
         router.refresh();
       }}
       className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-card"
