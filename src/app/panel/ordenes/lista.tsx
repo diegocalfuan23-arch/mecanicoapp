@@ -1055,14 +1055,13 @@ function Procedimientos({
 }: {
   ordenId: string;
   items: Procedimiento[];
-  onCambio: (items: Procedimiento[]) => void;
+  onCambio: React.Dispatch<React.SetStateAction<Procedimiento[]>>;
 }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [descripcion, setDescripcion] = useState("");
   const [manoObra, setManoObra] = useState("");
   const [repuestoNombre, setRepuestoNombre] = useState("");
   const [repuesto, setRepuesto] = useState("");
-  const [enviando, setEnviando] = useState(false);
 
   const total = items.reduce((s, p) => s + p.manoObra + p.repuesto, 0);
 
@@ -1085,24 +1084,35 @@ function Procedimientos({
   async function guardar() {
     if (!descripcion.trim()) return;
     if (!Number(manoObra) && !Number(repuesto)) return;
-    setEnviando(true);
     const datos = {
       descripcion: descripcion.trim(),
       manoObra,
       repuesto,
       repuestoNombre,
     };
+    const optimista: Procedimiento = {
+      id: editandoId ?? `tmp-${crypto.randomUUID()}`,
+      descripcion: datos.descripcion,
+      manoObra: Number(datos.manoObra) || 0,
+      repuesto: Number(datos.repuesto) || 0,
+      repuestoNombre: datos.repuestoNombre.trim() || null,
+    };
+    // Optimista: se ve en la tarjeta al instante, sin esperar al
+    // servidor — la respuesta real solo confirma o corrige el id.
+    onCambio(
+      editandoId
+        ? items.map((p) => (p.id === editandoId ? optimista : p))
+        : [...items, optimista]
+    );
+    limpiar();
+
     const res = editandoId
       ? await editarProcedimiento(editandoId, datos)
       : await agregarProcedimiento(ordenId, datos);
-    setEnviando(false);
     if (res?.ok && res.item) {
-      onCambio(
-        editandoId
-          ? items.map((p) => (p.id === editandoId ? res.item : p))
-          : [...items, res.item]
+      onCambio((actuales) =>
+        actuales.map((p) => (p.id === optimista.id ? res.item : p))
       );
-      limpiar();
     }
   }
 
@@ -1198,7 +1208,7 @@ function Procedimientos({
         <button
           type="button"
           onClick={guardar}
-          disabled={enviando || !descripcion.trim()}
+          disabled={!descripcion.trim()}
           className="flex-1 rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:flex-none"
         >
           {editandoId ? "Guardar cambios" : "Agregar"}
@@ -1249,13 +1259,15 @@ function EditarDescripcion({
   // Cada cambio en Procedimientos (agregar/editar/quitar) ya guarda
   // esa línea en la base; acá solo falta mantener actualizado el
   // texto "qué se hizo" de la orden con la nueva lista.
-  async function onCambio(items: Procedimiento[]) {
-    setProcedimientos(items);
-    await editarDescripcion(
-      orden.id,
-      items.map((p) => p.descripcion).join(", ")
-    );
-    router.refresh();
+  function onCambio(accion: React.SetStateAction<Procedimiento[]>) {
+    setProcedimientos((actuales) => {
+      const items = typeof accion === "function" ? accion(actuales) : accion;
+      editarDescripcion(
+        orden.id,
+        items.map((p) => p.descripcion).join(", ")
+      ).then(() => router.refresh());
+      return items;
+    });
   }
 
   return (
