@@ -1173,28 +1173,26 @@ function Procedimientos({
         rows={2}
         className={`${campo} resize-y`}
       />
-      <div className="mt-2">
+      <input
+        value={repuestoNombre}
+        onChange={(e) => setRepuestoNombre(e.target.value)}
+        placeholder="Repuesto comprado (ej. pastillas delanteras)"
+        className={`${campo} mt-2`}
+      />
+      <div className="mt-2 grid grid-cols-2 gap-2">
         <input
           value={miles(manoObra)}
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-          placeholder="Precio mano de obra"
+          placeholder="Mano de obra"
           inputMode="numeric"
-          className={campo}
-        />
-      </div>
-      <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
-        <input
-          value={repuestoNombre}
-          onChange={(e) => setRepuestoNombre(e.target.value)}
-          placeholder="Repuesto comprado (ej. pastillas delanteras)"
           className={campo}
         />
         <input
           value={miles(repuesto)}
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
-          placeholder="Precio repuesto"
+          placeholder="Repuesto"
           inputMode="numeric"
-          className={`${campo} sm:w-36`}
+          className={campo}
         />
       </div>
       <div className="mt-2 flex gap-2">
@@ -1217,10 +1215,14 @@ function Procedimientos({
         )}
       </div>
 
-      <p className="mt-2 text-[14px] text-muted-foreground">
-        Lleva gastado:{" "}
-        <span className="font-medium text-foreground">{pesos(total)}</span>
-      </p>
+      <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+        <span className="text-[14px] text-muted-foreground">
+          Lleva gastado
+        </span>
+        <span className="text-xl font-semibold tabular-nums text-primary">
+          {pesos(total)}
+        </span>
+      </div>
     </div>
   );
 }
