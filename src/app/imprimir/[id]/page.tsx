@@ -378,173 +378,82 @@ function Total({ etiqueta, valor }: { etiqueta: string; valor: number }) {
   );
 }
 
-/** Vista superior del auto con las marcas hechas al abrir la orden. */
+/**
+ * Vista superior del auto con las marcas hechas al abrir la orden —
+ * misma ilustración real que el panel interactivo (ver
+ * public/diagrama/auto-superior.svg, OpenClipart, dominio público).
+ */
 function SiluetaSuperiorImpresa({ danos }: { danos: string[] }) {
   const marcas = marcasDesdeDanos(danos);
 
   return (
-    <svg
-      viewBox="0 0 120 200"
-      className="h-40 w-auto shrink-0"
-      aria-label="Diagrama del vehículo, vista superior"
-    >
-      <path
-        d="M 60 2
-           C 82 2 96 10 100 30
-           L 100 66
-           C 108 68 112 74 112 84
-           L 112 118
-           C 112 128 108 134 100 136
-           L 100 170
-           C 96 190 82 198 60 198
-           C 38 198 24 190 20 170
-           L 20 136
-           C 12 134 8 128 8 118
-           L 8 84
-           C 8 74 12 68 20 66
-           L 20 30
-           C 24 10 38 2 60 2 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
+    <div className="relative h-40 w-18 shrink-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/diagrama/auto-superior.svg"
+        alt="Diagrama del vehículo, vista superior"
+        className="absolute inset-0 h-full w-full object-contain"
       />
-      {ZONAS_SUPERIOR.map((z) => {
-        const marca = marcas.find((m) => m.zona === z.id);
-        const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
-        return (
-          <g key={z.id}>
-            <rect
-              x={z.x}
-              y={z.y}
-              width={z.w}
-              height={z.h}
-              rx="4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.75"
-              strokeOpacity="0.4"
-            />
-            {tipo ? (
-              <text
-                x={z.x + z.w / 2}
-                y={z.y + z.h / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="text-[13px] font-bold"
-              >
-                {tipo.letra}
-              </text>
-            ) : (
-              <text
-                x={z.x + z.w / 2}
-                y={z.y + z.h / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="fill-current text-[6px] opacity-40"
-              >
-                {z.etiquetaCorta}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+      <svg viewBox="0 0 358.85 789.36" className="absolute inset-0 h-full w-full">
+        {ZONAS_SUPERIOR.map((z) => {
+          const marca = marcas.find((m) => m.zona === z.id);
+          const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
+          if (!tipo) return null;
+          return (
+            <text
+              key={z.id}
+              x={z.x + z.w / 2}
+              y={z.y + z.h / 2}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={Math.min(z.w, z.h) * 0.4}
+              className="font-bold"
+            >
+              {tipo.letra}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
-/** Vista lateral (perfil) del auto con las marcas hechas al abrir la orden. */
+/**
+ * Vista lateral (perfil) del auto con las marcas hechas al abrir la
+ * orden — misma ilustración real que el panel interactivo (ver
+ * public/diagrama/auto-lateral.svg, OpenClipart, dominio público).
+ */
 function SiluetaLateralImpresa({ danos }: { danos: string[] }) {
   const marcas = marcasDesdeDanos(danos);
 
   return (
-    <svg
-      viewBox="0 0 200 100"
-      className="h-24 w-auto shrink-0"
-      aria-label="Diagrama del vehículo, vista lateral"
-    >
-      <path
-        d="M 6 68
-           C 6 60 10 55 18 54
-           L 26 53
-           C 30 38 40 26 54 21
-           L 62 19
-           C 70 10 82 5 96 5
-           L 130 5
-           C 146 5 160 12 170 24
-           L 178 34
-           C 184 33 190 36 192 42
-           C 193.5 45.5 194 49 194 53
-           L 194 62
-           C 194 66 191 68 187 68
-           L 176 68
-           C 176 58 168 50 158 50
-           C 148 50 140 58 140 68
-           L 62 68
-           C 62 58 54 50 44 50
-           C 34 50 26 58 26 68
-           L 12 68
-           C 8 68 6 68 6 68 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
+    <div className="relative h-24 w-18.75 shrink-0 sm:w-56">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/diagrama/auto-lateral.svg"
+        alt="Diagrama del vehículo, vista lateral"
+        className="absolute inset-0 h-full w-full object-contain"
       />
-      <path
-        d="M 64 20
-           C 71 12 81 9 96 9
-           L 128 9
-           C 140 9 150 15 158 25
-           L 163 31
-           L 70 31
-           Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeOpacity="0.5"
-      />
-      <line x1="122" y1="31" x2="122" y2="68" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.4" />
-      <circle cx="44" cy="68" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="158" cy="68" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      {ZONAS_LATERAL.map((z) => {
-        const marca = marcas.find((m) => m.zona === z.id);
-        const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
-        return (
-          <g key={z.id}>
-            <rect
-              x={z.x}
-              y={z.y}
-              width={z.w}
-              height={z.h}
-              rx="3"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.75"
-              strokeOpacity="0.4"
-            />
-            {tipo ? (
-              <text
-                x={z.x + z.w / 2}
-                y={z.y + z.h / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="text-[11px] font-bold"
-              >
-                {tipo.letra}
-              </text>
-            ) : (
-              <text
-                x={z.x + z.w / 2}
-                y={z.y + z.h / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className="fill-current text-[5px] opacity-40"
-              >
-                {z.etiquetaCorta}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+      <svg viewBox="0 0 841.9 269.3" className="absolute inset-0 h-full w-full">
+        {ZONAS_LATERAL.map((z) => {
+          const marca = marcas.find((m) => m.zona === z.id);
+          const tipo = TIPOS_DANO.find((t) => t.id === marca?.tipo);
+          if (!tipo) return null;
+          return (
+            <text
+              key={z.id}
+              x={z.x + z.w / 2}
+              y={z.y + z.h / 2}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={Math.min(z.w, z.h) * 0.4}
+              className="font-bold"
+            >
+              {tipo.letra}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
