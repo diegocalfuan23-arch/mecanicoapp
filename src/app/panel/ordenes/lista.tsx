@@ -1175,19 +1175,18 @@ function Procedimientos({
         </ul>
       )}
 
-      <textarea
-        value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
-        placeholder="Cambio de pastillas delanteras y rectificado de discos"
-        rows={2}
-        className={`${campo} resize-y`}
-      />
-      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-2">
-        <span className="text-[14px] text-muted-foreground">Mano de obra</span>
+      <div className="grid grid-cols-[1fr_auto] gap-2">
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="Cambio de pastillas delanteras y rectificado de discos"
+          rows={2}
+          className={`${campo} resize-y`}
+        />
         <input
           value={miles(manoObra)}
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-          placeholder="0"
+          placeholder="Mano de obra"
           inputMode="numeric"
           className={`${campo} w-32`}
         />
@@ -1202,7 +1201,7 @@ function Procedimientos({
         <input
           value={miles(repuesto)}
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
-          placeholder="0"
+          placeholder="Precio repuesto"
           inputMode="numeric"
           className={`${campo} w-32`}
         />
