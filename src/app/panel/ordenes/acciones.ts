@@ -327,6 +327,53 @@ export async function editarOrdenAbierta(
 }
 
 /**
+ * Repuestos y su precio mientras la orden sigue abierta — caso real
+ * de Tío Lalo: va comprando y cambiando piezas (bujía $4.000,
+ * amortiguadores $60.000...) antes de cerrar, y quiere ver cuánto
+ * lleva gastado el cliente sin esperar al cierre. Mismo patrón de
+ * "reemplazar todas" que cerrarOrden, pero sin tocar el inventario:
+ * el descuento de stock sigue pasando solo al cerrar, para no
+ * descontar dos veces si la orden se sigue editando después.
+ */
+export async function guardarRepuestosAbierta(
+  ordenId: string,
+  piezas: RepuestoUsado[]
+) {
+  const tallerId = await tallerActual();
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return { error: "Orden no encontrada." };
+
+  const validas = piezas.filter((p) => p.nombre.trim());
+
+  await db.delete(parteUsada).where(eq(parteUsada.trabajoId, ordenId));
+
+  if (validas.length) {
+    await db.insert(parteUsada).values(
+      validas.map((p) => ({
+        id: crypto.randomUUID(),
+        trabajoId: ordenId,
+        parteId: p.parteId || null,
+        nombre: p.nombre.trim(),
+        codigo: p.codigo?.trim() || null,
+        cantidad: Number(p.cantidad) || 1,
+        costoUnitario: Number(p.costo) || 0,
+        precioUnitario: Number(p.precio) || 0,
+        dondeSeCompro: p.donde.trim() || null,
+      }))
+    );
+  }
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true };
+}
+
+/**
  * Corregir "qué se hizo" en una orden ya Terminada o Entregada —
  * caso real: se acuerda de algo que faltó anotar después de cerrar.
  * No toca montos: eso quedó calculado al cerrar y no se recalcula.

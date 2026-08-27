@@ -11,6 +11,7 @@ import {
   esperarRepuesto,
   retomarTrabajo,
   repuestosDeOrden,
+  guardarRepuestosAbierta,
   serviciosDeOrden,
   type RepuestoUsado,
 } from "./acciones";
@@ -940,10 +941,14 @@ function Cerrar({
 function EditarAbierta({
   orden,
   tecnicos,
+  inventario,
+  tieneImpresion,
   onListo,
 }: {
   orden: Orden;
   tecnicos: Tecnico[];
+  inventario: Insumo[];
+  tieneImpresion: boolean;
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -956,6 +961,30 @@ function EditarAbierta({
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
   const [guardado, setGuardado] = useState(false);
 
+  // Repuestos y precio de la orden mientras sigue abierta: caso real
+  // de Tío Lalo, va cambiando piezas (bujía $4.000, amortiguadores
+  // $60.000...) y quiere ver cuánto lleva el cliente sin esperar al
+  // cierre. Se cargan aparte (no vienen en "orden") porque viven en
+  // su propia tabla — mismo patrón que ya usa Cerrar más abajo.
+  const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
+
+  useEffect(() => {
+    repuestosDeOrden(orden.id).then((previas) => {
+      setPiezas(
+        previas.map((p) => ({
+          nombre: p.nombre,
+          codigo: p.codigo ?? "",
+          cantidad: String(p.cantidad),
+          costo: String(p.costoUnitario),
+          precio: String(p.precioUnitario),
+          donde: p.dondeSeCompro ?? "",
+          parteId: p.parteId,
+        }))
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orden.id]);
+
   async function guardar() {
     await editarOrdenAbierta(orden.id, {
       sintoma,
@@ -966,6 +995,12 @@ function EditarAbierta({
     });
     setGuardado(true);
     setTimeout(() => setGuardado(false), 1500);
+    router.refresh();
+  }
+
+  async function guardarPiezas(nuevas: RepuestoUsado[]) {
+    setPiezas(nuevas);
+    await guardarRepuestosAbierta(orden.id, nuevas);
     router.refresh();
   }
 
@@ -1061,6 +1096,15 @@ function EditarAbierta({
             className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
         </label>
+
+        <div className="mt-4">
+          <RepuestosUsados
+            piezas={piezas}
+            onCambio={guardarPiezas}
+            inventario={inventario}
+            mostrarDonde={!tieneImpresion}
+          />
+        </div>
 
         {tecnicos.length > 0 && (
           <label className="mt-4 block">
@@ -1597,6 +1641,8 @@ export function ListaOrdenes({
                     <EditarAbierta
                       orden={o}
                       tecnicos={tecnicos}
+                      inventario={inventario}
+                      tieneImpresion={tieneImpresion}
                       onListo={() => setEditandoAbierta(null)}
                     />
                   </div>
