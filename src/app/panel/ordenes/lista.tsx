@@ -1120,46 +1120,46 @@ function Procedimientos({
       <span className="mb-2 block text-[13px] font-medium">Qué se hizo</span>
 
       {items.length > 0 && (
-        <ul className="mb-2 flex flex-col gap-2">
+        <ul className="mb-2 grid gap-2 sm:grid-cols-3">
           {items.map((p) => (
             <li
               key={p.id}
-              className={`rounded-lg border transition-colors ${
+              className={`relative rounded-lg border transition-colors ${
                 editandoId === p.id
                   ? "border-primary/60 bg-primary/5"
                   : "border-border bg-card"
               }`}
             >
-              <div className="flex items-center gap-2 px-1 py-1">
-                <button
-                  type="button"
-                  onClick={() => editar(p)}
-                  className="grid min-w-0 flex-1 grid-cols-[2fr_1fr_auto] gap-2 rounded-md px-2 py-1.5 text-left text-[14px] hover:bg-background"
-                >
-                  <span className="min-w-0 truncate">{p.descripcion}</span>
-                  <span className="min-w-0 truncate text-muted-foreground">
-                    {p.repuestoNombre || "—"}
+              <button
+                type="button"
+                onClick={() => editar(p)}
+                className="block w-full rounded-lg px-3 py-2 pr-8 text-left text-[14px] hover:bg-background"
+              >
+                <span className="block truncate">{p.descripcion}</span>
+                {p.repuestoNombre && (
+                  <span className="block truncate text-muted-foreground">
+                    {p.repuestoNombre}
                   </span>
-                  <span className="shrink-0 text-right tabular-nums">
-                    {pesos(p.manoObra + p.repuesto)}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => quitar(p.id)}
-                  aria-label="Quitar"
-                  className="shrink-0 p-2 text-muted-foreground hover:text-destructive"
-                >
-                  <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                    <path
-                      d="M6 6l8 8M14 6l-8 8"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              </div>
+                )}
+                <span className="mt-1 block font-medium tabular-nums">
+                  {pesos(p.manoObra + p.repuesto)}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => quitar(p.id)}
+                aria-label="Quitar"
+                className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+              >
+                <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                  <path
+                    d="M6 6l8 8M14 6l-8 8"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </li>
           ))}
         </ul>
