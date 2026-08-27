@@ -333,6 +333,7 @@ export type Procedimiento = {
   descripcion: string;
   manoObra: number;
   repuesto: number;
+  repuestoNombre: string | null;
 };
 
 /** Las líneas de procedimiento ya cargadas, para precargarlas al reabrir. */
@@ -355,6 +356,7 @@ export async function procedimientosDeOrden(
       descripcion: procedimiento.descripcion,
       manoObra: procedimiento.manoObra,
       repuesto: procedimiento.repuesto,
+      repuestoNombre: procedimiento.repuestoNombre,
     })
     .from(procedimiento)
     .where(eq(procedimiento.trabajoId, ordenId))
@@ -369,7 +371,12 @@ export async function procedimientosDeOrden(
  */
 export async function agregarProcedimiento(
   ordenId: string,
-  datos: { descripcion: string; manoObra: string; repuesto: string }
+  datos: {
+    descripcion: string;
+    manoObra: string;
+    repuesto: string;
+    repuestoNombre: string;
+  }
 ) {
   const tallerId = await tallerActual();
 
@@ -388,6 +395,7 @@ export async function agregarProcedimiento(
     descripcion: datos.descripcion.trim(),
     manoObra: Number(datos.manoObra) || 0,
     repuesto: Number(datos.repuesto) || 0,
+    repuestoNombre: datos.repuestoNombre.trim() || null,
   };
 
   await db.insert(procedimiento).values(nuevo);
@@ -400,6 +408,7 @@ export async function agregarProcedimiento(
       descripcion: nuevo.descripcion,
       manoObra: nuevo.manoObra,
       repuesto: nuevo.repuesto,
+      repuestoNombre: nuevo.repuestoNombre,
     },
   };
 }

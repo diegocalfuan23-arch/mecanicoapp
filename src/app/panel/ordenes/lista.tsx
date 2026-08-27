@@ -1070,6 +1070,7 @@ function Procedimientos({
 }) {
   const [descripcion, setDescripcion] = useState("");
   const [manoObra, setManoObra] = useState("");
+  const [repuestoNombre, setRepuestoNombre] = useState("");
   const [repuesto, setRepuesto] = useState("");
   const [enviando, setEnviando] = useState(false);
 
@@ -1083,6 +1084,7 @@ function Procedimientos({
       descripcion: descripcion.trim(),
       manoObra,
       repuesto,
+      repuestoNombre,
     });
     setEnviando(false);
     if (res?.ok && res.item) {
@@ -1090,6 +1092,7 @@ function Procedimientos({
       setDescripcion("");
       setManoObra("");
       setRepuesto("");
+      setRepuestoNombre("");
     }
   }
 
@@ -1112,7 +1115,15 @@ function Procedimientos({
               key={p.id}
               className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[14px]"
             >
-              <span className="min-w-0 flex-1 truncate">{p.descripcion}</span>
+              <span className="min-w-0 flex-1 truncate">
+                {p.descripcion}
+                {p.repuestoNombre && (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {p.repuestoNombre}
+                  </span>
+                )}
+              </span>
               <span className="shrink-0 text-muted-foreground">
                 {pesos(p.manoObra + p.repuesto)}
               </span>
@@ -1143,20 +1154,28 @@ function Procedimientos({
         rows={2}
         className={`${campo} resize-y`}
       />
-      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+      <div className="mt-2">
         <input
           value={miles(manoObra)}
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-          placeholder="Mano de obra"
+          placeholder="Precio mano de obra"
           inputMode="numeric"
+          className={campo}
+        />
+      </div>
+      <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+        <input
+          value={repuestoNombre}
+          onChange={(e) => setRepuestoNombre(e.target.value)}
+          placeholder="Repuesto comprado (ej. pastillas delanteras)"
           className={campo}
         />
         <input
           value={miles(repuesto)}
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
-          placeholder="Repuesto"
+          placeholder="Precio repuesto"
           inputMode="numeric"
-          className={campo}
+          className={`${campo} sm:w-36`}
         />
       </div>
       <button

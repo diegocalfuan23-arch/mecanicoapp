@@ -372,6 +372,7 @@ export const procedimiento = pgTable(
     descripcion: text("descripcion").notNull(),
     manoObra: integer("mano_obra").notNull().default(0),
     repuesto: integer("repuesto").notNull().default(0),
+    repuestoNombre: text("repuesto_nombre"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("procedimiento_trabajo_idx").on(t.trabajoId)]
