@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, asc, desc } from "drizzle-orm";
 import { db } from "@/db";
-import { servicioTaller } from "@/db/schema";
+import { servicioTaller, parte } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 
 /**
@@ -23,8 +23,11 @@ export async function listarServicios() {
       codigo: servicioTaller.codigo,
       etiqueta: servicioTaller.etiqueta,
       orden: servicioTaller.orden,
+      parteId: servicioTaller.parteId,
+      parteNombre: parte.nombre,
     })
     .from(servicioTaller)
+    .leftJoin(parte, eq(servicioTaller.parteId, parte.id))
     .where(eq(servicioTaller.tallerId, tallerId))
     .orderBy(asc(servicioTaller.orden));
 }
@@ -33,6 +36,7 @@ export async function crearServicio(datos: {
   grupo: string;
   codigo: string;
   etiqueta: string;
+  parteId: string | null;
 }) {
   if (!(await tienePlan("impresionOrden"))) {
     return { error: "Los servicios no están disponibles en tu plan." };
@@ -58,6 +62,7 @@ export async function crearServicio(datos: {
     grupo,
     codigo: datos.codigo.trim(),
     etiqueta,
+    parteId: datos.parteId,
     orden: (maximo ?? -1) + 1,
   };
 
@@ -70,7 +75,12 @@ export async function crearServicio(datos: {
 
 export async function editarServicio(
   id: string,
-  datos: { grupo: string; codigo: string; etiqueta: string }
+  datos: {
+    grupo: string;
+    codigo: string;
+    etiqueta: string;
+    parteId: string | null;
+  }
 ) {
   if (!(await tienePlan("impresionOrden"))) {
     return { error: "Los servicios no están disponibles en tu plan." };
@@ -85,7 +95,12 @@ export async function editarServicio(
 
   await db
     .update(servicioTaller)
-    .set({ grupo, codigo: datos.codigo.trim(), etiqueta })
+    .set({
+      grupo,
+      codigo: datos.codigo.trim(),
+      etiqueta,
+      parteId: datos.parteId,
+    })
     .where(and(eq(servicioTaller.id, id), eq(servicioTaller.tallerId, tallerId)));
 
   revalidatePath("/panel/servicios");

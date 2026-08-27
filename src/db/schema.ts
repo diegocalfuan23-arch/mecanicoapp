@@ -342,6 +342,12 @@ export const servicioTaller = pgTable(
     grupo: text("grupo").notNull(),
     codigo: text("codigo").notNull(),
     etiqueta: text("etiqueta").notNull(),
+    // Insumo del inventario que este servicio suele usar (ej. "Cambio
+    // de aceite motor" → "Aceite 15W40") — solo referencia, no
+    // descuenta stock todavía al marcar el servicio.
+    parteId: text("parte_id").references(() => parte.id, {
+      onDelete: "set null",
+    }),
     orden: integer("orden").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

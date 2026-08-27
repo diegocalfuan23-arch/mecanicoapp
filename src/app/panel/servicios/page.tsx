@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
 import { listarServicios } from "./acciones";
+import { listarInventario } from "../inventario/acciones";
 import { TablaServicios } from "./tabla";
 
 export default async function Servicios() {
@@ -8,7 +9,10 @@ export default async function Servicios() {
   // basta con ocultar el link del sidebar.
   if (!(await tienePlan("impresionOrden"))) redirect("/panel");
 
-  const servicios = await listarServicios();
+  const [servicios, inventario] = await Promise.all([
+    listarServicios(),
+    listarInventario(),
+  ]);
 
   return (
     <>
@@ -21,7 +25,7 @@ export default async function Servicios() {
         </p>
       </div>
 
-      <TablaServicios servicios={servicios} />
+      <TablaServicios servicios={servicios} inventario={inventario} />
     </>
   );
 }
