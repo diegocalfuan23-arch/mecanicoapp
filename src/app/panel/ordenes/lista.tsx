@@ -33,7 +33,6 @@ import {
   codificarAccesorioLibre,
   textoAccesorioLibre,
 } from "@/lib/accesorios-auto";
-import { GRUPOS_SERVICIOS } from "@/lib/servicios-catalogo";
 
 type Orden = {
   id: string;
@@ -97,6 +96,13 @@ type Insumo = {
 type Tecnico = {
   id: string;
   nombre: string;
+};
+
+type Servicio = {
+  id: string;
+  grupo: string;
+  codigo: string;
+  etiqueta: string;
 };
 
 const COLOR_ESTADO: Record<string, string> = {
@@ -623,11 +629,13 @@ function Cerrar({
   orden,
   tieneImpresion,
   tecnicos,
+  servicios: catalogoServicios,
   onListo,
 }: {
   orden: Orden;
   tieneImpresion: boolean;
   tecnicos: Tecnico[];
+  servicios: Servicio[];
   onListo: () => void;
 }) {
   const router = useRouter();
@@ -938,39 +946,46 @@ function Cerrar({
         </label>
       )}
 
-      {/* Checklist de servicios del catálogo — Plan Serviteca, pedido por
-          Senna. Aparte del texto libre de arriba: sirve para marcar
-          rápido lo típico (cambio de aceite, balanceo...) sin escribirlo. */}
-      {tieneImpresion && (
+      {/* Checklist de servicios propio del taller — Plan Serviteca,
+          pedido por Senna, configurable en /panel/servicios. Aparte
+          del texto libre de arriba: sirve para marcar rápido lo
+          típico (cambio de aceite, balanceo...) sin escribirlo. */}
+      {tieneImpresion && catalogoServicios.length > 0 && (
         <div className="mt-4 rounded-lg border border-border bg-card p-4">
           <span className="mb-3 block text-[13px] font-medium">
             Servicios realizados
           </span>
           <div className="flex flex-col gap-4">
-            {GRUPOS_SERVICIOS.map((g) => (
-              <div key={g.grupo}>
-                <p className="mb-2 text-[12px] font-medium text-muted-foreground">
-                  {g.grupo}
-                </p>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {g.items.map((s) => (
-                    <label
-                      key={s.id}
-                      className="flex items-center gap-2 text-[14px]"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={servicios.includes(s.id)}
-                        onChange={() => alternarServicio(s.id)}
-                        className="size-4 accent-primary"
-                      />
-                      <span className="text-muted-foreground">{s.codigo}</span>
-                      {s.etiqueta}
-                    </label>
-                  ))}
+            {Array.from(new Set(catalogoServicios.map((s) => s.grupo))).map(
+              (grupo) => (
+                <div key={grupo}>
+                  <p className="mb-2 text-[12px] font-medium text-muted-foreground">
+                    {grupo}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {catalogoServicios
+                      .filter((s) => s.grupo === grupo)
+                      .map((s) => (
+                        <label
+                          key={s.id}
+                          className="flex items-center gap-2 text-[14px]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={servicios.includes(s.id)}
+                            onChange={() => alternarServicio(s.id)}
+                            className="size-4 accent-primary"
+                          />
+                          <span className="text-muted-foreground">
+                            {s.codigo}
+                          </span>
+                          {s.etiqueta}
+                        </label>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       )}
@@ -1385,12 +1400,14 @@ export function ListaOrdenes({
   vehiculos,
   inventario,
   tecnicos,
+  servicios,
   tieneImpresion,
 }: {
   ordenes: Orden[];
   vehiculos: VehiculoOpcion[];
   inventario: Insumo[];
   tecnicos: Tecnico[];
+  servicios: Servicio[];
   tieneImpresion: boolean;
 }) {
   const router = useRouter();
@@ -1698,6 +1715,7 @@ export function ListaOrdenes({
                       orden={o}
                       tieneImpresion={tieneImpresion}
                       tecnicos={tecnicos}
+                      servicios={servicios}
                       onListo={() => setCerrando(null)}
                     />
                   </div>

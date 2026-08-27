@@ -250,9 +250,9 @@ export const trabajo = pgTable(
     // Nota libre de la orden, aparte de síntoma/diagnóstico/descripción
     // — Plan Serviteca en adelante.
     observaciones: text("observaciones"),
-    // Checklist de servicios del catálogo fijo (ids de
-    // lib/servicios-catalogo.ts) marcados al cerrar — Plan Serviteca,
-    // pedido por Senna. Aparte del texto libre de "descripcion".
+    // Checklist de servicios del catálogo propio del taller (ids de
+    // servicioTaller) marcados al cerrar — Plan Serviteca, pedido por
+    // Senna. Aparte del texto libre de "descripcion".
     serviciosRealizados: text("servicios_realizados").array().notNull().default([]),
 
     // ingresado · en_proceso · esperando_repuesto · terminado · entregado
@@ -321,6 +321,31 @@ export const parte = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("parte_taller_idx").on(t.tallerId)]
+);
+
+/**
+ * Catálogo de servicios propio de cada taller — Plan Serviteca. Antes
+ * era una lista fija en código (lib/servicios-catalogo.ts), igual
+ * para todos los talleres; ahora cada dueño arma la suya, agrupada
+ * igual que el checklist en papel (grupo + código + etiqueta).
+ * orden ordena tanto los grupos entre sí como los items dentro del
+ * mismo grupo — dos filas pueden compartir orden sin problema, solo
+ * define un criterio estable de ordenamiento visual.
+ */
+export const servicioTaller = pgTable(
+  "servicio_taller",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    grupo: text("grupo").notNull(),
+    codigo: text("codigo").notNull(),
+    etiqueta: text("etiqueta").notNull(),
+    orden: integer("orden").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("servicio_taller_taller_idx").on(t.tallerId)]
 );
 
 export const parteUsada = pgTable(

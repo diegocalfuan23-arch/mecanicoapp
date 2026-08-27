@@ -101,6 +101,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/servicios",
+    texto: "Servicios",
+    icono: (
+      <path
+        d="M11.5 2.5l1 2.2 2.3.5-1.6 1.8.2 2.4-2.2-1-2.2 1 .2-2.4-1.6-1.8 2.3-.5 1-2.2zM5.5 12.5a3 3 0 100 6 3 3 0 000-6zM4.5 15.5h2M14 12l2.5 2.5M16.5 12L14 14.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/equipo",
     texto: "Equipo",
     icono: (
@@ -146,14 +160,18 @@ const SECCIONES = [
 function Enlaces({
   alNavegar,
   tieneInventario,
+  tieneServicios,
 }: {
   alNavegar?: () => void;
   tieneInventario: boolean;
+  tieneServicios: boolean;
 }) {
   const ruta = usePathname();
-  const secciones = SECCIONES.filter(
-    (s) => s.href !== "/panel/inventario" || tieneInventario
-  );
+  const secciones = SECCIONES.filter((s) => {
+    if (s.href === "/panel/inventario") return tieneInventario;
+    if (s.href === "/panel/servicios") return tieneServicios;
+    return true;
+  });
 
   return (
     <ul className="flex flex-col gap-1">
@@ -184,18 +202,33 @@ function Enlaces({
 }
 
 /** Barra lateral fija, solo en pantallas grandes. */
-export function Sidebar({ tieneInventario }: { tieneInventario: boolean }) {
+export function Sidebar({
+  tieneInventario,
+  tieneServicios,
+}: {
+  tieneInventario: boolean;
+  tieneServicios: boolean;
+}) {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
       <div className="sticky top-0 p-4">
-        <Enlaces tieneInventario={tieneInventario} />
+        <Enlaces
+          tieneInventario={tieneInventario}
+          tieneServicios={tieneServicios}
+        />
       </div>
     </aside>
   );
 }
 
 /** Botón y panel deslizante, solo en pantallas chicas. */
-export function MenuMovil({ tieneInventario }: { tieneInventario: boolean }) {
+export function MenuMovil({
+  tieneInventario,
+  tieneServicios,
+}: {
+  tieneInventario: boolean;
+  tieneServicios: boolean;
+}) {
   const [abierto, setAbierto] = useState(false);
 
   return (
@@ -229,6 +262,7 @@ export function MenuMovil({ tieneInventario }: { tieneInventario: boolean }) {
             <Enlaces
               alNavegar={() => setAbierto(false)}
               tieneInventario={tieneInventario}
+              tieneServicios={tieneServicios}
             />
           </div>
         </div>

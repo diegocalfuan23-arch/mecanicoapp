@@ -16,7 +16,7 @@ import {
   esAccesorioLibre,
   textoAccesorioLibre,
 } from "@/lib/accesorios-auto";
-import { SERVICIOS_CATALOGO } from "@/lib/servicios-catalogo";
+import { listarServicios } from "@/app/panel/servicios/acciones";
 
 export default async function ImprimirOrden({
   params,
@@ -27,7 +27,10 @@ export default async function ImprimirOrden({
   if (!sesion) redirect("/entrar");
 
   const { id } = await params;
-  const resultado = await datosParaImprimir(id);
+  const [resultado, catalogoServicios] = await Promise.all([
+    datosParaImprimir(id),
+    listarServicios(),
+  ]);
   if (!resultado) notFound();
 
   const { orden, piezas } = resultado;
@@ -212,7 +215,7 @@ export default async function ImprimirOrden({
               Servicios realizados
             </p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
-              {SERVICIOS_CATALOGO
+              {catalogoServicios
                 .filter((s) => orden.serviciosRealizados.includes(s.id))
                 .map((s) => (
                   <p key={s.id}>
