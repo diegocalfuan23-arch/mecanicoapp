@@ -439,6 +439,48 @@ export async function quitarProcedimiento(id: string) {
   revalidatePath("/panel/ordenes");
 }
 
+/** Corrige una línea de procedimiento ya agregada, sin borrar y recrear. */
+export async function editarProcedimiento(
+  id: string,
+  datos: {
+    descripcion: string;
+    manoObra: string;
+    repuesto: string;
+    repuestoNombre: string;
+  }
+) {
+  const tallerId = await tallerActual();
+
+  const [linea] = await db
+    .select({ trabajoId: procedimiento.trabajoId })
+    .from(procedimiento)
+    .where(eq(procedimiento.id, id))
+    .limit(1);
+
+  if (!linea) return { error: "Línea no encontrada." };
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, linea.trabajoId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return { error: "Línea no encontrada." };
+  if (!datos.descripcion.trim()) return { error: "Escribe qué se hizo." };
+
+  const cambios = {
+    descripcion: datos.descripcion.trim(),
+    manoObra: Number(datos.manoObra) || 0,
+    repuesto: Number(datos.repuesto) || 0,
+    repuestoNombre: datos.repuestoNombre.trim() || null,
+  };
+
+  await db.update(procedimiento).set(cambios).where(eq(procedimiento.id, id));
+
+  revalidatePath("/panel/ordenes");
+  return { ok: true, item: { id, ...cambios } };
+}
+
 /**
  * Corregir "qué se hizo" en una orden ya Terminada o Entregada —
  * caso real: se acuerda de algo que faltó anotar después de cerrar.

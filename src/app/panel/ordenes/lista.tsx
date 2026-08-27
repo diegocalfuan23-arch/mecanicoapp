@@ -14,6 +14,7 @@ import {
   serviciosDeOrden,
   procedimientosDeOrden,
   agregarProcedimiento,
+  editarProcedimiento,
   quitarProcedimiento,
   type RepuestoUsado,
   type Procedimiento,
@@ -637,9 +638,7 @@ function Cerrar({
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
-  const [manoObra, setManoObra] = useState("");
   const [manoObraFreno, setManoObraFreno] = useState("");
-  const [repuestos, setRepuestos] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [estadoPago, setEstadoPago] = useState("pagado");
   const [montoAbonado, setMontoAbonado] = useState("");
@@ -687,22 +686,19 @@ function Cerrar({
   // formulario que el cierre (antes era un modal aparte): un solo
   // lugar para ver y editar la orden, se cierre hoy o no.
   const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
-  // "Qué se hizo" ya no se escribe aparte: sale de las descripciones
-  // de los procedimientos anotados arriba, en orden.
+  // "Qué se hizo" y sus montos ya no se escriben aparte: salen de los
+  // procedimientos anotados arriba — un solo lugar para esa info, sin
+  // duplicar campos abajo.
   const descripcion = procedimientos.map((p) => p.descripcion).join(", ");
+  const manoObra = String(
+    procedimientos.reduce((s, p) => s + p.manoObra, 0) || ""
+  );
+  const repuestos = String(
+    procedimientos.reduce((s, p) => s + p.repuesto, 0) || ""
+  );
 
   useEffect(() => {
-    procedimientosDeOrden(orden.id).then((items) => {
-      setProcedimientos(items);
-      // Esa misma suma precarga mano de obra/repuestos del cierre,
-      // para no volver a escribir lo mismo — solo si el campo sigue
-      // vacío: si el mecánico ya escribió algo a mano, no se pisa.
-      if (items.length === 0) return;
-      const sumaManoObra = items.reduce((s, p) => s + p.manoObra, 0);
-      const sumaRepuesto = items.reduce((s, p) => s + p.repuesto, 0);
-      setManoObra((actual) => actual || (sumaManoObra ? String(sumaManoObra) : ""));
-      setRepuestos((actual) => actual || (sumaRepuesto ? String(sumaRepuesto) : ""));
-    });
+    procedimientosDeOrden(orden.id).then(setProcedimientos);
   }, [orden.id]);
 
   // Guarda síntoma/diagnóstico/técnico sin cerrar la orden — separado
@@ -862,18 +858,14 @@ function Cerrar({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <label className="block">
+        <div>
           <span className="mb-2 block text-[13px] font-medium">
             Mano de obra
           </span>
-          <input
-            value={miles(manoObra)}
-            onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-            placeholder="45.000"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
+          <p className={`${campoBase()} bg-card text-muted-foreground`}>
+            {manoObra ? pesos(Number(manoObra)) : "—"}
+          </p>
+        </div>
         {tieneImpresion && (
           <label className="block">
             <span className="mb-2 block text-[13px] font-medium">
@@ -890,21 +882,18 @@ function Cerrar({
             />
           </label>
         )}
-        {/* Cuando se detallan los repuestos abajo, este campo sale
-            sobrando: el cobro se calcula solo. */}
+        {/* Cuando se detallan los repuestos cotizados al abrir
+            (Plan Serviteca), el cobro sale de ellos en vez de la
+            suma de procedimientos. */}
         {piezas.length === 0 && (
-          <label className="block">
+          <div>
             <span className="mb-2 block text-[13px] font-medium">
               Repuestos
             </span>
-            <input
-              value={miles(repuestos)}
-              onChange={(e) => setRepuestos(soloDigitos(e.target.value))}
-              placeholder="80.000"
-              inputMode="numeric"
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
+            <p className={`${campoBase()} bg-card text-muted-foreground`}>
+              {repuestos ? pesos(Number(repuestos)) : "—"}
+            </p>
+          </div>
         )}
         <label className="block">
           <span className="mb-2 block text-[13px] font-medium">
@@ -1052,12 +1041,12 @@ function Cerrar({
 }
 
 /**
- * Lo que se va haciendo mientras la orden sigue abierta, línea por
- * línea, con su costo — pedido real de Tío Lalo: cambia algo (ej.
- * "cambio de embrague"), anota mano de obra + repuesto de esa línea,
- * y ve el total acumulado del cliente sin esperar a cerrar la orden.
- * Cada línea se guarda al tocar "Agregar" — no hay edición inline,
- * solo agregar y quitar, para mantenerlo simple y rápido de anotar.
+ * Lo que se va haciendo, línea por línea, con su costo — pedido real
+ * de Tío Lalo: cambia algo (ej. "cambio de embrague"), anota mano de
+ * obra + repuesto de esa línea, y ve el total acumulado del cliente
+ * sin esperar a cerrar la orden. Hace de CRUD completo: agregar, y
+ * hacer clic en una línea existente la carga acá arriba para
+ * corregirla (el botón pasa a "Guardar cambios") o quitarla.
  */
 function Procedimientos({
   ordenId,
@@ -1068,6 +1057,7 @@ function Procedimientos({
   items: Procedimiento[];
   onCambio: (items: Procedimiento[]) => void;
 }) {
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [descripcion, setDescripcion] = useState("");
   const [manoObra, setManoObra] = useState("");
   const [repuestoNombre, setRepuestoNombre] = useState("");
@@ -1076,28 +1066,49 @@ function Procedimientos({
 
   const total = items.reduce((s, p) => s + p.manoObra + p.repuesto, 0);
 
-  async function agregar() {
+  function limpiar() {
+    setEditandoId(null);
+    setDescripcion("");
+    setManoObra("");
+    setRepuesto("");
+    setRepuestoNombre("");
+  }
+
+  function editar(p: Procedimiento) {
+    setEditandoId(p.id);
+    setDescripcion(p.descripcion);
+    setManoObra(p.manoObra ? String(p.manoObra) : "");
+    setRepuesto(p.repuesto ? String(p.repuesto) : "");
+    setRepuestoNombre(p.repuestoNombre ?? "");
+  }
+
+  async function guardar() {
     if (!descripcion.trim()) return;
     if (!Number(manoObra) && !Number(repuesto)) return;
     setEnviando(true);
-    const res = await agregarProcedimiento(ordenId, {
+    const datos = {
       descripcion: descripcion.trim(),
       manoObra,
       repuesto,
       repuestoNombre,
-    });
+    };
+    const res = editandoId
+      ? await editarProcedimiento(editandoId, datos)
+      : await agregarProcedimiento(ordenId, datos);
     setEnviando(false);
     if (res?.ok && res.item) {
-      onCambio([...items, res.item]);
-      setDescripcion("");
-      setManoObra("");
-      setRepuesto("");
-      setRepuestoNombre("");
+      onCambio(
+        editandoId
+          ? items.map((p) => (p.id === editandoId ? res.item : p))
+          : [...items, res.item]
+      );
+      limpiar();
     }
   }
 
   async function quitar(id: string) {
     onCambio(items.filter((p) => p.id !== id));
+    if (editandoId === id) limpiar();
     await quitarProcedimiento(id);
   }
 
@@ -1113,9 +1124,17 @@ function Procedimientos({
           {items.map((p) => (
             <li
               key={p.id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[14px]"
+              className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-[14px] transition-colors ${
+                editandoId === p.id
+                  ? "border-primary/60 bg-primary/5"
+                  : "border-border bg-card"
+              }`}
             >
-              <span className="min-w-0 flex-1 truncate">
+              <button
+                type="button"
+                onClick={() => editar(p)}
+                className="min-w-0 flex-1 truncate text-left"
+              >
                 {p.descripcion}
                 {p.repuestoNombre && (
                   <span className="text-muted-foreground">
@@ -1123,7 +1142,7 @@ function Procedimientos({
                     · {p.repuestoNombre}
                   </span>
                 )}
-              </span>
+              </button>
               <span className="shrink-0 text-muted-foreground">
                 {pesos(p.manoObra + p.repuesto)}
               </span>
@@ -1178,14 +1197,25 @@ function Procedimientos({
           className={`${campo} sm:w-36`}
         />
       </div>
-      <button
-        type="button"
-        onClick={agregar}
-        disabled={enviando || !descripcion.trim()}
-        className="mt-2 w-full rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:w-auto"
-      >
-        Agregar
-      </button>
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          onClick={guardar}
+          disabled={enviando || !descripcion.trim()}
+          className="flex-1 rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:flex-none"
+        >
+          {editandoId ? "Guardar cambios" : "Agregar"}
+        </button>
+        {editandoId && (
+          <button
+            type="button"
+            onClick={limpiar}
+            className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-card"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
 
       <p className="mt-2 text-[14px] text-muted-foreground">
         Lleva gastado:{" "}
@@ -1197,8 +1227,9 @@ function Procedimientos({
 
 /**
  * Corregir "qué se hizo" en una orden ya Terminada o Entregada — se
- * acordó de algo que faltó anotar después de cerrar. Sin montos: eso
- * ya quedó calculado al cerrar.
+ * acordó de algo que faltó anotar, o hay que corregir un monto ya
+ * cobrado. Sin tocar el total cobrado al cerrar: solo el registro de
+ * qué se hizo, para consultarlo o corregirlo después.
  */
 function EditarDescripcion({
   orden,
@@ -1208,58 +1239,42 @@ function EditarDescripcion({
   onListo: () => void;
 }) {
   const router = useRouter();
-  const [descripcion, setDescripcion] = useState(orden.descripcion ?? "");
-  const [guardado, setGuardado] = useState(false);
+  const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
 
-  async function guardar() {
-    await editarDescripcion(orden.id, descripcion);
-    setGuardado(true);
-    setTimeout(() => setGuardado(false), 1500);
+  useEffect(() => {
+    procedimientosDeOrden(orden.id).then(setProcedimientos);
+  }, [orden.id]);
+
+  // Cada cambio en Procedimientos (agregar/editar/quitar) ya guarda
+  // esa línea en la base; acá solo falta mantener actualizado el
+  // texto "qué se hizo" de la orden con la nueva lista.
+  async function onCambio(items: Procedimiento[]) {
+    setProcedimientos(items);
+    await editarDescripcion(
+      orden.id,
+      items.map((p) => p.descripcion).join(", ")
+    );
     router.refresh();
-  }
-
-  // Ver el comentario equivalente en EditarAbierta: guardar antes de
-  // cerrar evita que el blur y el click compitan por el re-render.
-  async function volver() {
-    await guardar();
-    onListo();
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         aria-label="Cerrar"
-        onClick={volver}
+        onClick={onListo}
         className="absolute inset-0 bg-black/60"
       />
       <div className="relative w-full max-w-md rounded-lg border border-border bg-background p-4">
-        <label className="block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Qué se hizo</span>
-            <Dictar
-              onTexto={(texto) =>
-                setDescripcion((a) => (a ? `${a} ${texto}` : texto))
-              }
-            />
-          </div>
-          <textarea
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            onBlur={guardar}
-            placeholder="Cambio de pastillas delanteras y rectificado de discos"
-            rows={3}
-            autoFocus
-            className="w-full resize-y rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-        </label>
+        <Procedimientos
+          ordenId={orden.id}
+          items={procedimientos}
+          onCambio={onCambio}
+        />
 
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <span className="text-[13px] text-muted-foreground">
-            {guardado ? "Guardado" : "Los cambios se guardan solos"}
-          </span>
+        <div className="mt-4 flex items-center justify-end">
           <button
             type="button"
-            onClick={volver}
+            onClick={onListo}
             className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
           >
             Volver
