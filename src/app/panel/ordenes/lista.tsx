@@ -1134,13 +1134,13 @@ function Procedimientos({
                 <button
                   type="button"
                   onClick={() => editar(p)}
-                  className="grid min-w-0 flex-1 grid-cols-3 gap-2 rounded-md px-2 py-1.5 text-left text-[14px] hover:bg-background"
+                  className="grid min-w-0 flex-1 grid-cols-[2fr_1fr_auto] gap-2 rounded-md px-2 py-1.5 text-left text-[14px] hover:bg-background"
                 >
                   <span className="min-w-0 truncate">{p.descripcion}</span>
                   <span className="min-w-0 truncate text-muted-foreground">
                     {p.repuestoNombre || "—"}
                   </span>
-                  <span className="text-right tabular-nums">
+                  <span className="shrink-0 text-right tabular-nums">
                     {pesos(p.manoObra + p.repuesto)}
                   </span>
                 </button>
