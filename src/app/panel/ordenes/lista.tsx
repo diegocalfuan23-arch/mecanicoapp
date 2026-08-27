@@ -572,6 +572,7 @@ function Abrir({
             piezas={piezas}
             onCambio={setPiezas}
             inventario={inventario}
+            mostrarDonde={false}
           />
         )}
 
@@ -871,6 +872,7 @@ function Cerrar({
           piezas={piezas}
           onCambio={setPiezas}
           inventario={inventario}
+          mostrarDonde={!tieneImpresion}
         />
       </div>
 

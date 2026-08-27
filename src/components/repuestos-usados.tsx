@@ -212,15 +212,23 @@ function CampoNombre({
  * repuesto puntual sin coincidencia solo queda registrado, sin tocar
  * stock (esa es la distinción que ya sabemos: insumo genérico vs
  * repuesto específico de un auto).
+ *
+ * "Dónde se compró" solo aparece en Plan Taller/Prueba: en Serviteca
+ * el taller ya tiene inventario propio con costo cargado, así que el
+ * dato pierde sentido — un taller de una persona sin inventario en
+ * cambio sí necesita anotar en qué desarmaduría o casa de repuestos
+ * compró cada cosa, para poder volver ahí.
  */
 export function RepuestosUsados({
   piezas,
   onCambio,
   inventario = [],
+  mostrarDonde = true,
 }: {
   piezas: RepuestoUsado[];
   onCambio: (piezas: RepuestoUsado[]) => void;
   inventario?: InsumoInventario[];
+  mostrarDonde?: boolean;
 }) {
   const cambiar = (
     i: number,
@@ -257,7 +265,9 @@ export function RepuestosUsados({
 
       {piezas.length > 0 && (
         <div className="scroll-discreto mb-2 overflow-x-auto rounded-lg border border-border">
-          <table className="w-full min-w-230 border-collapse text-[14px]">
+          <table
+            className={`w-full border-collapse text-[14px] ${mostrarDonde ? "min-w-270" : "min-w-230"}`}
+          >
             <thead>
               <tr className="border-b border-border bg-card text-left text-[12px] text-muted-foreground">
                 <th className="px-3 py-2 font-medium">Código</th>
@@ -266,6 +276,9 @@ export function RepuestosUsados({
                 <th className="px-3 py-2 font-medium">Me costó</th>
                 <th className="px-3 py-2 font-medium">Precio</th>
                 <th className="px-3 py-2 font-medium">Valor</th>
+                {mostrarDonde && (
+                  <th className="px-3 py-2 font-medium">Dónde</th>
+                )}
                 <th className="px-2 py-2" />
               </tr>
             </thead>
@@ -324,6 +337,16 @@ export function RepuestosUsados({
                     <td className="px-3 py-2 align-top whitespace-nowrap tabular-nums">
                       {valor > 0 ? pesos(valor) : "—"}
                     </td>
+                    {mostrarDonde && (
+                      <td className="px-3 py-2 align-top">
+                        <input
+                          value={p.donde}
+                          onChange={(e) => cambiar(i, "donde", e.target.value)}
+                          placeholder="Desarmaduría"
+                          className={`${campo} w-36`}
+                        />
+                      </td>
+                    )}
                     <td className="px-2 py-2 align-top">
                       <button
                         type="button"
