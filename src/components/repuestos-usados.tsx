@@ -412,12 +412,12 @@ export function RepuestosUsados({
                 const valor = (Number(p.precio) || 0) * (Number(p.cantidad) || 1);
                 return (
                   <tr key={i} className="border-b border-border/60 last:border-0">
-                    <td className="px-3 py-2 align-top">
+                    <td className="w-24 px-3 py-2 align-top">
                       <input
                         value={p.codigo ?? ""}
                         onChange={(e) => cambiar(i, "codigo", e.target.value)}
                         placeholder="Opcional"
-                        className={`${campo} w-24`}
+                        className={campo}
                       />
                     </td>
                     <td className="w-full px-3 py-2 align-top">
@@ -427,17 +427,17 @@ export function RepuestosUsados({
                         className={`${campo} min-w-24`}
                       />
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="w-20 px-3 py-2 align-top">
                       <input
                         value={p.cantidad}
                         onChange={(e) =>
                           cambiar(i, "cantidad", soloDigitos(e.target.value))
                         }
                         inputMode="numeric"
-                        className={`${campo} w-20`}
+                        className={campo}
                       />
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="w-40 px-3 py-2 align-top">
                       <input
                         value={miles(p.costo)}
                         onChange={(e) =>
@@ -445,10 +445,10 @@ export function RepuestosUsados({
                         }
                         placeholder="18.000"
                         inputMode="numeric"
-                        className={`${campo} w-40`}
+                        className={campo}
                       />
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="w-28 px-3 py-2 align-top">
                       <input
                         value={miles(p.precio)}
                         onChange={(e) =>
@@ -456,19 +456,19 @@ export function RepuestosUsados({
                         }
                         placeholder="25.000"
                         inputMode="numeric"
-                        className={`${campo} w-28`}
+                        className={campo}
                       />
                     </td>
                     <td className="px-3 py-2 align-top whitespace-nowrap tabular-nums">
                       {valor > 0 ? pesos(valor) : "—"}
                     </td>
                     {mostrarDonde && (
-                      <td className="px-3 py-2 align-top">
+                      <td className="w-36 px-3 py-2 align-top">
                         <input
                           value={p.donde}
                           onChange={(e) => cambiar(i, "donde", e.target.value)}
                           placeholder="Desarmaduría"
-                          className={`${campo} w-36`}
+                          className={campo}
                         />
                       </td>
                     )}
