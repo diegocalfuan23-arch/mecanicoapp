@@ -424,7 +424,7 @@ export function RepuestosUsados({
                       <CampoNombre
                         pieza={p}
                         onCambiar={(campo, valor) => cambiar(i, campo, valor)}
-                        className={`${campo} min-w-40`}
+                        className={`${campo} min-w-24`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
@@ -445,7 +445,7 @@ export function RepuestosUsados({
                         }
                         placeholder="18.000"
                         inputMode="numeric"
-                        className={`${campo} w-28`}
+                        className={`${campo} w-36`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
