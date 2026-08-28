@@ -396,9 +396,9 @@ export function RepuestosUsados({
             <thead>
               <tr className="border-b border-border bg-card text-left text-[12px] text-muted-foreground">
                 <th className="px-3 py-2 font-medium">Código</th>
-                <th className="w-full px-3 py-2 font-medium">Detalle</th>
+                <th className="px-3 py-2 font-medium">Detalle</th>
                 <th className="px-3 py-2 font-medium">Cantidad</th>
-                <th className="px-3 py-2 font-medium">Me costó</th>
+                <th className="px-3 py-2 font-medium">Costo</th>
                 <th className="px-3 py-2 font-medium">Precio</th>
                 <th className="px-3 py-2 font-medium">Valor</th>
                 {mostrarDonde && (
@@ -417,10 +417,10 @@ export function RepuestosUsados({
                         value={p.codigo ?? ""}
                         onChange={(e) => cambiar(i, "codigo", e.target.value)}
                         placeholder="Opcional"
-                        className={`${campo} w-28`}
+                        className={`${campo} w-24`}
                       />
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="w-full px-3 py-2 align-top">
                       <CampoNombre
                         pieza={p}
                         onCambiar={(campo, valor) => cambiar(i, campo, valor)}
@@ -445,7 +445,7 @@ export function RepuestosUsados({
                         }
                         placeholder="18.000"
                         inputMode="numeric"
-                        className={`${campo} w-36`}
+                        className={`${campo} w-40`}
                       />
                     </td>
                     <td className="px-3 py-2 align-top">
