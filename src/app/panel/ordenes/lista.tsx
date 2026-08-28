@@ -1190,7 +1190,7 @@ function Procedimientos({
         </ul>
       )}
 
-      <div className="grid grid-cols-[1fr_auto] gap-2">
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
@@ -1203,10 +1203,10 @@ function Procedimientos({
           onChange={(e) => setManoObra(soloDigitos(e.target.value))}
           placeholder="Mano de obra"
           inputMode="numeric"
-          className={`${campo} w-32`}
+          className={`${campo} sm:w-32`}
         />
       </div>
-      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-2">
+      <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <input
           value={repuestoNombre}
           onChange={(e) => setRepuestoNombre(e.target.value)}
@@ -1218,7 +1218,7 @@ function Procedimientos({
           onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
           placeholder="Precio repuesto"
           inputMode="numeric"
-          className={`${campo} w-32`}
+          className={`${campo} sm:w-32`}
         />
       </div>
       <div className="mt-2 flex gap-2">
