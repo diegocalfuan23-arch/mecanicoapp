@@ -1548,42 +1548,10 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                <div className="mt-4 flex-1 space-y-1">
-                  {o.sintoma && (
-                    <p className="text-[15px]">
-                      <span className="text-muted-foreground">Reporta: </span>
-                      {o.sintoma}
-                    </p>
-                  )}
-                  {o.diagnostico && (
-                    <p className="text-[15px]">
-                      <span className="text-muted-foreground">
-                        Diagnóstico:{" "}
-                      </span>
-                      {o.diagnostico}
-                    </p>
-                  )}
-                  {o.descripcion && (
-                    <p className="text-[15px]">
-                      <span className="text-muted-foreground">
-                        {o.estado === "terminado" || o.estado === "entregado"
-                          ? "Se hizo: "
-                          : "Procedimiento: "}
-                      </span>
-                      {o.descripcion}
-                    </p>
-                  )}
-                  {o.estado === "esperando_repuesto" && o.esperaDetalle && (
-                    <p className="text-[15px]">
-                      <span className="text-muted-foreground">
-                        El auto no está aquí, esperando:{" "}
-                      </span>
-                      {o.esperaDetalle}
-                    </p>
-                  )}
+                <div className="mt-4 flex-1">
                   {o.fotos.length > 0 && (
                     <div
-                      className="flex flex-wrap gap-1 pt-1"
+                      className="mb-3 flex flex-wrap gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {o.fotos.map((url) => (
@@ -1592,12 +1560,33 @@ export function ListaOrdenes({
                           <img
                             src={url}
                             alt="Estado del vehículo"
-                            className="size-10 rounded-md border border-border object-cover"
+                            className="size-20 rounded-lg border border-border object-cover"
                           />
                         </a>
                       ))}
                     </div>
                   )}
+                  <div className="space-y-1">
+                    {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
+                    {o.diagnostico && (
+                      <p className="text-[15px] text-muted-foreground">
+                        {o.diagnostico}
+                      </p>
+                    )}
+                    {o.descripcion && (
+                      <p className="text-[14px] text-muted-foreground">
+                        {o.descripcion}
+                      </p>
+                    )}
+                    {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                      <p className="text-[15px]">
+                        <span className="text-muted-foreground">
+                          El auto no está aquí, esperando:{" "}
+                        </span>
+                        {o.esperaDetalle}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <p className="mt-4 text-[13px] text-muted-foreground">
