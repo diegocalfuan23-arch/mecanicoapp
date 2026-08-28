@@ -307,6 +307,7 @@ export async function editarOrdenAbierta(
     diagnostico: string;
     descripcion: string;
     tecnicoId?: string;
+    fotos?: string[];
   }
 ) {
   const tallerId = await tallerActual();
@@ -319,6 +320,7 @@ export async function editarOrdenAbierta(
       diagnostico: datos.diagnostico.trim() || null,
       descripcion: datos.descripcion.trim() || null,
       tecnicoId: datos.tecnicoId || null,
+      ...(datos.fotos !== undefined ? { fotos: datos.fotos } : {}),
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
@@ -582,6 +584,7 @@ export async function cerrarOrden(datos: {
   conIva?: boolean;
   piezas?: RepuestoUsado[];
   servicios?: string[];
+  fotos?: string[];
 }) {
   const tallerId = await tallerActual();
 
@@ -644,6 +647,7 @@ export async function cerrarOrden(datos: {
       iva,
       total,
       serviciosRealizados: servicios,
+      ...(datos.fotos !== undefined ? { fotos: datos.fotos } : {}),
       estadoPago,
       abonado,
       fechaPago: estadoPago === "pagado" ? new Date() : null,

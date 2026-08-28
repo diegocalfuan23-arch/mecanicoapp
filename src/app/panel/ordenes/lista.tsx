@@ -645,6 +645,7 @@ function Cerrar({
   );
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
+  const [fotos, setFotos] = useState<string[]>(orden.fotos);
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
   const [manoObraFreno, setManoObraFreno] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
@@ -719,6 +720,7 @@ function Cerrar({
       diagnostico,
       descripcion,
       tecnicoId,
+      fotos,
     });
     setGuardadoAbierta(true);
     setTimeout(() => setGuardadoAbierta(false), 1500);
@@ -759,6 +761,7 @@ function Cerrar({
       conIva,
       piezas,
       servicios,
+      fotos,
     });
     setEnviando(false);
 
@@ -856,6 +859,25 @@ function Cerrar({
           className={`${campoBase()} resize-y bg-card`}
         />
       </label>
+
+      <div className="mt-4">
+        <FotosVehiculo
+          fotos={fotos}
+          onCambio={(f) => {
+            setFotos(f);
+            editarOrdenAbierta(orden.id, {
+              sintoma,
+              kilometraje,
+              diagnostico,
+              descripcion,
+              tecnicoId,
+              fotos: f,
+            });
+            router.refresh();
+          }}
+          onError={setError}
+        />
+      </div>
 
       <div className="mt-4">
         <Procedimientos
