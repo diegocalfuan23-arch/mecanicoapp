@@ -33,6 +33,7 @@ import {
   codificarAccesorioLibre,
   textoAccesorioLibre,
 } from "@/lib/accesorios-auto";
+import { SINTOMAS_COMUNES } from "@/lib/sintomas-comunes";
 
 type Orden = {
   id: string;
@@ -444,6 +445,25 @@ function Abrir({
                 setSintoma((actual) => (actual ? `${actual} ${texto}` : texto))
               }
             />
+          </div>
+          {/* Lo más común, a un toque: baja la fricción del caso
+              típico sin quitar la opción de escribir o dictar algo
+              distinto — mismo criterio que Combustible/Accesorios. */}
+          <div className="mb-2 flex flex-wrap gap-2">
+            {SINTOMAS_COMUNES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() =>
+                  setSintoma((actual) =>
+                    actual ? `${actual}, ${s}` : s
+                  )
+                }
+                className="rounded-lg border border-border px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+              >
+                {s}
+              </button>
+            ))}
           </div>
           <textarea
             value={sintoma}
