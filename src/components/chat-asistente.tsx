@@ -190,7 +190,7 @@ export function ChatAsistente({
   }
 
   return (
-    <div className="flex h-full min-h-0 gap-8">
+    <div className="flex gap-8">
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
         <Lista
@@ -222,7 +222,7 @@ export function ChatAsistente({
         </div>
       )}
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
           <button
             onClick={() => setListaAbierta(true)}
@@ -242,7 +242,7 @@ export function ChatAsistente({
         </div>
 
         {mensajes.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+          <div className="flex flex-col items-center px-4 py-16 text-center">
             <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
               ¿Cuánto debe la BXFS19?
             </p>
@@ -251,7 +251,7 @@ export function ChatAsistente({
             </p>
           </div>
         ) : (
-          <ul className="scroll-discreto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+          <ul className="scroll-discreto flex flex-col gap-6">
             {mensajes.map((m, i) => {
               // La última respuesta es lo que el mecánico vino a leer: va
               // grande. Las anteriores bajan a tamaño de cuerpo.
