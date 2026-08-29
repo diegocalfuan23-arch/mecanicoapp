@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   abrirOrden,
@@ -881,17 +880,31 @@ export function ListaOrdenes({
             const saldo = o.total - o.abonado;
             const puedeEditarDescripcion =
               o.estado === "terminado" || o.estado === "entregado";
+            const puedeVerDetalle =
+              o.estado === "ingresado" || o.estado === "en_proceso";
+
+            // Toda la tarjeta lleva al detalle, no solo el botón
+            // "Terminar" — el Router Cache de Next a veces no navega
+            // en silencio a una ruta dinámica recién creada en esta
+            // misma sesión (el <Link> del botón solo no bastaba
+            // siempre). window.location fuerza una carga real de
+            // página, sin depender de esa caché.
+            function irAlDetalle() {
+              window.location.href = `/panel/ordenes/${o.id}`;
+            }
 
             return (
               <li
                 key={o.id}
                 onClick={
-                  puedeEditarDescripcion
-                    ? () => setEditandoDescripcion(o.id)
-                    : undefined
+                  puedeVerDetalle
+                    ? irAlDetalle
+                    : puedeEditarDescripcion
+                      ? () => setEditandoDescripcion(o.id)
+                      : undefined
                 }
                 className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
-                  puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
+                  puedeVerDetalle || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -1028,12 +1041,12 @@ export function ListaOrdenes({
                     </button>
                   )}
                   {(o.estado === "ingresado" || o.estado === "en_proceso") && (
-                    <Link
-                      href={`/panel/ordenes/${o.id}`}
+                    <button
+                      onClick={irAlDetalle}
                       className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
                     >
                       Terminar
-                    </Link>
+                    </button>
                   )}
                   {o.estado === "terminado" && (
                     <>
