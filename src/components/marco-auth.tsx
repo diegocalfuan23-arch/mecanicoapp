@@ -1,3 +1,5 @@
+import { LogoAuth } from "./logo-auth";
+
 export function MarcoAuth({
   titulo,
   bajada,
@@ -11,12 +13,10 @@ export function MarcoAuth({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Sin enlace: dentro de la PWA no debe existir ninguna forma de
-          volver a la landing pública (/). */}
+      {/* En la PWA instalada, LogoAuth no deja volver a la landing
+          pública (/); en el navegador normal sí es un enlace. */}
       <header className="mx-auto flex w-full max-w-6xl items-center px-6 py-6">
-        <span className="text-lg font-semibold tracking-tight">
-          Mecanico<span className="text-acento">App</span>
-        </span>
+        <LogoAuth />
       </header>
 
       <main className="flex flex-1 items-start justify-center px-6 pt-8 pb-24 sm:items-center sm:pt-0 sm:pb-32">
