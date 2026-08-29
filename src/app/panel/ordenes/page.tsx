@@ -5,18 +5,16 @@ import {
   listarTecnicos,
 } from "./acciones";
 import { listarInventario } from "../inventario/acciones";
-import { listarServicios } from "../servicios/acciones";
 import { tienePlan } from "@/lib/taller";
 import { ListaOrdenes } from "./lista";
 
 export default async function Ordenes() {
-  const [ordenes, vehiculos, inventario, tecnicos, servicios, tieneImpresion] =
+  const [ordenes, vehiculos, inventario, tecnicos, tieneImpresion] =
     await Promise.all([
       listarOrdenes(),
       listarVehiculosParaOrden(),
       listarInventario(),
       listarTecnicos(),
-      listarServicios(),
       tienePlan("impresionOrden"),
     ]);
 
@@ -41,7 +39,6 @@ export default async function Ordenes() {
           vehiculos={vehiculos}
           inventario={inventario}
           tecnicos={tecnicos}
-          servicios={servicios}
           tieneImpresion={tieneImpresion}
         />
       </Suspense>

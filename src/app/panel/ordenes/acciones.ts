@@ -53,6 +53,46 @@ export async function listarOrdenes() {
 }
 
 /**
+ * Una orden puntual por id, para la página de detalle
+ * (/panel/ordenes/[id]) — misma forma que listarOrdenes(), null si
+ * no existe o no es del taller actual.
+ */
+export async function obtenerOrden(ordenId: string) {
+  const tallerId = await tallerActual();
+
+  const [orden] = await db
+    .select({
+      id: trabajo.id,
+      numero: trabajo.numero,
+      sintoma: trabajo.sintoma,
+      diagnostico: trabajo.diagnostico,
+      descripcion: trabajo.descripcion,
+      kilometraje: trabajo.kilometraje,
+      fotos: trabajo.fotos,
+      estado: trabajo.estado,
+      esperaDetalle: trabajo.esperaDetalle,
+      estadoPago: trabajo.estadoPago,
+      total: trabajo.total,
+      abonado: trabajo.abonado,
+      fecha: trabajo.fecha,
+      fechaEntrega: trabajo.fechaEntrega,
+      tecnicoId: trabajo.tecnicoId,
+      patente: vehiculo.patente,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      propietario: cliente.nombre,
+      telefono: cliente.telefono,
+    })
+    .from(trabajo)
+    .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+    .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  return orden ?? null;
+}
+
+/**
  * Todo lo necesario para imprimir la orden de trabajo con el formato de
  * cotización/recepción de vehículos — Plan Serviteca en adelante.
  * Devuelve null si la orden no es del taller actual o si el plan no

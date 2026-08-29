@@ -1,21 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   abrirOrden,
   cambiarEstado,
-  cerrarOrden,
   editarDescripcion,
-  editarOrdenAbierta,
   esperarRepuesto,
   retomarTrabajo,
-  repuestosDeOrden,
-  serviciosDeOrden,
   procedimientosDeOrden,
-  agregarProcedimiento,
-  editarProcedimiento,
-  quitarProcedimiento,
   type RepuestoUsado,
   type Procedimiento,
 } from "./acciones";
@@ -26,6 +20,7 @@ import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
+import { Procedimientos } from "@/components/procedimientos";
 import {
   NIVELES_COMBUSTIBLE,
   accesoriosParaTipo,
@@ -97,13 +92,6 @@ type Insumo = {
 type Tecnico = {
   id: string;
   nombre: string;
-};
-
-type Servicio = {
-  id: string;
-  grupo: string;
-  codigo: string;
-  etiqueta: string;
 };
 
 const COLOR_ESTADO: Record<string, string> = {
@@ -645,728 +633,6 @@ function Abrir({
   );
 }
 
-function Cerrar({
-  orden,
-  tieneImpresion,
-  tecnicos,
-  servicios: catalogoServicios,
-  onListo,
-}: {
-  orden: Orden;
-  tieneImpresion: boolean;
-  tecnicos: Tecnico[];
-  servicios: Servicio[];
-  onListo: () => void;
-}) {
-  const router = useRouter();
-  const [sintoma, setSintoma] = useState(orden.sintoma ?? "");
-  const [kilometraje, setKilometraje] = useState(
-    orden.kilometraje ? String(orden.kilometraje) : ""
-  );
-  const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
-  const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
-  const [fotos, setFotos] = useState<string[]>(orden.fotos);
-  const [guardadoAbierta, setGuardadoAbierta] = useState(false);
-  const [manoObraFreno, setManoObraFreno] = useState("");
-  const [cargoTraslado, setCargoTraslado] = useState("");
-  const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(false);
-  const [mostrarServicios, setMostrarServicios] = useState(false);
-  const [estadoPago, setEstadoPago] = useState("pagado");
-  const [montoAbonado, setMontoAbonado] = useState("");
-  const [conIva, setConIva] = useState(false);
-  const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
-  const [servicios, setServicios] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
-
-  function alternarServicio(id: string) {
-    setServicios((actual) =>
-      actual.includes(id) ? actual.filter((s) => s !== id) : [...actual, id]
-    );
-  }
-
-  // Si ya se cotizaron repuestos al abrir la orden (Plan Serviteca), se
-  // precargan acá para no anotarlos dos veces — el mecánico solo los
-  // confirma o ajusta antes de cerrar.
-  useEffect(() => {
-    repuestosDeOrden(orden.id).then((previas) => {
-      if (previas.length === 0) return;
-      setPiezas(
-        previas.map((p) => ({
-          nombre: p.nombre,
-          cantidad: String(p.cantidad),
-          costo: String(p.costoUnitario),
-          precio: String(p.precioUnitario),
-          donde: p.dondeSeCompro ?? "",
-          parteId: p.parteId,
-        }))
-      );
-    });
-  }, [orden.id]);
-
-  useEffect(() => {
-    if (!tieneImpresion) return;
-    serviciosDeOrden(orden.id).then(setServicios);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orden.id]);
-
-  // Lo que se va haciendo mientras la orden sigue abierta, línea por
-  // línea con su costo — pedido real de Tío Lalo: cambia algo (ej.
-  // "cambio de embrague"), anota mano de obra + repuesto de esa
-  // línea, y ve el total acumulado del cliente. Vive en el mismo
-  // formulario que el cierre (antes era un modal aparte): un solo
-  // lugar para ver y editar la orden, se cierre hoy o no.
-  const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
-  // "Qué se hizo" y sus montos ya no se escriben aparte: salen de los
-  // procedimientos anotados arriba — un solo lugar para esa info, sin
-  // duplicar campos abajo.
-  const descripcion = procedimientos.map((p) => p.descripcion).join(", ");
-  const manoObra = String(
-    procedimientos.reduce((s, p) => s + p.manoObra, 0) || ""
-  );
-  const repuestos = String(
-    procedimientos.reduce((s, p) => s + p.repuesto, 0) || ""
-  );
-
-  useEffect(() => {
-    procedimientosDeOrden(orden.id).then(setProcedimientos);
-  }, [orden.id]);
-
-  // Guarda síntoma/diagnóstico/técnico sin cerrar la orden — separado
-  // de enviar(), que sí cierra. El mecánico puede ir dejando esto al
-  // día sin tener que completar el cierre financiero todavía.
-  async function guardarAbierta() {
-    await editarOrdenAbierta(orden.id, {
-      sintoma,
-      kilometraje,
-      diagnostico,
-      descripcion,
-      tecnicoId,
-      fotos,
-    });
-    setGuardadoAbierta(true);
-    setTimeout(() => setGuardadoAbierta(false), 1500);
-    router.refresh();
-  }
-
-  // Si se detallaron los repuestos, el cobro sale de ellos.
-  const cobroRepuestos = piezas.length
-    ? piezas.reduce(
-        (s, p) => s + (Number(p.precio) || 0) * (Number(p.cantidad) || 1),
-        0
-      )
-    : Number(repuestos) || 0;
-
-  // El IVA se suma encima del neto, no viene incluido.
-  const neto =
-    (Number(manoObra) || 0) +
-    (Number(manoObraFreno) || 0) +
-    cobroRepuestos +
-    (Number(cargoTraslado) || 0);
-  const iva = conIva ? Math.round(neto * 0.19) : 0;
-  const total = neto + iva;
-
-  async function enviar(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setEnviando(true);
-
-    const res = await cerrarOrden({
-      ordenId: orden.id,
-      descripcion,
-      manoObra,
-      manoObraFreno,
-      repuestos,
-      cargoTraslado,
-      estadoPago,
-      montoAbonado: estadoPago === "fiado" ? montoAbonado : "",
-      conIva,
-      piezas,
-      servicios,
-      fotos,
-    });
-    setEnviando(false);
-
-    if (res?.error) {
-      setError(res.error);
-      return;
-    }
-    onListo();
-    router.refresh();
-  }
-
-  return (
-    <form
-      onSubmit={enviar}
-      className="mt-4 rounded-lg border border-border bg-background p-4"
-    >
-      <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-        Datos del vehículo
-      </p>
-      <label className="block">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[13px] font-medium">Qué reporta el cliente</span>
-          <Dictar
-            onTexto={(texto) =>
-              setSintoma((a) => (a ? `${a} ${texto}` : texto))
-            }
-          />
-        </div>
-        <textarea
-          value={sintoma}
-          onChange={(e) => setSintoma(e.target.value)}
-          onBlur={guardarAbierta}
-          placeholder="Suena adelante al frenar"
-          rows={1}
-          className={`${campoBase()} resize-y bg-card`}
-        />
-      </label>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Kilometraje
-          </span>
-          <input
-            value={miles(kilometraje)}
-            onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
-            onBlur={guardarAbierta}
-            placeholder="128.500"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
-
-        {tecnicos.length > 0 && (
-          <div>
-            <span className="mb-2 block text-[13px] font-medium">
-              Técnico a cargo
-            </span>
-            <Selector
-              value={tecnicoId}
-              onChange={async (valor) => {
-                setTecnicoId(valor);
-                await editarOrdenAbierta(orden.id, {
-                  sintoma,
-                  kilometraje,
-                  diagnostico,
-                  descripcion,
-                  tecnicoId: valor,
-                });
-                router.refresh();
-              }}
-              className="bg-card"
-              placeholder="Sin asignar"
-              opciones={tecnicos.map((t) => ({
-                valor: t.id,
-                texto: t.nombre,
-              }))}
-            />
-          </div>
-        )}
-      </div>
-
-      <label className="mt-4 block">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[13px] font-medium">Diagnóstico</span>
-          <Dictar
-            onTexto={(texto) =>
-              setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
-            }
-          />
-        </div>
-        <textarea
-          value={diagnostico}
-          onChange={(e) => setDiagnostico(e.target.value)}
-          onBlur={guardarAbierta}
-          placeholder="Retenes de la caja desgastados, causando la fuga"
-          rows={1}
-          className={`${campoBase()} resize-y bg-card`}
-        />
-      </label>
-
-      <div className="mt-4">
-        <FotosVehiculo
-          fotos={fotos}
-          onCambio={(f) => {
-            setFotos(f);
-            editarOrdenAbierta(orden.id, {
-              sintoma,
-              kilometraje,
-              diagnostico,
-              descripcion,
-              tecnicoId,
-              fotos: f,
-            });
-            router.refresh();
-          }}
-          onError={setError}
-        />
-      </div>
-
-      <div className="mt-8 border-t border-border pt-6">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Qué se hizo
-        </p>
-        <Procedimientos
-          ordenId={orden.id}
-          items={procedimientos}
-          onCambio={setProcedimientos}
-        />
-      </div>
-
-      <div className="mt-8 border-t border-border pt-6">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Cobro
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div>
-          <span className="mb-2 block text-[13px] font-medium">
-            Mano de obra
-          </span>
-          <p className={`${campoBase()} bg-card text-muted-foreground`}>
-            {manoObra ? pesos(Number(manoObra)) : "—"}
-          </p>
-        </div>
-        {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
-              Mano de obra freno
-            </span>
-            <input
-              value={miles(manoObraFreno)}
-              onChange={(e) =>
-                setManoObraFreno(soloDigitos(e.target.value))
-              }
-              placeholder="15.000"
-              inputMode="numeric"
-              autoFocus
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
-        )}
-        {/* Cuando se detallan los repuestos cotizados al abrir
-            (Plan Serviteca), el cobro sale de ellos en vez de la
-            suma de procedimientos. */}
-        {piezas.length === 0 && (
-          <div>
-            <span className="mb-2 block text-[13px] font-medium">
-              Repuestos
-            </span>
-            <p className={`${campoBase()} bg-card text-muted-foreground`}>
-              {repuestos ? pesos(Number(repuestos)) : "—"}
-            </p>
-          </div>
-        )}
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Cargo por ir a comprar
-          </span>
-          <input
-            value={miles(cargoTraslado)}
-            onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
-            placeholder="3.000"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
-        <div>
-          <span className="mb-2 block text-[13px] font-medium">Pago</span>
-          <Selector
-            value={estadoPago}
-            onChange={setEstadoPago}
-            className="bg-card"
-            opciones={[
-              { valor: "pagado", texto: "Pagado" },
-              { valor: "fiado", texto: "Fiado" },
-            ]}
-          />
-        </div>
-        </div>
-
-        {/* Campos que casi nunca hacen falta, escondidos detrás de un
-            enlace — pedido de Tío Lalo: el formulario se sentía largo
-            con todo siempre visible. */}
-        <div className="mt-3 flex flex-wrap gap-4">
-          {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
-            <button
-              type="button"
-              onClick={() => setMostrarManoObraFreno(true)}
-              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              + Mano de obra freno
-            </button>
-          )}
-        </div>
-
-      {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
-          dato saltando a Pagos después a anotarlo aparte. */}
-      {estadoPago === "fiado" && (
-        <label className="mt-4 block">
-          <span className="mb-2 block text-[13px] font-medium">
-            ¿Abonó algo ahora? (opcional)
-          </span>
-          <input
-            value={miles(montoAbonado)}
-            onChange={(e) => setMontoAbonado(soloDigitos(e.target.value))}
-            placeholder="40.000"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
-      )}
-
-      {/* Checklist de servicios propio del taller — Plan Serviteca,
-          pedido por Senna, configurable en /panel/servicios. Aparte
-          del texto libre de arriba: sirve para marcar rápido lo
-          típico (cambio de aceite, balanceo...) sin escribirlo. */}
-      {tieneImpresion && catalogoServicios.length > 0 && (
-        <div className="mt-4 rounded-lg border border-border bg-card p-4">
-          <button
-            type="button"
-            onClick={() => setMostrarServicios((a) => !a)}
-            className="flex w-full items-center justify-between text-left text-[13px] font-medium"
-          >
-            <span>
-              Servicios realizados
-              {servicios.length > 0 && (
-                <span className="ml-2 font-normal text-muted-foreground">
-                  {servicios.length} marcados
-                </span>
-              )}
-            </span>
-            <svg
-              viewBox="0 0 20 20"
-              className={`size-4 shrink-0 text-muted-foreground transition-transform ${mostrarServicios ? "rotate-180" : ""}`}
-              aria-hidden
-            >
-              <path
-                d="M5 7.5l5 5 5-5"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {mostrarServicios && (
-          <div className="mt-3 flex flex-col gap-4">
-            {Array.from(new Set(catalogoServicios.map((s) => s.grupo))).map(
-              (grupo) => (
-                <div key={grupo}>
-                  <p className="mb-2 text-[12px] font-medium text-muted-foreground">
-                    {grupo}
-                  </p>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {catalogoServicios
-                      .filter((s) => s.grupo === grupo)
-                      .map((s) => (
-                        <label
-                          key={s.id}
-                          className="flex items-center gap-2 text-[14px]"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={servicios.includes(s.id)}
-                            onChange={() => alternarServicio(s.id)}
-                            className="size-4 accent-primary"
-                          />
-                          <span className="text-muted-foreground">
-                            {s.codigo}
-                          </span>
-                          {s.etiqueta}
-                        </label>
-                      ))}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-          )}
-        </div>
-      )}
-
-      <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
-        <input
-          type="checkbox"
-          checked={conIva}
-          onChange={(e) => setConIva(e.target.checked)}
-          className="size-4 accent-primary"
-        />
-        <span className="text-[15px]">Sumar IVA (19%)</span>
-      </label>
-
-      {neto > 0 && (
-        <div className="mt-4 flex flex-col gap-1 text-[15px]">
-          {conIva && (
-            <>
-              <p className="flex justify-between text-muted-foreground">
-                <span>Neto</span>
-                <span className="tabular-nums">{pesos(neto)}</span>
-              </p>
-              <p className="flex justify-between text-muted-foreground">
-                <span>IVA 19%</span>
-                <span className="tabular-nums">{pesos(iva)}</span>
-              </p>
-            </>
-          )}
-          <p className="flex justify-between border-t border-border pt-2">
-            <span>Total</span>
-            <span className="text-lg font-semibold tabular-nums">
-              {pesos(total)}
-            </span>
-          </p>
-        </div>
-      )}
-      </div>
-
-      {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
-
-      {/* En móvil, la barra de acciones queda pegada al fondo de la
-          pantalla al hacer scroll: sin esto había que bajar por toda
-          la sección de cobro solo para llegar a "Cerrar orden".
-          sticky (no fixed) para que se ancle al scroll real del
-          panel — <main> tiene su propio overflow-y-auto, así que un
-          "fixed" queda mal alineado con lo que realmente scrollea.
-          Desde sm: hay espacio de sobra y vuelve al flujo normal. */}
-      <div className="sticky bottom-0 -mx-4 z-10 mt-4 flex flex-wrap items-center gap-4 border-t border-border bg-background p-4 sm:relative sm:inset-auto sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {enviando ? "Guardando…" : "Cerrar orden"}
-        </button>
-        <button
-          type="button"
-          onClick={guardarAbierta}
-          className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-        >
-          Guardar sin cerrar
-        </button>
-        <button
-          type="button"
-          onClick={onListo}
-          className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
-        >
-          Cancelar
-        </button>
-        {guardadoAbierta && (
-          <span className="text-[13px] text-muted-foreground">Guardado</span>
-        )}
-      </div>
-    </form>
-  );
-}
-
-/**
- * Lo que se va haciendo, línea por línea, con su costo — pedido real
- * de Tío Lalo: cambia algo (ej. "cambio de embrague"), anota mano de
- * obra + repuesto de esa línea, y ve el total acumulado del cliente
- * sin esperar a cerrar la orden. Hace de CRUD completo: agregar, y
- * hacer clic en una línea existente la carga acá arriba para
- * corregirla (el botón pasa a "Guardar cambios") o quitarla.
- */
-function Procedimientos({
-  ordenId,
-  items,
-  onCambio,
-}: {
-  ordenId: string;
-  items: Procedimiento[];
-  onCambio: React.Dispatch<React.SetStateAction<Procedimiento[]>>;
-}) {
-  const [editandoId, setEditandoId] = useState<string | null>(null);
-  const [descripcion, setDescripcion] = useState("");
-  const [manoObra, setManoObra] = useState("");
-  const [repuestoNombre, setRepuestoNombre] = useState("");
-  const [repuesto, setRepuesto] = useState("");
-
-  const total = items.reduce((s, p) => s + p.manoObra + p.repuesto, 0);
-
-  function limpiar() {
-    setEditandoId(null);
-    setDescripcion("");
-    setManoObra("");
-    setRepuesto("");
-    setRepuestoNombre("");
-  }
-
-  function editar(p: Procedimiento) {
-    setEditandoId(p.id);
-    setDescripcion(p.descripcion);
-    setManoObra(p.manoObra ? String(p.manoObra) : "");
-    setRepuesto(p.repuesto ? String(p.repuesto) : "");
-    setRepuestoNombre(p.repuestoNombre ?? "");
-  }
-
-  async function guardar() {
-    if (!descripcion.trim()) return;
-    if (!Number(manoObra) && !Number(repuesto)) return;
-    const datos = {
-      descripcion: descripcion.trim(),
-      manoObra,
-      repuesto,
-      repuestoNombre,
-    };
-    const optimista: Procedimiento = {
-      id: editandoId ?? `tmp-${crypto.randomUUID()}`,
-      descripcion: datos.descripcion,
-      manoObra: Number(datos.manoObra) || 0,
-      repuesto: Number(datos.repuesto) || 0,
-      repuestoNombre: datos.repuestoNombre.trim() || null,
-    };
-    // Optimista: se ve en la tarjeta al instante, sin esperar al
-    // servidor — la respuesta real solo confirma o corrige el id.
-    onCambio(
-      editandoId
-        ? items.map((p) => (p.id === editandoId ? optimista : p))
-        : [...items, optimista]
-    );
-    limpiar();
-
-    const res = editandoId
-      ? await editarProcedimiento(editandoId, datos)
-      : await agregarProcedimiento(ordenId, datos);
-    if (res?.ok && res.item) {
-      onCambio((actuales) =>
-        actuales.map((p) => (p.id === optimista.id ? res.item : p))
-      );
-    }
-  }
-
-  async function quitar(id: string) {
-    onCambio(items.filter((p) => p.id !== id));
-    if (editandoId === id) limpiar();
-    await quitarProcedimiento(id);
-  }
-
-  const campo =
-    "w-full rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
-
-  return (
-    <div>
-      <span className="mb-2 block text-[13px] font-medium">Qué se hizo</span>
-
-      {items.length > 0 && (
-        <ul className="mb-2 flex flex-col gap-1.5">
-          {items.map((p) => (
-            <li
-              key={p.id}
-              className={`flex items-center gap-2 rounded-lg border transition-colors ${
-                editandoId === p.id
-                  ? "border-primary/60 bg-primary/5"
-                  : "border-border bg-card"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => editar(p)}
-                className="flex min-w-0 flex-1 items-baseline gap-2 rounded-lg py-2 pl-3 text-left text-[14px] hover:bg-background"
-              >
-                <span className="min-w-0 flex-1 truncate">
-                  {p.descripcion}
-                  {p.repuestoNombre && (
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {p.repuestoNombre}
-                    </span>
-                  )}
-                </span>
-                <span className="shrink-0 font-medium tabular-nums">
-                  {pesos(p.manoObra + p.repuesto)}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => quitar(p.id)}
-                aria-label="Quitar"
-                className="shrink-0 px-2 py-2 text-muted-foreground hover:text-destructive"
-              >
-                <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                  <path
-                    d="M6 6l8 8M14 6l-8 8"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Cambio de pastillas delanteras y rectificado de discos"
-          rows={1}
-          className={`${campo} resize-y`}
-        />
-        <input
-          value={miles(manoObra)}
-          onChange={(e) => setManoObra(soloDigitos(e.target.value))}
-          placeholder="Mano de obra"
-          inputMode="numeric"
-          className={`${campo} sm:w-32`}
-        />
-      </div>
-      <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-        <input
-          value={repuestoNombre}
-          onChange={(e) => setRepuestoNombre(e.target.value)}
-          placeholder="Repuesto comprado (ej. pastillas delanteras)"
-          className={campo}
-        />
-        <input
-          value={miles(repuesto)}
-          onChange={(e) => setRepuesto(soloDigitos(e.target.value))}
-          placeholder="Precio repuesto"
-          inputMode="numeric"
-          className={`${campo} sm:w-32`}
-        />
-      </div>
-      <div className="mt-2 flex gap-2">
-        <button
-          type="button"
-          onClick={guardar}
-          disabled={!descripcion.trim()}
-          className="flex-1 rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 sm:flex-none"
-        >
-          {editandoId ? "Guardar cambios" : "Agregar"}
-        </button>
-        {editandoId && (
-          <button
-            type="button"
-            onClick={limpiar}
-            className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-card"
-          >
-            Cancelar
-          </button>
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
-        <span className="text-[14px] text-muted-foreground">
-          Lleva gastado
-        </span>
-        <span className="text-xl font-semibold tabular-nums text-primary">
-          {pesos(total)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Corregir "qué se hizo" en una orden ya Terminada o Entregada — se
- * acordó de algo que faltó anotar, o hay que corregir un monto ya
- * cobrado. Sin tocar el total cobrado al cerrar: solo el registro de
- * qué se hizo, para consultarlo o corregirlo después.
- */
 function EditarDescripcion({
   orden,
   onListo,
@@ -1508,14 +774,12 @@ export function ListaOrdenes({
   vehiculos,
   inventario,
   tecnicos,
-  servicios,
   tieneImpresion,
 }: {
   ordenes: Orden[];
   vehiculos: VehiculoOpcion[];
   inventario: Insumo[];
   tecnicos: Tecnico[];
-  servicios: Servicio[];
   tieneImpresion: boolean;
 }) {
   const router = useRouter();
@@ -1524,7 +788,6 @@ export function ListaOrdenes({
   // ?abrir=<id> en la URL: abre el formulario ya con ese auto puesto.
   const vehiculoDesdeUrl = params.get("abrir");
   const [abriendo, setAbriendo] = useState(!!vehiculoDesdeUrl);
-  const [cerrando, setCerrando] = useState<string | null>(null);
   const [esperando, setEsperando] = useState<string | null>(null);
   const [editandoDescripcion, setEditandoDescripcion] = useState<
     string | null
@@ -1616,9 +879,6 @@ export function ListaOrdenes({
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibles.map((o) => {
             const saldo = o.total - o.abonado;
-            const editando = cerrando === o.id;
-            const puedeEditarAbierta =
-              o.estado === "ingresado" || o.estado === "en_proceso";
             const puedeEditarDescripcion =
               o.estado === "terminado" || o.estado === "entregado";
 
@@ -1626,15 +886,13 @@ export function ListaOrdenes({
               <li
                 key={o.id}
                 onClick={
-                  puedeEditarAbierta
-                    ? () => setCerrando(editando ? null : o.id)
-                    : puedeEditarDescripcion
-                      ? () => setEditandoDescripcion(o.id)
-                      : undefined
+                  puedeEditarDescripcion
+                    ? () => setEditandoDescripcion(o.id)
+                    : undefined
                 }
                 className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
-                  editando ? "sm:col-span-2 xl:col-span-3" : ""
-                } ${puedeEditarAbierta || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""}`}
+                  puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
+                }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[13px] text-muted-foreground">
@@ -1656,63 +914,55 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                {/* Se oculta mientras se edita: los mismos datos ya
-                    están editables en el formulario de abajo, verlos
-                    dos veces solo alargaba la tarjeta sin aportar
-                    nada nuevo. */}
-                {!editando && (
-                  <>
-                    <div className="mt-4 flex-1">
-                      {o.fotos.length > 0 && (
-                        <div
-                          className="mb-3 flex flex-wrap gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {o.fotos.map((url) => (
-                            <a key={url} href={url} target="_blank" rel="noreferrer">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={url}
-                                alt="Estado del vehículo"
-                                className="size-20 rounded-lg border border-border object-cover"
-                              />
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                      <div className="space-y-1">
-                        {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
-                        {o.diagnostico && (
-                          <p className="text-[15px] text-muted-foreground">
-                            {o.diagnostico}
-                          </p>
-                        )}
-                        {o.descripcion && (
-                          <p className="text-[14px] text-muted-foreground">
-                            {o.descripcion}
-                          </p>
-                        )}
-                        {o.estado === "esperando_repuesto" && o.esperaDetalle && (
-                          <p className="text-[15px]">
-                            <span className="text-muted-foreground">
-                              El auto no está aquí, esperando:{" "}
-                            </span>
-                            {o.esperaDetalle}
-                          </p>
-                        )}
-                      </div>
+                <div className="mt-4 flex-1">
+                  {o.fotos.length > 0 && (
+                    <div
+                      className="mb-3 flex flex-wrap gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {o.fotos.map((url) => (
+                        <a key={url} href={url} target="_blank" rel="noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt="Estado del vehículo"
+                            className="size-20 rounded-lg border border-border object-cover"
+                          />
+                        </a>
+                      ))}
                     </div>
+                  )}
+                  <div className="space-y-1">
+                    {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
+                    {o.diagnostico && (
+                      <p className="text-[15px] text-muted-foreground">
+                        {o.diagnostico}
+                      </p>
+                    )}
+                    {o.descripcion && (
+                      <p className="text-[14px] text-muted-foreground">
+                        {o.descripcion}
+                      </p>
+                    )}
+                    {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                      <p className="text-[15px]">
+                        <span className="text-muted-foreground">
+                          El auto no está aquí, esperando:{" "}
+                        </span>
+                        {o.esperaDetalle}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-                    <p className="mt-4 text-[13px] text-muted-foreground">
-                      {o.propietario ?? "Sin dueño registrado"}
-                      <br />
-                      {fecha(o.fecha)}
-                      {o.kilometraje
-                        ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                        : ""}
-                    </p>
-                  </>
-                )}
+                <p className="mt-4 text-[13px] text-muted-foreground">
+                  {o.propietario ?? "Sin dueño registrado"}
+                  <br />
+                  {fecha(o.fecha)}
+                  {o.kilometraje
+                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                    : ""}
+                </p>
 
                 {o.total > 0 && (
                   <div className="mt-4 border-t border-border pt-4">
@@ -1778,12 +1028,12 @@ export function ListaOrdenes({
                     </button>
                   )}
                   {(o.estado === "ingresado" || o.estado === "en_proceso") && (
-                    <button
-                      onClick={() => setCerrando(editando ? null : o.id)}
+                    <Link
+                      href={`/panel/ordenes/${o.id}`}
                       className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
                     >
                       Terminar
-                    </button>
+                    </Link>
                   )}
                   {o.estado === "terminado" && (
                     <>
@@ -1809,22 +1059,12 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                {/* stopPropagation: la tarjeta entera abre "Editar
-                    orden abierta" al hacer clic (más abajo, onClick del
-                    <li>) — sin esto, escribir en cualquier campo de
-                    estos formularios burbujeaba hasta la tarjeta y
-                    abría ese modal encima por error. */}
-                {editando && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <Cerrar
-                      orden={o}
-                      tieneImpresion={tieneImpresion}
-                      tecnicos={tecnicos}
-                      servicios={servicios}
-                      onListo={() => setCerrando(null)}
-                    />
-                  </div>
-                )}
+                {/* stopPropagation: las órdenes Terminadas/Entregadas
+                    abren "Editar descripción" al hacer clic en toda
+                    la tarjeta (más abajo, onClick del <li>) — sin
+                    esto, escribir en el formulario de EsperarRepuesto
+                    burbujeaba hasta la tarjeta y abría ese modal
+                    encima por error. */}
                 {esperando === o.id && (
                   <div onClick={(e) => e.stopPropagation()}>
                     <EsperarRepuesto
