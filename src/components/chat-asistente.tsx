@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dictar } from "@/components/dictar";
 import {
   guardarIntercambio,
@@ -86,51 +86,10 @@ export function ChatAsistente({
   const [listaAbierta, setListaAbierta] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // Alto real disponible. En Android, al abrir el teclado, h-dvh (heredado
-  // del layout) no se reduce de forma confiable: el navegador tapa
-  // contenido por debajo en vez de encogerlo, así que "sticky"/"fixed"
-  // quedan posicionados fuera de lo visible. Fijar el alto del propio
-  // contenedor al visualViewport (que sí refleja el teclado) resuelve
-  // eso de raíz: el form queda al final del flujo normal, dentro de un
-  // contenedor cuyo alto ya es exactamente lo visible.
-  const [alto, setAlto] = useState<number | null>(null);
-  const raizRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [mensajes, pensando]);
-
-  useLayoutEffect(() => {
-    const vv = window.visualViewport;
-    const contenedor = raizRef.current;
-    if (!vv || !contenedor) return;
-    // padding-bottom de <main> (py-8 del layout): sin restarlo, el
-    // contenido queda justo hasta el borde del viewport pero <main>
-    // todavía necesita ese espacio debajo, empujando el total más allá
-    // de lo visible y generando scroll aunque no haya nada de más.
-    const main = contenedor.closest("main");
-    const abajo = main
-      ? parseFloat(getComputedStyle(main).paddingBottom)
-      : 0;
-    function actualizar() {
-      // rAF: en Android el resize/scroll del visualViewport puede
-      // dispararse antes de que el layout termine de asentarse tras
-      // la animación del teclado — leer el rect un frame después
-      // evita el hueco vacío que se veía con el valor viejo.
-      requestAnimationFrame(() => {
-        if (!contenedor) return;
-        const arriba = contenedor.getBoundingClientRect().top;
-        setAlto(vv!.height - arriba - abajo);
-      });
-    }
-    actualizar();
-    vv.addEventListener("resize", actualizar);
-    vv.addEventListener("scroll", actualizar);
-    return () => {
-      vv.removeEventListener("resize", actualizar);
-      vv.removeEventListener("scroll", actualizar);
-    };
-  }, []);
 
   async function abrir(id: string) {
     setListaAbierta(false);
@@ -231,11 +190,7 @@ export function ChatAsistente({
   }
 
   return (
-    <div
-      ref={raizRef}
-      style={alto !== null ? { height: alto } : undefined}
-      className="flex h-full min-h-0 gap-8"
-    >
+    <div className="flex h-full min-h-0 gap-8">
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
         <Lista
@@ -342,10 +297,13 @@ export function ChatAsistente({
             e.preventDefault();
             enviar(entrada);
           }}
-          // sticky al fondo del contenedor raíz, cuyo alto ya está fijado
-          // al visualViewport real (ver "alto" arriba) — por eso sticky
-          // ancla en el lugar correcto también con el teclado abierto.
-          className="sticky bottom-0 z-20 flex flex-wrap items-center gap-2 bg-background pt-4"
+          // Sin sticky: en Android, fijar este form contra un alto
+          // calculado a mano (visualViewport) terminaba dejando un
+          // hueco vacío y scrolleable al abrir el teclado — el cálculo
+          // nunca calzó de forma confiable en la práctica. En flujo
+          // normal, el propio navegador hace scroll-into-view del
+          // input al enfocarlo, sin necesitar nada manual.
+          className="mt-4 flex flex-wrap items-center gap-2 bg-background pt-4"
         >
           <input
             value={entrada}
