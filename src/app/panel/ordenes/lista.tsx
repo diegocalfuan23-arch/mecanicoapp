@@ -776,8 +776,11 @@ function Cerrar({
   return (
     <form
       onSubmit={enviar}
-      className="mt-4 rounded-lg border border-border bg-background p-4"
+      className="mt-4 rounded-lg border border-border bg-background p-4 pb-24 sm:pb-4"
     >
+      <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+        Datos del vehículo
+      </p>
       <label className="block">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <span className="text-[13px] font-medium">Qué reporta el cliente</span>
@@ -879,7 +882,10 @@ function Cerrar({
         />
       </div>
 
-      <div className="mt-4">
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+          Qué se hizo
+        </p>
         <Procedimientos
           ordenId={orden.id}
           items={procedimientos}
@@ -887,7 +893,11 @@ function Cerrar({
         />
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+          Cobro
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div>
           <span className="mb-2 block text-[13px] font-medium">
             Mano de obra
@@ -949,7 +959,7 @@ function Cerrar({
             ]}
           />
         </div>
-      </div>
+        </div>
 
       {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
           dato saltando a Pagos después a anotarlo aparte. */}
@@ -1044,10 +1054,15 @@ function Cerrar({
           </p>
         </div>
       )}
+      </div>
 
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
+      {/* En móvil, la barra de acciones queda fija al fondo de la
+          pantalla: sin esto había que hacer scroll por toda la
+          sección de cobro solo para llegar a "Cerrar orden". Desde
+          sm: hay espacio de sobra y vuelve al flujo normal. */}
+      <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-4 border-t border-border bg-background p-4 sm:relative sm:inset-auto sm:z-auto sm:mt-4 sm:border-t-0 sm:bg-transparent sm:p-0">
         <button
           type="submit"
           disabled={enviando}
@@ -1167,11 +1182,11 @@ function Procedimientos({
       <span className="mb-2 block text-[13px] font-medium">Qué se hizo</span>
 
       {items.length > 0 && (
-        <ul className="mb-2 grid gap-2 sm:grid-cols-3">
+        <ul className="mb-2 flex flex-col gap-1.5">
           {items.map((p) => (
             <li
               key={p.id}
-              className={`relative rounded-lg border transition-colors ${
+              className={`flex items-center gap-2 rounded-lg border transition-colors ${
                 editandoId === p.id
                   ? "border-primary/60 bg-primary/5"
                   : "border-border bg-card"
@@ -1180,15 +1195,18 @@ function Procedimientos({
               <button
                 type="button"
                 onClick={() => editar(p)}
-                className="block w-full rounded-lg px-3 py-2 pr-8 text-left text-[14px] hover:bg-background"
+                className="flex min-w-0 flex-1 items-baseline gap-2 rounded-lg py-2 pl-3 text-left text-[14px] hover:bg-background"
               >
-                <span className="block truncate">{p.descripcion}</span>
-                {p.repuestoNombre && (
-                  <span className="block truncate text-muted-foreground">
-                    {p.repuestoNombre}
-                  </span>
-                )}
-                <span className="mt-1 block font-medium tabular-nums">
+                <span className="min-w-0 flex-1 truncate">
+                  {p.descripcion}
+                  {p.repuestoNombre && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {p.repuestoNombre}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 font-medium tabular-nums">
                   {pesos(p.manoObra + p.repuesto)}
                 </span>
               </button>
@@ -1196,7 +1214,7 @@ function Procedimientos({
                 type="button"
                 onClick={() => quitar(p.id)}
                 aria-label="Quitar"
-                className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                className="shrink-0 px-2 py-2 text-muted-foreground hover:text-destructive"
               >
                 <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
                   <path
