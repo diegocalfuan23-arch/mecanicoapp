@@ -650,7 +650,6 @@ function Cerrar({
   const [manoObraFreno, setManoObraFreno] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(false);
-  const [mostrarCargoTraslado, setMostrarCargoTraslado] = useState(false);
   const [mostrarServicios, setMostrarServicios] = useState(false);
   const [estadoPago, setEstadoPago] = useState("pagado");
   const [montoAbonado, setMontoAbonado] = useState("");
@@ -939,21 +938,18 @@ function Cerrar({
             </p>
           </div>
         )}
-        {mostrarCargoTraslado || cargoTraslado ? (
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
-              Cargo por ir a comprar
-            </span>
-            <input
-              value={miles(cargoTraslado)}
-              onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
-              placeholder="3.000"
-              inputMode="numeric"
-              autoFocus
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
-        ) : null}
+        <label className="block">
+          <span className="mb-2 block text-[13px] font-medium">
+            Cargo por ir a comprar
+          </span>
+          <input
+            value={miles(cargoTraslado)}
+            onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
+            placeholder="3.000"
+            inputMode="numeric"
+            className={`${campoBase()} bg-card`}
+          />
+        </label>
         <div>
           <span className="mb-2 block text-[13px] font-medium">Pago</span>
           <Selector
@@ -979,15 +975,6 @@ function Cerrar({
               className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               + Mano de obra freno
-            </button>
-          )}
-          {!mostrarCargoTraslado && !cargoTraslado && (
-            <button
-              type="button"
-              onClick={() => setMostrarCargoTraslado(true)}
-              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              + Cargo por ir a comprar
             </button>
           )}
         </div>
