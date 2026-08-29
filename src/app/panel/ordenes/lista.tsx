@@ -649,6 +649,9 @@ function Cerrar({
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
   const [manoObraFreno, setManoObraFreno] = useState("");
   const [cargoTraslado, setCargoTraslado] = useState("");
+  const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(false);
+  const [mostrarCargoTraslado, setMostrarCargoTraslado] = useState(false);
+  const [mostrarServicios, setMostrarServicios] = useState(false);
   const [estadoPago, setEstadoPago] = useState("pagado");
   const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
@@ -795,7 +798,7 @@ function Cerrar({
           onChange={(e) => setSintoma(e.target.value)}
           onBlur={guardarAbierta}
           placeholder="Suena adelante al frenar"
-          rows={2}
+          rows={1}
           className={`${campoBase()} resize-y bg-card`}
         />
       </label>
@@ -858,7 +861,7 @@ function Cerrar({
           onChange={(e) => setDiagnostico(e.target.value)}
           onBlur={guardarAbierta}
           placeholder="Retenes de la caja desgastados, causando la fuga"
-          rows={2}
+          rows={1}
           className={`${campoBase()} resize-y bg-card`}
         />
       </label>
@@ -906,7 +909,7 @@ function Cerrar({
             {manoObra ? pesos(Number(manoObra)) : "—"}
           </p>
         </div>
-        {tieneImpresion && (
+        {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
           <label className="block">
             <span className="mb-2 block text-[13px] font-medium">
               Mano de obra freno
@@ -918,6 +921,7 @@ function Cerrar({
               }
               placeholder="15.000"
               inputMode="numeric"
+              autoFocus
               className={`${campoBase()} bg-card`}
             />
           </label>
@@ -935,18 +939,21 @@ function Cerrar({
             </p>
           </div>
         )}
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">
-            Cargo por ir a comprar
-          </span>
-          <input
-            value={miles(cargoTraslado)}
-            onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
-            placeholder="3.000"
-            inputMode="numeric"
-            className={`${campoBase()} bg-card`}
-          />
-        </label>
+        {mostrarCargoTraslado || cargoTraslado ? (
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium">
+              Cargo por ir a comprar
+            </span>
+            <input
+              value={miles(cargoTraslado)}
+              onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
+              placeholder="3.000"
+              inputMode="numeric"
+              autoFocus
+              className={`${campoBase()} bg-card`}
+            />
+          </label>
+        ) : null}
         <div>
           <span className="mb-2 block text-[13px] font-medium">Pago</span>
           <Selector
@@ -959,6 +966,30 @@ function Cerrar({
             ]}
           />
         </div>
+        </div>
+
+        {/* Campos que casi nunca hacen falta, escondidos detrás de un
+            enlace — pedido de Tío Lalo: el formulario se sentía largo
+            con todo siempre visible. */}
+        <div className="mt-3 flex flex-wrap gap-4">
+          {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
+            <button
+              type="button"
+              onClick={() => setMostrarManoObraFreno(true)}
+              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              + Mano de obra freno
+            </button>
+          )}
+          {!mostrarCargoTraslado && !cargoTraslado && (
+            <button
+              type="button"
+              onClick={() => setMostrarCargoTraslado(true)}
+              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              + Cargo por ir a comprar
+            </button>
+          )}
         </div>
 
       {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
@@ -984,10 +1015,36 @@ function Cerrar({
           típico (cambio de aceite, balanceo...) sin escribirlo. */}
       {tieneImpresion && catalogoServicios.length > 0 && (
         <div className="mt-4 rounded-lg border border-border bg-card p-4">
-          <span className="mb-3 block text-[13px] font-medium">
-            Servicios realizados
-          </span>
-          <div className="flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={() => setMostrarServicios((a) => !a)}
+            className="flex w-full items-center justify-between text-left text-[13px] font-medium"
+          >
+            <span>
+              Servicios realizados
+              {servicios.length > 0 && (
+                <span className="ml-2 font-normal text-muted-foreground">
+                  {servicios.length} marcados
+                </span>
+              )}
+            </span>
+            <svg
+              viewBox="0 0 20 20"
+              className={`size-4 shrink-0 text-muted-foreground transition-transform ${mostrarServicios ? "rotate-180" : ""}`}
+              aria-hidden
+            >
+              <path
+                d="M5 7.5l5 5 5-5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {mostrarServicios && (
+          <div className="mt-3 flex flex-col gap-4">
             {Array.from(new Set(catalogoServicios.map((s) => s.grupo))).map(
               (grupo) => (
                 <div key={grupo}>
@@ -1019,6 +1076,7 @@ function Cerrar({
               )
             )}
           </div>
+          )}
         </div>
       )}
 
@@ -1235,7 +1293,7 @@ function Procedimientos({
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
           placeholder="Cambio de pastillas delanteras y rectificado de discos"
-          rows={2}
+          rows={1}
           className={`${campo} resize-y`}
         />
         <input
