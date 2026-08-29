@@ -11,6 +11,62 @@ import {
 type Mensaje = { rol: "usuario" | "asistente"; texto: string };
 type Conversacion = { id: string; titulo: string; updatedAt: Date };
 
+function Lista({
+  conversaciones,
+  activa,
+  nueva,
+  abrir,
+  borrar,
+}: {
+  conversaciones: Conversacion[];
+  activa: string | null;
+  nueva: () => void;
+  abrir: (id: string) => void;
+  borrar: (id: string) => void;
+}) {
+  return (
+    <>
+      <button
+        onClick={nueva}
+        className="w-full rounded-lg border border-border px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
+      >
+        Nueva consulta
+      </button>
+
+      <ul className="mt-4 flex flex-col gap-1">
+        {conversaciones.map((c) => (
+          <li key={c.id} className="group flex items-center gap-1">
+            <button
+              onClick={() => abrir(c.id)}
+              className={`min-w-0 flex-1 truncate rounded-lg px-4 py-2 text-left text-[14px] transition-colors ${
+                activa === c.id
+                  ? "bg-foreground/10 text-foreground"
+                  : "text-muted-foreground hover:bg-background hover:text-foreground"
+              }`}
+            >
+              {c.titulo}
+            </button>
+            <button
+              onClick={() => borrar(c.id)}
+              aria-label="Borrar conversación"
+              className="shrink-0 rounded-lg px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus:opacity-100"
+            >
+              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                <path
+                  d="M6 6l8 8M14 6l-8 8"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 /**
  * Conversación con el asistente del taller: se puede escribir o dictar, y
  * cada respuesta se lee en voz alta para que el mecánico la escuche con
@@ -57,12 +113,23 @@ export function ChatAsistente({
       ? parseFloat(getComputedStyle(main).paddingBottom)
       : 0;
     function actualizar() {
-      const arriba = contenedor!.getBoundingClientRect().top;
-      setAlto(vv!.height - arriba - abajo);
+      // rAF: en Android el resize/scroll del visualViewport puede
+      // dispararse antes de que el layout termine de asentarse tras
+      // la animación del teclado — leer el rect un frame después
+      // evita el hueco vacío que se veía con el valor viejo.
+      requestAnimationFrame(() => {
+        if (!contenedor) return;
+        const arriba = contenedor.getBoundingClientRect().top;
+        setAlto(vv!.height - arriba - abajo);
+      });
     }
     actualizar();
     vv.addEventListener("resize", actualizar);
-    return () => vv.removeEventListener("resize", actualizar);
+    vv.addEventListener("scroll", actualizar);
+    return () => {
+      vv.removeEventListener("resize", actualizar);
+      vv.removeEventListener("scroll", actualizar);
+    };
   }, []);
 
   async function abrir(id: string) {
@@ -163,48 +230,6 @@ export function ChatAsistente({
     }
   }
 
-  const Lista = () => (
-    <>
-      <button
-        onClick={nueva}
-        className="w-full rounded-lg border border-border px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
-      >
-        Nueva consulta
-      </button>
-
-      <ul className="mt-4 flex flex-col gap-1">
-        {conversaciones.map((c) => (
-          <li key={c.id} className="group flex items-center gap-1">
-            <button
-              onClick={() => abrir(c.id)}
-              className={`min-w-0 flex-1 truncate rounded-lg px-4 py-2 text-left text-[14px] transition-colors ${
-                activa === c.id
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
-            >
-              {c.titulo}
-            </button>
-            <button
-              onClick={() => borrar(c.id)}
-              aria-label="Borrar conversación"
-              className="shrink-0 rounded-lg px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus:opacity-100"
-            >
-              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                <path
-                  d="M6 6l8 8M14 6l-8 8"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-
   return (
     <div
       ref={raizRef}
@@ -213,7 +238,13 @@ export function ChatAsistente({
     >
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
-        <Lista />
+        <Lista
+          conversaciones={conversaciones}
+          activa={activa}
+          nueva={nueva}
+          abrir={abrir}
+          borrar={borrar}
+        />
       </aside>
 
       {/* Cajón de consultas en móvil */}
@@ -225,7 +256,13 @@ export function ChatAsistente({
             className="absolute inset-0 bg-black/60"
           />
           <div className="scroll-discreto absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-border bg-card p-4">
-            <Lista />
+            <Lista
+          conversaciones={conversaciones}
+          activa={activa}
+          nueva={nueva}
+          abrir={abrir}
+          borrar={borrar}
+        />
           </div>
         </div>
       )}
