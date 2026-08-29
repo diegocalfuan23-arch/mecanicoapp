@@ -778,7 +778,7 @@ function Cerrar({
   return (
     <form
       onSubmit={enviar}
-      className="mt-4 rounded-lg border border-border bg-background p-4 pb-24 sm:pb-4"
+      className="mt-4 rounded-lg border border-border bg-background p-4"
     >
       <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
         Datos del vehículo
@@ -1103,11 +1103,14 @@ function Cerrar({
 
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
-      {/* En móvil, la barra de acciones queda fija al fondo de la
-          pantalla: sin esto había que hacer scroll por toda la
-          sección de cobro solo para llegar a "Cerrar orden". Desde
-          sm: hay espacio de sobra y vuelve al flujo normal. */}
-      <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-4 border-t border-border bg-background p-4 sm:relative sm:inset-auto sm:z-auto sm:mt-4 sm:border-t-0 sm:bg-transparent sm:p-0">
+      {/* En móvil, la barra de acciones queda pegada al fondo de la
+          pantalla al hacer scroll: sin esto había que bajar por toda
+          la sección de cobro solo para llegar a "Cerrar orden".
+          sticky (no fixed) para que se ancle al scroll real del
+          panel — <main> tiene su propio overflow-y-auto, así que un
+          "fixed" queda mal alineado con lo que realmente scrollea.
+          Desde sm: hay espacio de sobra y vuelve al flujo normal. */}
+      <div className="sticky bottom-0 -mx-4 z-10 mt-4 flex flex-wrap items-center gap-4 border-t border-border bg-background p-4 sm:relative sm:inset-auto sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0">
         <button
           type="submit"
           disabled={enviando}
@@ -1633,55 +1636,63 @@ export function ListaOrdenes({
                   )}
                 </div>
 
-                <div className="mt-4 flex-1">
-                  {o.fotos.length > 0 && (
-                    <div
-                      className="mb-3 flex flex-wrap gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {o.fotos.map((url) => (
-                        <a key={url} href={url} target="_blank" rel="noreferrer">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt="Estado del vehículo"
-                            className="size-20 rounded-lg border border-border object-cover"
-                          />
-                        </a>
-                      ))}
+                {/* Se oculta mientras se edita: los mismos datos ya
+                    están editables en el formulario de abajo, verlos
+                    dos veces solo alargaba la tarjeta sin aportar
+                    nada nuevo. */}
+                {!editando && (
+                  <>
+                    <div className="mt-4 flex-1">
+                      {o.fotos.length > 0 && (
+                        <div
+                          className="mb-3 flex flex-wrap gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {o.fotos.map((url) => (
+                            <a key={url} href={url} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={url}
+                                alt="Estado del vehículo"
+                                className="size-20 rounded-lg border border-border object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <div className="space-y-1">
+                        {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
+                        {o.diagnostico && (
+                          <p className="text-[15px] text-muted-foreground">
+                            {o.diagnostico}
+                          </p>
+                        )}
+                        {o.descripcion && (
+                          <p className="text-[14px] text-muted-foreground">
+                            {o.descripcion}
+                          </p>
+                        )}
+                        {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                          <p className="text-[15px]">
+                            <span className="text-muted-foreground">
+                              El auto no está aquí, esperando:{" "}
+                            </span>
+                            {o.esperaDetalle}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="space-y-1">
-                    {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
-                    {o.diagnostico && (
-                      <p className="text-[15px] text-muted-foreground">
-                        {o.diagnostico}
-                      </p>
-                    )}
-                    {o.descripcion && (
-                      <p className="text-[14px] text-muted-foreground">
-                        {o.descripcion}
-                      </p>
-                    )}
-                    {o.estado === "esperando_repuesto" && o.esperaDetalle && (
-                      <p className="text-[15px]">
-                        <span className="text-muted-foreground">
-                          El auto no está aquí, esperando:{" "}
-                        </span>
-                        {o.esperaDetalle}
-                      </p>
-                    )}
-                  </div>
-                </div>
 
-                <p className="mt-4 text-[13px] text-muted-foreground">
-                  {o.propietario ?? "Sin dueño registrado"}
-                  <br />
-                  {fecha(o.fecha)}
-                  {o.kilometraje
-                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                    : ""}
-                </p>
+                    <p className="mt-4 text-[13px] text-muted-foreground">
+                      {o.propietario ?? "Sin dueño registrado"}
+                      <br />
+                      {fecha(o.fecha)}
+                      {o.kilometraje
+                        ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                        : ""}
+                    </p>
+                  </>
+                )}
 
                 {o.total > 0 && (
                   <div className="mt-4 border-t border-border pt-4">
