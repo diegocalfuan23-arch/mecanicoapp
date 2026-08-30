@@ -75,6 +75,8 @@ export function EditarOrden({
   const [cargoTraslado, setCargoTraslado] = useState("");
   const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(false);
   const [mostrarServicios, setMostrarServicios] = useState(false);
+  const [mostrarContexto, setMostrarContexto] = useState(false);
+  const [mostrarCobro, setMostrarCobro] = useState(false);
   const [estadoPago, setEstadoPago] = useState("pagado");
   const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
@@ -199,114 +201,149 @@ export function EditarOrden({
   }
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-6">
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Datos del vehículo
-        </p>
-        <label className="block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Qué reporta el cliente</span>
-            <Dictar
-              onTexto={(texto) =>
-                setSintoma((a) => (a ? `${a} ${texto}` : texto))
-              }
+    <form onSubmit={enviar} className="flex flex-col gap-5">
+      {/* Contexto: lo que ya se registró al abrir la orden (síntoma, km,
+          técnico, diagnóstico) no compite por atención acá — vive
+          colapsado en una sola línea, se abre solo si de verdad hace
+          falta corregir algo. */}
+      <div className="rounded-xl border border-border/60">
+        <button
+          type="button"
+          onClick={() => setMostrarContexto((a) => !a)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        >
+          <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
+            {sintoma ? `"${sintoma}"` : "Sin síntoma registrado"}
+            {kilometraje && ` · ${miles(kilometraje)} km`}
+            {" · "}
+            {tecnicos.find((t) => t.id === tecnicoId)?.nombre ?? "Sin técnico"}
+          </span>
+          <svg
+            viewBox="0 0 20 20"
+            className={`size-4 shrink-0 text-muted-foreground transition-transform ${mostrarContexto ? "rotate-90" : ""}`}
+            aria-hidden
+          >
+            <path
+              d="M7 5l6 5-6 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
-          </div>
-          <textarea
-            value={sintoma}
-            onChange={(e) => setSintoma(e.target.value)}
-            onBlur={guardarAbierta}
-            placeholder="Suena adelante al frenar"
-            rows={1}
-            className={`${campoBase()} resize-y bg-card`}
-          />
-        </label>
+          </svg>
+        </button>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
-              Kilometraje
-            </span>
-            <input
-              value={miles(kilometraje)}
-              onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
-              onBlur={guardarAbierta}
-              placeholder="128.500"
-              inputMode="numeric"
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
+        {mostrarContexto && (
+          <div className="border-t border-border/60 p-4 pt-3">
+            <label className="block">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[13px] font-medium">
+                  Qué reporta el cliente
+                </span>
+                <Dictar
+                  onTexto={(texto) =>
+                    setSintoma((a) => (a ? `${a} ${texto}` : texto))
+                  }
+                />
+              </div>
+              <textarea
+                value={sintoma}
+                onChange={(e) => setSintoma(e.target.value)}
+                onBlur={guardarAbierta}
+                placeholder="Suena adelante al frenar"
+                rows={1}
+                className={`${campoBase()} resize-y bg-card`}
+              />
+            </label>
 
-          {tecnicos.length > 0 && (
-            <div>
-              <span className="mb-2 block text-[13px] font-medium">
-                Técnico a cargo
-              </span>
-              <Selector
-                value={tecnicoId}
-                onChange={async (valor) => {
-                  setTecnicoId(valor);
-                  await editarOrdenAbierta(orden.id, {
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium">
+                  Kilometraje
+                </span>
+                <input
+                  value={miles(kilometraje)}
+                  onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
+                  onBlur={guardarAbierta}
+                  placeholder="128.500"
+                  inputMode="numeric"
+                  className={`${campoBase()} bg-card`}
+                />
+              </label>
+
+              {tecnicos.length > 0 && (
+                <div>
+                  <span className="mb-2 block text-[13px] font-medium">
+                    Técnico a cargo
+                  </span>
+                  <Selector
+                    value={tecnicoId}
+                    onChange={async (valor) => {
+                      setTecnicoId(valor);
+                      await editarOrdenAbierta(orden.id, {
+                        sintoma,
+                        kilometraje,
+                        diagnostico,
+                        descripcion,
+                        tecnicoId: valor,
+                      });
+                      router.refresh();
+                    }}
+                    className="bg-card"
+                    placeholder="Sin asignar"
+                    opciones={tecnicos.map((t) => ({
+                      valor: t.id,
+                      texto: t.nombre,
+                    }))}
+                  />
+                </div>
+              )}
+            </div>
+
+            <label className="mt-4 block">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[13px] font-medium">Diagnóstico</span>
+                <Dictar
+                  onTexto={(texto) =>
+                    setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
+                  }
+                />
+              </div>
+              <textarea
+                value={diagnostico}
+                onChange={(e) => setDiagnostico(e.target.value)}
+                onBlur={guardarAbierta}
+                placeholder="Retenes de la caja desgastados, causando la fuga"
+                rows={1}
+                className={`${campoBase()} resize-y bg-card`}
+              />
+            </label>
+
+            <div className="mt-4">
+              <FotosVehiculo
+                fotos={fotos}
+                onCambio={(f) => {
+                  setFotos(f);
+                  editarOrdenAbierta(orden.id, {
                     sintoma,
                     kilometraje,
                     diagnostico,
                     descripcion,
-                    tecnicoId: valor,
+                    tecnicoId,
+                    fotos: f,
                   });
                   router.refresh();
                 }}
-                className="bg-card"
-                placeholder="Sin asignar"
-                opciones={tecnicos.map((t) => ({
-                  valor: t.id,
-                  texto: t.nombre,
-                }))}
+                onError={setError}
               />
             </div>
-          )}
-        </div>
-
-        <label className="mt-4 block">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Diagnóstico</span>
-            <Dictar
-              onTexto={(texto) =>
-                setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
-              }
-            />
           </div>
-          <textarea
-            value={diagnostico}
-            onChange={(e) => setDiagnostico(e.target.value)}
-            onBlur={guardarAbierta}
-            placeholder="Retenes de la caja desgastados, causando la fuga"
-            rows={1}
-            className={`${campoBase()} resize-y bg-card`}
-          />
-        </label>
-
-        <div className="mt-4">
-          <FotosVehiculo
-            fotos={fotos}
-            onCambio={(f) => {
-              setFotos(f);
-              editarOrdenAbierta(orden.id, {
-                sintoma,
-                kilometraje,
-                diagnostico,
-                descripcion,
-                tecnicoId,
-                fotos: f,
-              });
-              router.refresh();
-            }}
-            onError={setError}
-          />
-        </div>
+        )}
       </div>
 
-      <div className="rounded-lg border border-border bg-background p-4">
+      {/* El foco real de la pantalla: qué se hizo, línea por línea. */}
+      <div>
         <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
           Qué se hizo
         </p>
@@ -314,211 +351,245 @@ export function EditarOrden({
           ordenId={orden.id}
           items={procedimientos}
           onCambio={setProcedimientos}
+          mostrarTotal={false}
         />
+
+        {tieneImpresion && catalogoServicios.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setMostrarServicios((a) => !a)}
+            className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/60 px-4 py-2.5 text-left text-[13px] text-muted-foreground"
+          >
+            <span>
+              Servicios realizados
+              {servicios.length > 0 && (
+                <span className="ml-2 text-foreground">
+                  {servicios.length} marcados
+                </span>
+              )}
+            </span>
+            <svg
+              viewBox="0 0 20 20"
+              className={`size-4 shrink-0 transition-transform ${mostrarServicios ? "rotate-180" : ""}`}
+              aria-hidden
+            >
+              <path
+                d="M5 7.5l5 5 5-5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+        {mostrarServicios && (
+          <div className="mt-2 flex flex-col gap-4 rounded-lg border border-border/60 bg-card p-4">
+            {Array.from(new Set(catalogoServicios.map((s) => s.grupo))).map(
+              (grupo) => (
+                <div key={grupo}>
+                  <p className="mb-2 text-[12px] font-medium text-muted-foreground">
+                    {grupo}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {catalogoServicios
+                      .filter((s) => s.grupo === grupo)
+                      .map((s) => (
+                        <label
+                          key={s.id}
+                          className="flex items-center gap-2 text-[14px]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={servicios.includes(s.id)}
+                            onChange={() => alternarServicio(s.id)}
+                            className="size-4 accent-primary"
+                          />
+                          <span className="text-muted-foreground">
+                            {s.codigo}
+                          </span>
+                          {s.etiqueta}
+                        </label>
+                      ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Cobro
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* "Lleva gastado" fusionado con el cobro: el número grande ES el
+          total, tocar despliega mano de obra / repuestos / traslado /
+          pago / IVA en el mismo bloque. */}
+      <div className="overflow-hidden rounded-xl border border-primary/30">
+        <button
+          type="button"
+          onClick={() => setMostrarCobro((a) => !a)}
+          className="flex w-full items-center justify-between gap-3 bg-primary/10 px-4 py-4 text-left"
+        >
           <div>
-            <span className="mb-2 block text-[13px] font-medium">
-              Mano de obra
-            </span>
-            <p className={`${campoBase()} bg-card text-muted-foreground`}>
-              {manoObra ? pesos(Number(manoObra)) : "—"}
-            </p>
-          </div>
-          {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
-            <label className="block">
-              <span className="mb-2 block text-[13px] font-medium">
-                Mano de obra freno
-              </span>
-              <input
-                value={miles(manoObraFreno)}
-                onChange={(e) =>
-                  setManoObraFreno(soloDigitos(e.target.value))
-                }
-                placeholder="15.000"
-                inputMode="numeric"
-                autoFocus
-                className={`${campoBase()} bg-card`}
-              />
-            </label>
-          )}
-          {/* Cuando se detallan los repuestos cotizados al abrir
-              (Plan Serviteca), el cobro sale de ellos en vez de la
-              suma de procedimientos. */}
-          {piezas.length === 0 && (
-            <div>
-              <span className="mb-2 block text-[13px] font-medium">
-                Repuestos
-              </span>
-              <p className={`${campoBase()} bg-card text-muted-foreground`}>
-                {repuestos ? pesos(Number(repuestos)) : "—"}
-              </p>
+            <span className="text-[13px] text-primary/80">Lleva gastado</span>
+            <div className="text-2xl font-bold text-primary tabular-nums">
+              {pesos(total)}
             </div>
-          )}
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
-              Cargo por ir a comprar
-            </span>
-            <input
-              value={miles(cargoTraslado)}
-              onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
-              placeholder="3.000"
-              inputMode="numeric"
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
-          <div>
-            <span className="mb-2 block text-[13px] font-medium">Pago</span>
-            <Selector
-              value={estadoPago}
-              onChange={setEstadoPago}
-              className="bg-card"
-              opciones={[
-                { valor: "pagado", texto: "Pagado" },
-                { valor: "fiado", texto: "Fiado" },
-              ]}
-            />
           </div>
-        </div>
-
-        {/* Campos que casi nunca hacen falta, escondidos detrás de un
-            enlace — pedido de Tío Lalo: el formulario se sentía largo
-            con todo siempre visible. */}
-        <div className="mt-3 flex flex-wrap gap-4">
-          {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
-            <button
-              type="button"
-              onClick={() => setMostrarManoObraFreno(true)}
-              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          <span className="flex items-center gap-1 text-[12px] text-primary/80">
+            {mostrarCobro ? "Ocultar detalle" : "Ver detalle"}
+            <svg
+              viewBox="0 0 20 20"
+              className={`size-4 transition-transform ${mostrarCobro ? "rotate-180" : ""}`}
+              aria-hidden
             >
-              + Mano de obra freno
-            </button>
-          )}
-        </div>
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+        </button>
 
-        {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
-            dato saltando a Pagos después a anotarlo aparte. */}
-        {estadoPago === "fiado" && (
-          <label className="mt-4 block">
-            <span className="mb-2 block text-[13px] font-medium">
-              ¿Abonó algo ahora? (opcional)
-            </span>
-            <input
-              value={miles(montoAbonado)}
-              onChange={(e) => setMontoAbonado(soloDigitos(e.target.value))}
-              placeholder="40.000"
-              inputMode="numeric"
-              className={`${campoBase()} bg-card`}
-            />
-          </label>
-        )}
-
-        {/* Checklist de servicios propio del taller — Plan Serviteca,
-            pedido por Senna, configurable en /panel/servicios. Aparte
-            del texto libre de arriba: sirve para marcar rápido lo
-            típico (cambio de aceite, balanceo...) sin escribirlo. */}
-        {tieneImpresion && catalogoServicios.length > 0 && (
-          <div className="mt-4 rounded-lg border border-border bg-card p-4">
-            <button
-              type="button"
-              onClick={() => setMostrarServicios((a) => !a)}
-              className="flex w-full items-center justify-between text-left text-[13px] font-medium"
-            >
-              <span>
-                Servicios realizados
-                {servicios.length > 0 && (
-                  <span className="ml-2 font-normal text-muted-foreground">
-                    {servicios.length} marcados
+        {mostrarCobro && (
+          <div className="border-t border-primary/20 p-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Mano de obra
+                </span>
+                <p className={`${campoBase()} bg-card text-muted-foreground`}>
+                  {manoObra ? pesos(Number(manoObra)) : "—"}
+                </p>
+              </div>
+              {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
+                <label className="block">
+                  <span className="mb-2 block text-[13px] font-medium">
+                    Mano de obra freno
                   </span>
-                )}
-              </span>
-              <svg
-                viewBox="0 0 20 20"
-                className={`size-4 shrink-0 text-muted-foreground transition-transform ${mostrarServicios ? "rotate-180" : ""}`}
-                aria-hidden
-              >
-                <path
-                  d="M5 7.5l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <input
+                    value={miles(manoObraFreno)}
+                    onChange={(e) =>
+                      setManoObraFreno(soloDigitos(e.target.value))
+                    }
+                    placeholder="15.000"
+                    inputMode="numeric"
+                    autoFocus
+                    className={`${campoBase()} bg-card`}
+                  />
+                </label>
+              )}
+              {/* Cuando se detallan los repuestos cotizados al abrir
+                  (Plan Serviteca), el cobro sale de ellos en vez de la
+                  suma de procedimientos. */}
+              {piezas.length === 0 && (
+                <div>
+                  <span className="mb-2 block text-[13px] font-medium">
+                    Repuestos
+                  </span>
+                  <p className={`${campoBase()} bg-card text-muted-foreground`}>
+                    {repuestos ? pesos(Number(repuestos)) : "—"}
+                  </p>
+                </div>
+              )}
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium">
+                  Cargo por ir a comprar
+                </span>
+                <input
+                  value={miles(cargoTraslado)}
+                  onChange={(e) =>
+                    setCargoTraslado(soloDigitos(e.target.value))
+                  }
+                  placeholder="3.000"
+                  inputMode="numeric"
+                  className={`${campoBase()} bg-card`}
                 />
-              </svg>
-            </button>
-            {mostrarServicios && (
-              <div className="mt-3 flex flex-col gap-4">
-                {Array.from(new Set(catalogoServicios.map((s) => s.grupo))).map(
-                  (grupo) => (
-                    <div key={grupo}>
-                      <p className="mb-2 text-[12px] font-medium text-muted-foreground">
-                        {grupo}
-                      </p>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {catalogoServicios
-                          .filter((s) => s.grupo === grupo)
-                          .map((s) => (
-                            <label
-                              key={s.id}
-                              className="flex items-center gap-2 text-[14px]"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={servicios.includes(s.id)}
-                                onChange={() => alternarServicio(s.id)}
-                                className="size-4 accent-primary"
-                              />
-                              <span className="text-muted-foreground">
-                                {s.codigo}
-                              </span>
-                              {s.etiqueta}
-                            </label>
-                          ))}
-                      </div>
-                    </div>
-                  )
+              </label>
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Pago
+                </span>
+                <Selector
+                  value={estadoPago}
+                  onChange={setEstadoPago}
+                  className="bg-card"
+                  opciones={[
+                    { valor: "pagado", texto: "Pagado" },
+                    { valor: "fiado", texto: "Fiado" },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* Campos que casi nunca hacen falta, escondidos detrás de un
+                enlace — pedido de Tío Lalo: el formulario se sentía largo
+                con todo siempre visible. */}
+            <div className="mt-3 flex flex-wrap gap-4">
+              {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
+                <button
+                  type="button"
+                  onClick={() => setMostrarManoObraFreno(true)}
+                  className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                >
+                  + Mano de obra freno
+                </button>
+              )}
+            </div>
+
+            {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
+                dato saltando a Pagos después a anotarlo aparte. */}
+            {estadoPago === "fiado" && (
+              <label className="mt-4 block">
+                <span className="mb-2 block text-[13px] font-medium">
+                  ¿Abonó algo ahora? (opcional)
+                </span>
+                <input
+                  value={miles(montoAbonado)}
+                  onChange={(e) =>
+                    setMontoAbonado(soloDigitos(e.target.value))
+                  }
+                  placeholder="40.000"
+                  inputMode="numeric"
+                  className={`${campoBase()} bg-card`}
+                />
+              </label>
+            )}
+
+            <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
+              <input
+                type="checkbox"
+                checked={conIva}
+                onChange={(e) => setConIva(e.target.checked)}
+                className="size-4 accent-primary"
+              />
+              <span className="text-[15px]">Sumar IVA (19%)</span>
+            </label>
+
+            {neto > 0 && (
+              <div className="mt-4 flex flex-col gap-1 text-[15px]">
+                {conIva && (
+                  <>
+                    <p className="flex justify-between text-muted-foreground">
+                      <span>Neto</span>
+                      <span className="tabular-nums">{pesos(neto)}</span>
+                    </p>
+                    <p className="flex justify-between text-muted-foreground">
+                      <span>IVA 19%</span>
+                      <span className="tabular-nums">{pesos(iva)}</span>
+                    </p>
+                  </>
                 )}
+                <p className="flex justify-between border-t border-border pt-2">
+                  <span>Total</span>
+                  <span className="text-lg font-semibold tabular-nums">
+                    {pesos(total)}
+                  </span>
+                </p>
               </div>
             )}
-          </div>
-        )}
-
-        <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
-          <input
-            type="checkbox"
-            checked={conIva}
-            onChange={(e) => setConIva(e.target.checked)}
-            className="size-4 accent-primary"
-          />
-          <span className="text-[15px]">Sumar IVA (19%)</span>
-        </label>
-
-        {neto > 0 && (
-          <div className="mt-4 flex flex-col gap-1 text-[15px]">
-            {conIva && (
-              <>
-                <p className="flex justify-between text-muted-foreground">
-                  <span>Neto</span>
-                  <span className="tabular-nums">{pesos(neto)}</span>
-                </p>
-                <p className="flex justify-between text-muted-foreground">
-                  <span>IVA 19%</span>
-                  <span className="tabular-nums">{pesos(iva)}</span>
-                </p>
-              </>
-            )}
-            <p className="flex justify-between border-t border-border pt-2">
-              <span>Total</span>
-              <span className="text-lg font-semibold tabular-nums">
-                {pesos(total)}
-              </span>
-            </p>
           </div>
         )}
       </div>
