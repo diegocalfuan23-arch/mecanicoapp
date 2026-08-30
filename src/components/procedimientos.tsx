@@ -26,14 +26,10 @@ export function Procedimientos({
   ordenId,
   items,
   onCambio,
-  mostrarTotal = true,
 }: {
   ordenId: string;
   items: Procedimiento[];
   onCambio: React.Dispatch<React.SetStateAction<Procedimiento[]>>;
-  /** El formulario de cierre (/panel/ordenes/[id]) muestra su propio
-   * total fusionado con el cobro — evita mostrarlo dos veces. */
-  mostrarTotal?: boolean;
 }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [descripcion, setDescripcion] = useState("");
@@ -205,16 +201,14 @@ export function Procedimientos({
         )}
       </div>
 
-      {mostrarTotal && (
-        <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
-          <span className="text-[14px] text-muted-foreground">
-            Lleva gastado
-          </span>
-          <span className="text-xl font-semibold tabular-nums text-primary">
-            {pesos(total)}
-          </span>
-        </div>
-      )}
+      <div className="mt-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+        <span className="text-[14px] text-muted-foreground">
+          Lleva gastado
+        </span>
+        <span className="text-xl font-semibold tabular-nums text-primary">
+          {pesos(total)}
+        </span>
+      </div>
     </div>
   );
 }
