@@ -903,106 +903,113 @@ export function ListaOrdenes({
                       ? () => setEditandoDescripcion(o.id)
                       : undefined
                 }
-                className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
-                  puedeVerDetalle || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
+                className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors ${
+                  puedeVerDetalle || puedeEditarDescripcion ? "cursor-pointer hover:border-primary/40" : ""
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[13px] text-muted-foreground">
-                    OT-{o.numero}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                {o.fotos.length > 0 && (
+                  <div
+                    className="relative h-36 shrink-0 bg-background"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {nombreEstado(o.estado)}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-mono font-medium">{o.patente}</span>
-                  {o.marca && (
-                    <span className="text-[14px] text-muted-foreground">
-                      {o.marca} {o.modelo}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-4 flex-1">
-                  {o.fotos.length > 0 && (
-                    <div
-                      className="mb-3 flex flex-wrap gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {o.fotos.map((url) => (
-                        <a key={url} href={url} target="_blank" rel="noreferrer">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt="Estado del vehículo"
-                            className="size-20 rounded-lg border border-border object-cover"
-                          />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
-                    {o.diagnostico && (
-                      <p className="text-[15px] text-muted-foreground">
-                        {o.diagnostico}
-                      </p>
-                    )}
-                    {o.descripcion && (
-                      <p className="text-[14px] text-muted-foreground">
-                        {o.descripcion}
-                      </p>
-                    )}
-                    {o.estado === "esperando_repuesto" && o.esperaDetalle && (
-                      <p className="text-[15px]">
-                        <span className="text-muted-foreground">
-                          El auto no está aquí, esperando:{" "}
-                        </span>
-                        {o.esperaDetalle}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <p className="mt-4 text-[13px] text-muted-foreground">
-                  {o.propietario ?? "Sin dueño registrado"}
-                  <br />
-                  {fecha(o.fecha)}
-                  {o.kilometraje
-                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                    : ""}
-                </p>
-
-                {o.total > 0 && (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="text-2xl font-bold">
-                        {pesos(o.total)}
+                    <a href={o.fotos[0]} target="_blank" rel="noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={o.fotos[0]}
+                        alt="Estado del vehículo"
+                        className="size-full object-cover"
+                      />
+                    </a>
+                    {o.fotos.length > 1 && (
+                      <span className="absolute bottom-2 left-2 rounded-md bg-background/85 px-2 py-1 text-[11px] text-foreground">
+                        {o.fotos.length} fotos
                       </span>
-                      {o.estadoPago !== "pagado" && (
-                        <span className="text-[13px] font-medium text-acento">
-                          Debe {pesos(saldo)}
-                        </span>
-                      )}
-                    </div>
-                    {/* Sin esto, "Debe $X" de un total mayor obliga a
-                        restar de cabeza para saber si ya abonó algo. */}
-                    {o.abonado > 0 && o.estadoPago !== "pagado" && (
-                      <p className="mt-1 text-[13px] text-muted-foreground">
-                        Ya abonó {pesos(o.abonado)}
-                      </p>
                     )}
                   </div>
                 )}
 
-                <div
-                  className="mt-4 flex flex-wrap gap-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[13px] text-muted-foreground">
+                      OT-{o.numero}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                    >
+                      {nombreEstado(o.estado)}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-mono text-lg font-semibold">
+                      {o.patente}
+                    </span>
+                    {o.marca && (
+                      <span className="text-[14px] text-muted-foreground">
+                        {o.marca} {o.modelo}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex-1">
+                    <div className="space-y-1">
+                      {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
+                      {o.diagnostico && (
+                        <p className="text-[15px] text-muted-foreground">
+                          {o.diagnostico}
+                        </p>
+                      )}
+                      {o.descripcion && (
+                        <p className="text-[14px] text-muted-foreground">
+                          {o.descripcion}
+                        </p>
+                      )}
+                      {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                        <p className="text-[15px]">
+                          <span className="text-muted-foreground">
+                            El auto no está aquí, esperando:{" "}
+                          </span>
+                          {o.esperaDetalle}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="mt-4 text-[13px] text-muted-foreground">
+                    {o.propietario ?? "Sin dueño registrado"}
+                    <br />
+                    {fecha(o.fecha)}
+                    {o.kilometraje
+                      ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                      : ""}
+                  </p>
+
+                  {o.total > 0 && (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="text-2xl font-bold">
+                          {pesos(o.total)}
+                        </span>
+                        {o.estadoPago !== "pagado" && (
+                          <span className="text-[13px] font-medium text-acento">
+                            Debe {pesos(saldo)}
+                          </span>
+                        )}
+                      </div>
+                      {/* Sin esto, "Debe $X" de un total mayor obliga a
+                          restar de cabeza para saber si ya abonó algo. */}
+                      {o.abonado > 0 && o.estadoPago !== "pagado" && (
+                        <p className="mt-1 text-[13px] text-muted-foreground">
+                          Ya abonó {pesos(o.abonado)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div
+                    className="mt-4 flex flex-wrap gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                   {tieneImpresion && (
                     <a
                       href={`/imprimir/${o.id}`}
@@ -1070,30 +1077,31 @@ export function ListaOrdenes({
                       )}
                     </>
                   )}
-                </div>
+                  </div>
 
-                {/* stopPropagation: las órdenes Terminadas/Entregadas
-                    abren "Editar descripción" al hacer clic en toda
-                    la tarjeta (más abajo, onClick del <li>) — sin
-                    esto, escribir en el formulario de EsperarRepuesto
-                    burbujeaba hasta la tarjeta y abría ese modal
-                    encima por error. */}
-                {esperando === o.id && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <EsperarRepuesto
-                      ordenId={o.id}
-                      onListo={() => setEsperando(null)}
-                    />
-                  </div>
-                )}
-                {editandoDescripcion === o.id && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <EditarDescripcion
-                      orden={o}
-                      onListo={() => setEditandoDescripcion(null)}
-                    />
-                  </div>
-                )}
+                  {/* stopPropagation: las órdenes Terminadas/Entregadas
+                      abren "Editar descripción" al hacer clic en toda
+                      la tarjeta (más abajo, onClick del <li>) — sin
+                      esto, escribir en el formulario de EsperarRepuesto
+                      burbujeaba hasta la tarjeta y abría ese modal
+                      encima por error. */}
+                  {esperando === o.id && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EsperarRepuesto
+                        ordenId={o.id}
+                        onListo={() => setEsperando(null)}
+                      />
+                    </div>
+                  )}
+                  {editandoDescripcion === o.id && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EditarDescripcion
+                        orden={o}
+                        onListo={() => setEditandoDescripcion(null)}
+                      />
+                    </div>
+                  )}
+                </div>
               </li>
             );
           })}
