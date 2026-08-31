@@ -19,7 +19,6 @@ import { Procedimientos } from "@/components/procedimientos";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
 type Orden = {
@@ -190,16 +189,6 @@ export function EditarOrden({
   const iva = conIva ? Math.round(neto * 0.19) : 0;
   const total = neto + iva;
 
-  // Progreso visible del cierre: diagnóstico anotado, al menos un
-  // procedimiento cargado, y un cobro definido — los 3 hitos que
-  // realmente hacen falta para cerrar la orden sin vueltas.
-  const pasos = [
-    Boolean(diagnostico.trim()),
-    procedimientos.length > 0,
-    neto > 0,
-  ];
-  const progreso = (pasos.filter(Boolean).length / pasos.length) * 100;
-
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -231,16 +220,6 @@ export function EditarOrden({
 
   return (
     <form onSubmit={enviar} className="flex flex-col gap-4">
-      <div>
-        <Progress value={progreso} className="h-[3px]" />
-        {progreso < 100 && (
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            <span className="text-primary">*</span> Completa diagnóstico, qué
-            se hizo y el cobro para avanzar
-          </p>
-        )}
-      </div>
-
       <Seccion numero="01" eyebrow="Información" titulo="Datos del vehículo">
         <div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -560,31 +539,35 @@ export function EditarOrden({
           panel — <main> tiene su propio overflow-y-auto, así que un
           "fixed" queda mal alineado con lo que realmente scrollea.
           Desde sm: hay espacio de sobra y vuelve al flujo normal. */}
-      <div className="sticky bottom-0 -mx-4 z-10 flex flex-wrap items-center gap-4 border-t border-border bg-background p-4 sm:relative sm:inset-auto sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {enviando ? "Guardando…" : "Cerrar orden"}
-        </button>
-        <button
-          type="button"
-          onClick={guardarAbierta}
-          className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-        >
-          Guardar sin cerrar
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push("/panel/ordenes")}
-          className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
-        >
-          Cancelar
-        </button>
-        {guardadoAbierta && (
-          <span className="text-[13px] text-muted-foreground">Guardado</span>
-        )}
+      <div className="sticky bottom-0 -mx-4 z-10 bg-card/95 px-4 pt-3 pb-4 shadow-[0_-12px_30px_rgba(0,0,0,0.35)] backdrop-blur sm:relative sm:inset-auto sm:z-auto sm:mx-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={enviando}
+            className="flex-[1.35] rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {enviando ? "Guardando…" : "Cerrar orden"}
+          </button>
+          <button
+            type="button"
+            onClick={guardarAbierta}
+            className="flex-1 rounded-lg border border-border bg-background px-6 py-2.5 font-medium transition-colors hover:bg-card"
+          >
+            Guardar sin cerrar
+          </button>
+        </div>
+        <div className="mt-2 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push("/panel/ordenes")}
+            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Cancelar
+          </button>
+          {guardadoAbierta && (
+            <span className="text-[13px] text-muted-foreground">Guardado</span>
+          )}
+        </div>
       </div>
     </form>
   );

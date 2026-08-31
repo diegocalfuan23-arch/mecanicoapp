@@ -26,26 +26,17 @@ export default async function DetalleOrden({
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           href="/panel/ordenes"
           className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
-          ← Volver a órdenes
+          ← Volver
         </Link>
-        <div className="mt-2 flex items-center gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">
-            OT-{orden.numero}
-          </h1>
-          <span className="font-mono text-[14px] text-muted-foreground">
-            {orden.patente}
-          </span>
-          {orden.marca && (
-            <span className="text-[14px] text-muted-foreground">
-              {orden.marca} {orden.modelo}
-            </span>
-          )}
-        </div>
+        <span className="text-[13px] text-muted-foreground">
+          OT-{orden.numero} · <span className="font-mono">{orden.patente}</span>
+          {orden.marca && ` · ${orden.marca} ${orden.modelo}`}
+        </span>
       </div>
 
       <EditarOrden
