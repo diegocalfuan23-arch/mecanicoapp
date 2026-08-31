@@ -16,6 +16,11 @@ import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
 import { Procedimientos } from "@/components/procedimientos";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 type Orden = {
   id: string;
@@ -43,12 +48,28 @@ type Orden = {
 type Tecnico = { id: string; nombre: string };
 type Servicio = { id: string; grupo: string; codigo: string; etiqueta: string };
 
-function campoBase(error?: boolean) {
-  return `w-full rounded-lg border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
-    error
-      ? "border-destructive/70 focus:border-destructive focus:ring-destructive/30"
-      : "border-border focus:border-primary/60 focus:ring-primary/30"
-  }`;
+function Seccion({
+  numero,
+  titulo,
+  eyebrow,
+  children,
+}: {
+  numero: string;
+  titulo: string;
+  eyebrow: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="ring-border/60">
+      <CardHeader className="border-b border-border/60 pb-4">
+        <span className="text-[11px] font-bold tracking-wider text-primary uppercase">
+          {numero} · {eyebrow}
+        </span>
+        <h2 className="text-base font-semibold tracking-tight">{titulo}</h2>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
+    </Card>
+  );
 }
 
 export function EditarOrden({
@@ -169,6 +190,16 @@ export function EditarOrden({
   const iva = conIva ? Math.round(neto * 0.19) : 0;
   const total = neto + iva;
 
+  // Progreso visible del cierre: diagnóstico anotado, al menos un
+  // procedimiento cargado, y un cobro definido — los 3 hitos que
+  // realmente hacen falta para cerrar la orden sin vueltas.
+  const pasos = [
+    Boolean(diagnostico.trim()),
+    procedimientos.length > 0,
+    neto > 0,
+  ];
+  const progreso = (pasos.filter(Boolean).length / pasos.length) * 100;
+
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -199,14 +230,23 @@ export function EditarOrden({
   }
 
   return (
-    <form onSubmit={enviar} className="flex flex-col gap-6">
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Datos del vehículo
-        </p>
-        <label className="block">
+    <form onSubmit={enviar} className="flex flex-col gap-4">
+      <div>
+        <Progress value={progreso} className="h-[3px]" />
+        {progreso < 100 && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            <span className="text-primary">*</span> Completa diagnóstico, qué
+            se hizo y el cobro para avanzar
+          </p>
+        )}
+      </div>
+
+      <Seccion numero="01" eyebrow="Información" titulo="Datos del vehículo">
+        <div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Qué reporta el cliente</span>
+            <Label className="text-[13px] font-medium">
+              Qué reporta el cliente
+            </Label>
             <Dictar
               onTexto={(texto) =>
                 setSintoma((a) => (a ? `${a} ${texto}` : texto))
@@ -219,30 +259,30 @@ export function EditarOrden({
             onBlur={guardarAbierta}
             placeholder="Suena adelante al frenar"
             rows={1}
-            className={`${campoBase()} resize-y bg-card`}
+            className="w-full resize-y rounded-lg border border-border bg-input/30 px-3 py-2 text-[15px] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
           />
-        </label>
+        </div>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="mb-2 block text-[13px] font-medium">
               Kilometraje
-            </span>
-            <input
+            </Label>
+            <Input
               value={miles(kilometraje)}
               onChange={(e) => setKilometraje(soloDigitos(e.target.value))}
               onBlur={guardarAbierta}
               placeholder="128.500"
               inputMode="numeric"
-              className={`${campoBase()} bg-card`}
+              className="rounded-lg"
             />
-          </label>
+          </div>
 
           {tecnicos.length > 0 && (
             <div>
-              <span className="mb-2 block text-[13px] font-medium">
+              <Label className="mb-2 block text-[13px] font-medium">
                 Técnico a cargo
-              </span>
+              </Label>
               <Selector
                 value={tecnicoId}
                 onChange={async (valor) => {
@@ -256,7 +296,6 @@ export function EditarOrden({
                   });
                   router.refresh();
                 }}
-                className="bg-card"
                 placeholder="Sin asignar"
                 opciones={tecnicos.map((t) => ({
                   valor: t.id,
@@ -267,9 +306,9 @@ export function EditarOrden({
           )}
         </div>
 
-        <label className="mt-4 block">
+        <div>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[13px] font-medium">Diagnóstico</span>
+            <Label className="text-[13px] font-medium">Diagnóstico</Label>
             <Dictar
               onTexto={(texto) =>
                 setDiagnostico((a) => (a ? `${a} ${texto}` : texto))
@@ -282,60 +321,52 @@ export function EditarOrden({
             onBlur={guardarAbierta}
             placeholder="Retenes de la caja desgastados, causando la fuga"
             rows={1}
-            className={`${campoBase()} resize-y bg-card`}
-          />
-        </label>
-
-        <div className="mt-4">
-          <FotosVehiculo
-            fotos={fotos}
-            onCambio={(f) => {
-              setFotos(f);
-              editarOrdenAbierta(orden.id, {
-                sintoma,
-                kilometraje,
-                diagnostico,
-                descripcion,
-                tecnicoId,
-                fotos: f,
-              });
-              router.refresh();
-            }}
-            onError={setError}
+            className="w-full resize-y rounded-lg border border-border bg-input/30 px-3 py-2 text-[15px] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
           />
         </div>
-      </div>
 
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Qué se hizo
-        </p>
+        <FotosVehiculo
+          fotos={fotos}
+          onCambio={(f) => {
+            setFotos(f);
+            editarOrdenAbierta(orden.id, {
+              sintoma,
+              kilometraje,
+              diagnostico,
+              descripcion,
+              tecnicoId,
+              fotos: f,
+            });
+            router.refresh();
+          }}
+          onError={setError}
+        />
+      </Seccion>
+
+      <Seccion numero="02" eyebrow="Registro" titulo="Qué se hizo">
         <Procedimientos
           ordenId={orden.id}
           items={procedimientos}
           onCambio={setProcedimientos}
         />
-      </div>
+      </Seccion>
 
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="mb-3 text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Cobro
-        </p>
+      <Seccion numero="03" eyebrow="Total" titulo="Cobro">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div>
-            <span className="mb-2 block text-[13px] font-medium">
+            <Label className="mb-2 block text-[13px] font-medium">
               Mano de obra
-            </span>
-            <p className={`${campoBase()} bg-card text-muted-foreground`}>
+            </Label>
+            <p className="flex h-9 items-center rounded-lg border border-border bg-input/30 px-3 text-[15px] text-muted-foreground">
               {manoObra ? pesos(Number(manoObra)) : "—"}
             </p>
           </div>
           {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
-            <label className="block">
-              <span className="mb-2 block text-[13px] font-medium">
+            <div>
+              <Label className="mb-2 block text-[13px] font-medium">
                 Mano de obra freno
-              </span>
-              <input
+              </Label>
+              <Input
                 value={miles(manoObraFreno)}
                 onChange={(e) =>
                   setManoObraFreno(soloDigitos(e.target.value))
@@ -343,41 +374,40 @@ export function EditarOrden({
                 placeholder="15.000"
                 inputMode="numeric"
                 autoFocus
-                className={`${campoBase()} bg-card`}
+                className="rounded-lg"
               />
-            </label>
+            </div>
           )}
           {/* Cuando se detallan los repuestos cotizados al abrir
               (Plan Serviteca), el cobro sale de ellos en vez de la
               suma de procedimientos. */}
           {piezas.length === 0 && (
             <div>
-              <span className="mb-2 block text-[13px] font-medium">
+              <Label className="mb-2 block text-[13px] font-medium">
                 Repuestos
-              </span>
-              <p className={`${campoBase()} bg-card text-muted-foreground`}>
+              </Label>
+              <p className="flex h-9 items-center rounded-lg border border-border bg-input/30 px-3 text-[15px] text-muted-foreground">
                 {repuestos ? pesos(Number(repuestos)) : "—"}
               </p>
             </div>
           )}
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium">
+          <div>
+            <Label className="mb-2 block text-[13px] font-medium">
               Cargo por ir a comprar
-            </span>
-            <input
+            </Label>
+            <Input
               value={miles(cargoTraslado)}
               onChange={(e) => setCargoTraslado(soloDigitos(e.target.value))}
               placeholder="3.000"
               inputMode="numeric"
-              className={`${campoBase()} bg-card`}
+              className="rounded-lg"
             />
-          </label>
+          </div>
           <div>
-            <span className="mb-2 block text-[13px] font-medium">Pago</span>
+            <Label className="mb-2 block text-[13px] font-medium">Pago</Label>
             <Selector
               value={estadoPago}
               onChange={setEstadoPago}
-              className="bg-card"
               opciones={[
                 { valor: "pagado", texto: "Pagado" },
                 { valor: "fiado", texto: "Fiado" },
@@ -389,33 +419,31 @@ export function EditarOrden({
         {/* Campos que casi nunca hacen falta, escondidos detrás de un
             enlace — pedido de Tío Lalo: el formulario se sentía largo
             con todo siempre visible. */}
-        <div className="mt-3 flex flex-wrap gap-4">
-          {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
-            <button
-              type="button"
-              onClick={() => setMostrarManoObraFreno(true)}
-              className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              + Mano de obra freno
-            </button>
-          )}
-        </div>
+        {tieneImpresion && !mostrarManoObraFreno && !manoObraFreno && (
+          <button
+            type="button"
+            onClick={() => setMostrarManoObraFreno(true)}
+            className="self-start text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            + Mano de obra freno
+          </button>
+        )}
 
         {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese
             dato saltando a Pagos después a anotarlo aparte. */}
         {estadoPago === "fiado" && (
-          <label className="mt-4 block">
-            <span className="mb-2 block text-[13px] font-medium">
+          <div>
+            <Label className="mb-2 block text-[13px] font-medium">
               ¿Abonó algo ahora? (opcional)
-            </span>
-            <input
+            </Label>
+            <Input
               value={miles(montoAbonado)}
               onChange={(e) => setMontoAbonado(soloDigitos(e.target.value))}
               placeholder="40.000"
               inputMode="numeric"
-              className={`${campoBase()} bg-card`}
+              className="rounded-lg"
             />
-          </label>
+          </div>
         )}
 
         {/* Checklist de servicios propio del taller — Plan Serviteca,
@@ -423,18 +451,18 @@ export function EditarOrden({
             del texto libre de arriba: sirve para marcar rápido lo
             típico (cambio de aceite, balanceo...) sin escribirlo. */}
         {tieneImpresion && catalogoServicios.length > 0 && (
-          <div className="mt-4 rounded-lg border border-border bg-card p-4">
+          <div className="rounded-lg border border-border bg-input/20 p-4">
             <button
               type="button"
               onClick={() => setMostrarServicios((a) => !a)}
               className="flex w-full items-center justify-between text-left text-[13px] font-medium"
             >
-              <span>
+              <span className="flex items-center gap-2">
                 Servicios realizados
                 {servicios.length > 0 && (
-                  <span className="ml-2 font-normal text-muted-foreground">
+                  <Badge variant="secondary" className="rounded-full">
                     {servicios.length} marcados
-                  </span>
+                  </Badge>
                 )}
               </span>
               <svg
@@ -489,7 +517,7 @@ export function EditarOrden({
           </div>
         )}
 
-        <label className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-4">
+        <label className="flex items-center gap-4 rounded-lg border border-border bg-input/20 px-4 py-4">
           <input
             type="checkbox"
             checked={conIva}
@@ -500,7 +528,7 @@ export function EditarOrden({
         </label>
 
         {neto > 0 && (
-          <div className="mt-4 flex flex-col gap-1 text-[15px]">
+          <div className="flex flex-col gap-1 text-[15px]">
             {conIva && (
               <>
                 <p className="flex justify-between text-muted-foreground">
@@ -515,13 +543,13 @@ export function EditarOrden({
             )}
             <p className="flex justify-between border-t border-border pt-2">
               <span>Total</span>
-              <span className="text-lg font-semibold tabular-nums">
+              <span className="text-lg font-semibold tabular-nums text-primary">
                 {pesos(total)}
               </span>
             </p>
           </div>
         )}
-      </div>
+      </Seccion>
 
       {error && <p className="text-[13px] text-destructive">{error}</p>}
 
@@ -561,4 +589,3 @@ export function EditarOrden({
     </form>
   );
 }
-
