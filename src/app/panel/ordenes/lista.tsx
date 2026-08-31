@@ -28,9 +28,6 @@ import {
   textoAccesorioLibre,
 } from "@/lib/accesorios-auto";
 import { SINTOMAS_COMUNES } from "@/lib/sintomas-comunes";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
 
 type Orden = {
   id: string;
@@ -96,15 +93,12 @@ type Tecnico = {
   nombre: string;
 };
 
-const VARIANTE_ESTADO: Record<
-  string,
-  "secondary" | "default" | "outline"
-> = {
-  ingresado: "secondary",
-  en_proceso: "default",
-  esperando_repuesto: "outline",
-  terminado: "default",
-  entregado: "secondary",
+const COLOR_ESTADO: Record<string, string> = {
+  ingresado: "bg-muted text-muted-foreground",
+  en_proceso: "bg-foreground/10 text-foreground",
+  esperando_repuesto: "border border-dashed border-foreground/30 text-foreground",
+  terminado: "bg-foreground/10 text-foreground",
+  entregado: "bg-muted text-muted-foreground",
 };
 
 function nombreEstado(valor: string) {
@@ -881,7 +875,7 @@ export function ListaOrdenes({
           )}
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 lg:grid-cols-2">
+        <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visibles.map((o) => {
             const saldo = o.total - o.abonado;
             const puedeEditarDescripcion =
@@ -900,227 +894,206 @@ export function ListaOrdenes({
             }
 
             return (
-              <li key={o.id}>
-                <Card
-                  onClick={
-                    puedeVerDetalle
-                      ? irAlDetalle
-                      : puedeEditarDescripcion
-                        ? () => setEditandoDescripcion(o.id)
-                        : undefined
-                  }
-                  className={`flex min-w-0 flex-col overflow-hidden py-0 transition-colors sm:flex-row ${
-                    puedeVerDetalle || puedeEditarDescripcion
-                      ? "cursor-pointer hover:ring-primary/40"
-                      : ""
-                  }`}
-                >
-                  {/* vehicle-thumb: ancho fijo al costado en desktop
-                      (flex: 0 0 142px en el mockup), arriba en mobile —
-                      solo si hay evidencia real subida, sin inventar
-                      una imagen de stock. */}
+              <li
+                key={o.id}
+                onClick={
+                  puedeVerDetalle
+                    ? irAlDetalle
+                    : puedeEditarDescripcion
+                      ? () => setEditandoDescripcion(o.id)
+                      : undefined
+                }
+                className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
+                  puedeVerDetalle || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-[13px] text-muted-foreground">
+                    OT-{o.numero}
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                  >
+                    {nombreEstado(o.estado)}
+                  </span>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-mono font-medium">{o.patente}</span>
+                  {o.marca && (
+                    <span className="text-[14px] text-muted-foreground">
+                      {o.marca} {o.modelo}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-4 flex-1">
                   {o.fotos.length > 0 && (
                     <div
-                      className="relative h-32 shrink-0 bg-background sm:h-auto sm:w-[142px]"
+                      className="mb-3 flex flex-wrap gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <a href={o.fotos[0]} target="_blank" rel="noreferrer">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={o.fotos[0]}
-                          alt="Estado del vehículo"
-                          className="size-full object-cover"
-                        />
-                      </a>
-                      {o.fotos.length > 1 && (
-                        <Badge
-                          variant="secondary"
-                          className="absolute bottom-2 left-2 bg-background/85"
-                        >
-                          {o.fotos.length}
-                        </Badge>
-                      )}
+                      {o.fotos.map((url) => (
+                        <a key={url} href={url} target="_blank" rel="noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt="Estado del vehículo"
+                            className="size-20 rounded-lg border border-border object-cover"
+                          />
+                        </a>
+                      ))}
                     </div>
                   )}
+                  <div className="space-y-1">
+                    {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
+                    {o.diagnostico && (
+                      <p className="text-[15px] text-muted-foreground">
+                        {o.diagnostico}
+                      </p>
+                    )}
+                    {o.descripcion && (
+                      <p className="text-[14px] text-muted-foreground">
+                        {o.descripcion}
+                      </p>
+                    )}
+                    {o.estado === "esperando_repuesto" && o.esperaDetalle && (
+                      <p className="text-[15px]">
+                        <span className="text-muted-foreground">
+                          El auto no está aquí, esperando:{" "}
+                        </span>
+                        {o.esperaDetalle}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-                  {/* order-card-body */}
-                  <div className="min-w-0 flex-1 p-4 sm:p-[18px]">
-                    {/* order-topline */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[13px] text-muted-foreground">
-                        OT-{o.numero}
-                      </span>
-                      <Badge variant={VARIANTE_ESTADO[o.estado]}>
-                        {nombreEstado(o.estado)}
-                      </Badge>
-                    </div>
+                <p className="mt-4 text-[13px] text-muted-foreground">
+                  {o.propietario ?? "Sin dueño registrado"}
+                  <br />
+                  {fecha(o.fecha)}
+                  {o.kilometraje
+                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                    : ""}
+                </p>
 
-                    {/* vehicle-name */}
-                    <div className="mt-4 flex flex-wrap items-baseline gap-x-2">
-                      <span className="font-mono text-lg font-semibold tracking-wide">
-                        {o.patente}
+                {o.total > 0 && (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="text-2xl font-bold">
+                        {pesos(o.total)}
                       </span>
-                      {o.marca && (
-                        <span className="text-[14px] text-muted-foreground">
-                          {o.marca} {o.modelo}
+                      {o.estadoPago !== "pagado" && (
+                        <span className="text-[13px] font-medium text-acento">
+                          Debe {pesos(saldo)}
                         </span>
                       )}
                     </div>
-
-                    {/* h3 (título) + order-detail */}
-                    <div className="mt-2 space-y-1">
-                      {o.sintoma && (
-                        <p className="text-[15px]">{o.sintoma}</p>
-                      )}
-                      {o.diagnostico && (
-                        <p className="text-[15px] text-muted-foreground">
-                          {o.diagnostico}
-                        </p>
-                      )}
-                      {o.descripcion && (
-                        <p className="text-[14px] text-muted-foreground">
-                          {o.descripcion}
-                        </p>
-                      )}
-                      {o.estado === "esperando_repuesto" &&
-                        o.esperaDetalle && (
-                          <p className="text-[15px]">
-                            <span className="text-muted-foreground">
-                              El auto no está aquí, esperando:{" "}
-                            </span>
-                            {o.esperaDetalle}
-                          </p>
-                        )}
-                    </div>
-
-                    {/* order-meta */}
-                    <p className="mt-4 border-t border-border pt-3 text-[13px] text-muted-foreground">
-                      {o.propietario ?? "Sin dueño registrado"}
-                      <br />
-                      {fecha(o.fecha)}
-                      {o.kilometraje
-                        ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                        : ""}
-                    </p>
-
-                    {o.total > 0 && (
-                      <div className="mt-4 border-t border-border pt-4">
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <span className="text-2xl font-bold">
-                            {pesos(o.total)}
-                          </span>
-                          {o.estadoPago !== "pagado" && (
-                            <span className="text-[13px] font-medium text-acento">
-                              Debe {pesos(saldo)}
-                            </span>
-                          )}
-                        </div>
-                        {/* Sin esto, "Debe $X" de un total mayor obliga a
-                            restar de cabeza para saber si ya abonó algo. */}
-                        {o.abonado > 0 && o.estadoPago !== "pagado" && (
-                          <p className="mt-1 text-[13px] text-muted-foreground">
-                            Ya abonó {pesos(o.abonado)}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* order-actions */}
-                    <div
-                      className="mt-4 flex flex-wrap gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {tieneImpresion && (
-                        <a
-                          href={`/imprimir/${o.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={buttonVariants({ variant: "outline" })}
-                        >
-                          Imprimir
-                        </a>
-                      )}
-                      {o.estado === "ingresado" && (
-                        <Button
-                          variant="outline"
-                          onClick={() => avanzar(o.id, "en_proceso")}
-                        >
-                          Empezar
-                        </Button>
-                      )}
-                      {(o.estado === "ingresado" ||
-                        o.estado === "en_proceso") && (
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            setEsperando(esperando === o.id ? null : o.id)
-                          }
-                        >
-                          Falta repuesto
-                        </Button>
-                      )}
-                      {o.estado === "esperando_repuesto" && (
-                        <Button
-                          variant="outline"
-                          onClick={() => volvio(o.id)}
-                          disabled={retomando === o.id}
-                        >
-                          {retomando === o.id
-                            ? "Guardando…"
-                            : "Volvió el auto"}
-                        </Button>
-                      )}
-                      {(o.estado === "ingresado" ||
-                        o.estado === "en_proceso") && (
-                        <Button onClick={irAlDetalle}>Terminar</Button>
-                      )}
-                      {o.estado === "terminado" && (
-                        <>
-                          <Button onClick={() => avanzar(o.id, "entregado")}>
-                            Entregar
-                          </Button>
-                          {o.telefono && (
-                            <a
-                              href={`https://wa.me/${o.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(
-                                `Hola ${o.propietario ?? ""}, su ${o.marca ?? "vehículo"} patente ${o.patente} ya está listo para retirar.`
-                              )}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={buttonVariants({
-                                variant: "outline",
-                              })}
-                            >
-                              Avisar
-                            </a>
-                          )}
-                        </>
-                      )}
-                    </div>
-
-                    {/* stopPropagation: las órdenes Terminadas/Entregadas
-                        abren "Editar descripción" al hacer clic en toda
-                        la tarjeta (más abajo, onClick de la Card) — sin
-                        esto, escribir en el formulario de EsperarRepuesto
-                        burbujeaba hasta la tarjeta y abría ese modal
-                        encima por error. */}
-                    {esperando === o.id && (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <EsperarRepuesto
-                          ordenId={o.id}
-                          onListo={() => setEsperando(null)}
-                        />
-                      </div>
-                    )}
-                    {editandoDescripcion === o.id && (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <EditarDescripcion
-                          orden={o}
-                          onListo={() => setEditandoDescripcion(null)}
-                        />
-                      </div>
+                    {/* Sin esto, "Debe $X" de un total mayor obliga a
+                        restar de cabeza para saber si ya abonó algo. */}
+                    {o.abonado > 0 && o.estadoPago !== "pagado" && (
+                      <p className="mt-1 text-[13px] text-muted-foreground">
+                        Ya abonó {pesos(o.abonado)}
+                      </p>
                     )}
                   </div>
-                </Card>
+                )}
+
+                <div
+                  className="mt-4 flex flex-wrap gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {tieneImpresion && (
+                    <a
+                      href={`/imprimir/${o.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    >
+                      Imprimir
+                    </a>
+                  )}
+                  {o.estado === "ingresado" && (
+                    <button
+                      onClick={() => avanzar(o.id, "en_proceso")}
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    >
+                      Empezar
+                    </button>
+                  )}
+                  {(o.estado === "ingresado" || o.estado === "en_proceso") && (
+                    <button
+                      onClick={() =>
+                        setEsperando(esperando === o.id ? null : o.id)
+                      }
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                    >
+                      Falta repuesto
+                    </button>
+                  )}
+                  {o.estado === "esperando_repuesto" && (
+                    <button
+                      onClick={() => volvio(o.id)}
+                      disabled={retomando === o.id}
+                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
+                    >
+                      {retomando === o.id ? "Guardando…" : "Volvió el auto"}
+                    </button>
+                  )}
+                  {(o.estado === "ingresado" || o.estado === "en_proceso") && (
+                    <button
+                      onClick={irAlDetalle}
+                      className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                    >
+                      Terminar
+                    </button>
+                  )}
+                  {o.estado === "terminado" && (
+                    <>
+                      <button
+                        onClick={() => avanzar(o.id, "entregado")}
+                        className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                      >
+                        Entregar
+                      </button>
+                      {o.telefono && (
+                        <a
+                          href={`https://wa.me/${o.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(
+                            `Hola ${o.propietario ?? ""}, su ${o.marca ?? "vehículo"} patente ${o.patente} ya está listo para retirar.`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                        >
+                          Avisar
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* stopPropagation: las órdenes Terminadas/Entregadas
+                    abren "Editar descripción" al hacer clic en toda
+                    la tarjeta (más abajo, onClick del <li>) — sin
+                    esto, escribir en el formulario de EsperarRepuesto
+                    burbujeaba hasta la tarjeta y abría ese modal
+                    encima por error. */}
+                {esperando === o.id && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EsperarRepuesto
+                      ordenId={o.id}
+                      onListo={() => setEsperando(null)}
+                    />
+                  </div>
+                )}
+                {editandoDescripcion === o.id && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <EditarDescripcion
+                      orden={o}
+                      onListo={() => setEditandoDescripcion(null)}
+                    />
+                  </div>
+                )}
               </li>
             );
           })}
