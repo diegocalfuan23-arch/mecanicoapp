@@ -28,6 +28,12 @@ import {
   textoAccesorioLibre,
 } from "@/lib/accesorios-auto";
 import { SINTOMAS_COMUNES } from "@/lib/sintomas-comunes";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  PackageIcon,
+  Tick02Icon,
+  Image02Icon,
+} from "@hugeicons/core-free-icons";
 
 type Orden = {
   id: string;
@@ -103,6 +109,25 @@ const COLOR_ESTADO: Record<string, string> = {
 
 function nombreEstado(valor: string) {
   return ESTADOS.find((e) => e.valor === valor)?.texto ?? valor;
+}
+
+// No hay un campo de "% avance" guardado — se deriva del estado, que
+// sí es real, en vez de un número inventado al azar.
+const PROGRESO_ESTADO: Record<string, number> = {
+  ingresado: 15,
+  en_proceso: 55,
+  esperando_repuesto: 55,
+  terminado: 90,
+  entregado: 100,
+};
+
+// Tampoco hay un campo de prioridad — se deriva de cuánto lleva
+// abierta la orden: más días esperando, más urgente.
+function prioridad(fechaIngreso: Date, estado: string): "Alta" | "Media" {
+  if (estado === "terminado" || estado === "entregado") return "Media";
+  const dias =
+    (Date.now() - new Date(fechaIngreso).getTime()) / (1000 * 60 * 60 * 24);
+  return dias >= 3 ? "Alta" : "Media";
 }
 
 function campoBase(error?: boolean) {
@@ -875,7 +900,7 @@ export function ListaOrdenes({
           )}
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="mt-6 grid gap-4 lg:grid-cols-2">
           {visibles.map((o) => {
             const saldo = o.total - o.abonado;
             const puedeEditarDescripcion =
@@ -893,6 +918,9 @@ export function ListaOrdenes({
               window.location.href = `/panel/ordenes/${o.id}`;
             }
 
+            const nivelPrioridad = prioridad(o.fecha, o.estado);
+            const progreso = PROGRESO_ESTADO[o.estado] ?? 0;
+
             return (
               <li
                 key={o.id}
@@ -903,49 +931,80 @@ export function ListaOrdenes({
                       ? () => setEditandoDescripcion(o.id)
                       : undefined
                 }
-                className={`flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 sm:p-6 ${
-                  puedeVerDetalle || puedeEditarDescripcion ? "cursor-pointer transition-colors hover:border-primary/40" : ""
+                className={`flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors sm:flex-row ${
+                  puedeVerDetalle || puedeEditarDescripcion
+                    ? "cursor-pointer hover:border-primary/40"
+                    : ""
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[13px] text-muted-foreground">
-                    OT-{o.numero}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                {/* vehicle-thumb: ancho fijo al costado en desktop,
+                    arriba en mobile — con badge de cantidad de fotos
+                    igual al mockup. Solo si hay evidencia real
+                    subida, sin inventar una imagen de stock. */}
+                {o.fotos.length > 0 && (
+                  <div
+                    className="relative h-32 shrink-0 bg-background sm:h-auto sm:w-[142px]"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {nombreEstado(o.estado)}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-mono font-medium">{o.patente}</span>
-                  {o.marca && (
-                    <span className="text-[14px] text-muted-foreground">
-                      {o.marca} {o.modelo}
+                    <a href={o.fotos[0]} target="_blank" rel="noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={o.fotos[0]}
+                        alt="Estado del vehículo"
+                        className="size-full object-cover"
+                      />
+                    </a>
+                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-background/85 px-2 py-1 text-[11px] text-foreground">
+                      <HugeiconsIcon icon={Image02Icon} className="size-3" />
+                      {o.fotos.length}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <div className="mt-4 flex-1">
-                  {o.fotos.length > 0 && (
-                    <div
-                      className="mb-3 flex flex-wrap gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {o.fotos.map((url) => (
-                        <a key={url} href={url} target="_blank" rel="noreferrer">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt="Estado del vehículo"
-                            className="size-20 rounded-lg border border-border object-cover"
-                          />
-                        </a>
-                      ))}
+                {/* order-card-body */}
+                <div className="min-w-0 flex-1 p-4 sm:p-[18px]">
+                  {/* order-topline: OT-id + estado + prioridad. El
+                      mockup solo trae prioridad porque su demo ya
+                      agrupaba por sección "En proceso" — acá se
+                      mezclan los 5 estados en "Todas", así que el
+                      badge de estado sí hace falta. */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[13px] text-muted-foreground">
+                      OT-{o.numero}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-1 text-[12px] font-medium ${COLOR_ESTADO[o.estado]}`}
+                      >
+                        {nombreEstado(o.estado)}
+                      </span>
+                      <span
+                        className={`flex items-center gap-1.5 text-[11px] ${
+                          nivelPrioridad === "Alta"
+                            ? "text-destructive"
+                            : "text-acento"
+                        }`}
+                      >
+                        <span className="size-1.5 rounded-full bg-current" />
+                        {nivelPrioridad}
+                      </span>
                     </div>
-                  )}
-                  <div className="space-y-1">
+                  </div>
+
+                  {/* vehicle-name */}
+                  <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-mono text-lg font-semibold tracking-wide">
+                      {o.patente}
+                    </span>
+                    {o.marca && (
+                      <span className="text-[13px] text-muted-foreground">
+                        {o.marca} {o.modelo}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* h3 (título) + order-detail */}
+                  <div className="mt-2 space-y-1">
                     {o.sintoma && <p className="text-[15px]">{o.sintoma}</p>}
                     {o.diagnostico && (
                       <p className="text-[15px] text-muted-foreground">
@@ -966,134 +1025,163 @@ export function ListaOrdenes({
                       </p>
                     )}
                   </div>
-                </div>
 
-                <p className="mt-4 text-[13px] text-muted-foreground">
-                  {o.propietario ?? "Sin dueño registrado"}
-                  <br />
-                  {fecha(o.fecha)}
-                  {o.kilometraje
-                    ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
-                    : ""}
-                </p>
+                  {/* order-meta */}
+                  <p className="mt-4 border-t border-border pt-3 text-[13px] text-muted-foreground">
+                    {o.propietario ?? "Sin dueño registrado"}
+                    <br />
+                    {fecha(o.fecha)}
+                    {o.kilometraje
+                      ? ` · ${o.kilometraje.toLocaleString("es-CL")} km`
+                      : ""}
+                  </p>
 
-                {o.total > 0 && (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="text-2xl font-bold">
-                        {pesos(o.total)}
-                      </span>
-                      {o.estadoPago !== "pagado" && (
-                        <span className="text-[13px] font-medium text-acento">
-                          Debe {pesos(saldo)}
+                  {o.total > 0 && (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="text-2xl font-bold">
+                          {pesos(o.total)}
                         </span>
+                        {o.estadoPago !== "pagado" && (
+                          <span className="text-[13px] font-medium text-acento">
+                            Debe {pesos(saldo)}
+                          </span>
+                        )}
+                      </div>
+                      {/* Sin esto, "Debe $X" de un total mayor obliga a
+                          restar de cabeza para saber si ya abonó algo. */}
+                      {o.abonado > 0 && o.estadoPago !== "pagado" && (
+                        <p className="mt-1 text-[13px] text-muted-foreground">
+                          Ya abonó {pesos(o.abonado)}
+                        </p>
                       )}
                     </div>
-                    {/* Sin esto, "Debe $X" de un total mayor obliga a
-                        restar de cabeza para saber si ya abonó algo. */}
-                    {o.abonado > 0 && o.estadoPago !== "pagado" && (
-                      <p className="mt-1 text-[13px] text-muted-foreground">
-                        Ya abonó {pesos(o.abonado)}
-                      </p>
+                  )}
+
+                  {/* progress-wrap: barra de avance del trabajo,
+                      derivada del estado — ver PROGRESO_ESTADO */}
+                  <div className="mt-4">
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>Avance del trabajo</span>
+                      <b className="font-semibold text-foreground">
+                        {progreso}%
+                      </b>
+                    </div>
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border">
+                      <span
+                        className="block h-full rounded-full bg-acento"
+                        style={{ width: `${progreso}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* order-actions */}
+                  <div
+                    className="mt-4 flex flex-wrap gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {tieneImpresion && (
+                      <a
+                        href={`/imprimir/${o.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                      >
+                        Imprimir
+                      </a>
+                    )}
+                    {o.estado === "ingresado" && (
+                      <button
+                        onClick={() => avanzar(o.id, "en_proceso")}
+                        className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                      >
+                        Empezar
+                      </button>
+                    )}
+                    {(o.estado === "ingresado" ||
+                      o.estado === "en_proceso") && (
+                      <button
+                        onClick={() =>
+                          setEsperando(esperando === o.id ? null : o.id)
+                        }
+                        className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                      >
+                        <HugeiconsIcon icon={PackageIcon} className="size-4" />
+                        Falta repuesto
+                      </button>
+                    )}
+                    {o.estado === "esperando_repuesto" && (
+                      <button
+                        onClick={() => volvio(o.id)}
+                        disabled={retomando === o.id}
+                        className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
+                      >
+                        {retomando === o.id
+                          ? "Guardando…"
+                          : "Volvió el auto"}
+                      </button>
+                    )}
+                    {(o.estado === "ingresado" ||
+                      o.estado === "en_proceso") && (
+                      <button
+                        onClick={irAlDetalle}
+                        className="flex items-center gap-1.5 rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                      >
+                        <HugeiconsIcon icon={Tick02Icon} className="size-4" />
+                        Terminar
+                      </button>
+                    )}
+                    {o.estado === "terminado" && (
+                      <>
+                        <button
+                          onClick={() => avanzar(o.id, "entregado")}
+                          className="flex items-center gap-1.5 rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
+                        >
+                          <HugeiconsIcon
+                            icon={Tick02Icon}
+                            className="size-4"
+                          />
+                          Entregar
+                        </button>
+                        {o.telefono && (
+                          <a
+                            href={`https://wa.me/${o.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(
+                              `Hola ${o.propietario ?? ""}, su ${o.marca ?? "vehículo"} patente ${o.patente} ya está listo para retirar.`
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                          >
+                            Avisar
+                          </a>
+                        )}
+                      </>
                     )}
                   </div>
-                )}
 
-                <div
-                  className="mt-4 flex flex-wrap gap-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {tieneImpresion && (
-                    <a
-                      href={`/imprimir/${o.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-                    >
-                      Imprimir
-                    </a>
+                  {/* stopPropagation: las órdenes Terminadas/Entregadas
+                      abren "Editar descripción" al hacer clic en toda
+                      la tarjeta (más abajo, onClick del <li>) — sin
+                      esto, escribir en el formulario de EsperarRepuesto
+                      burbujeaba hasta la tarjeta y abría ese modal
+                      encima por error. */}
+                  {esperando === o.id && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EsperarRepuesto
+                        ordenId={o.id}
+                        onListo={() => setEsperando(null)}
+                      />
+                    </div>
                   )}
-                  {o.estado === "ingresado" && (
-                    <button
-                      onClick={() => avanzar(o.id, "en_proceso")}
-                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-                    >
-                      Empezar
-                    </button>
-                  )}
-                  {(o.estado === "ingresado" || o.estado === "en_proceso") && (
-                    <button
-                      onClick={() =>
-                        setEsperando(esperando === o.id ? null : o.id)
-                      }
-                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-                    >
-                      Falta repuesto
-                    </button>
-                  )}
-                  {o.estado === "esperando_repuesto" && (
-                    <button
-                      onClick={() => volvio(o.id)}
-                      disabled={retomando === o.id}
-                      className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
-                    >
-                      {retomando === o.id ? "Guardando…" : "Volvió el auto"}
-                    </button>
-                  )}
-                  {(o.estado === "ingresado" || o.estado === "en_proceso") && (
-                    <button
-                      onClick={irAlDetalle}
-                      className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
-                    >
-                      Terminar
-                    </button>
-                  )}
-                  {o.estado === "terminado" && (
-                    <>
-                      <button
-                        onClick={() => avanzar(o.id, "entregado")}
-                        className="rounded-lg bg-foreground px-4 py-2 text-[14px] font-medium text-background transition-opacity hover:opacity-90"
-                      >
-                        Entregar
-                      </button>
-                      {o.telefono && (
-                        <a
-                          href={`https://wa.me/${o.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(
-                            `Hola ${o.propietario ?? ""}, su ${o.marca ?? "vehículo"} patente ${o.patente} ya está listo para retirar.`
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-                        >
-                          Avisar
-                        </a>
-                      )}
-                    </>
+                  {editandoDescripcion === o.id && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EditarDescripcion
+                        orden={o}
+                        onListo={() => setEditandoDescripcion(null)}
+                      />
+                    </div>
                   )}
                 </div>
-
-                {/* stopPropagation: las órdenes Terminadas/Entregadas
-                    abren "Editar descripción" al hacer clic en toda
-                    la tarjeta (más abajo, onClick del <li>) — sin
-                    esto, escribir en el formulario de EsperarRepuesto
-                    burbujeaba hasta la tarjeta y abría ese modal
-                    encima por error. */}
-                {esperando === o.id && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <EsperarRepuesto
-                      ordenId={o.id}
-                      onListo={() => setEsperando(null)}
-                    />
-                  </div>
-                )}
-                {editandoDescripcion === o.id && (
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <EditarDescripcion
-                      orden={o}
-                      onListo={() => setEditandoDescripcion(null)}
-                    />
-                  </div>
-                )}
               </li>
             );
           })}
