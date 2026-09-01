@@ -59,6 +59,10 @@ type Tecnico = {
   nombre: string;
 };
 
+// Valor de opción imposible de chocar con un id real de usuario —
+// selecciona el modo "escribir nombre libre" en vez de un técnico.
+const OTRO_TECNICO = "__otro__";
+
 function campoBase(error?: boolean) {
   return `w-full rounded-lg border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:ring-1 ${
     error
@@ -117,6 +121,8 @@ export function Abrir({
   const [ordenadoPor, setOrdenadoPor] = useState("");
   const [ordenadoPorFono, setOrdenadoPorFono] = useState("");
   const [tecnicoId, setTecnicoId] = useState("");
+  const [tecnicoNombre, setTecnicoNombre] = useState("");
+  const [usaTecnicoLibre, setUsaTecnicoLibre] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -142,6 +148,7 @@ export function Abrir({
       ordenadoPor,
       ordenadoPorFono,
       tecnicoId,
+      tecnicoNombre,
       piezas,
     });
     setEnviando(false);
@@ -300,14 +307,32 @@ export function Abrir({
               Técnico a cargo
             </span>
             <Selector
-              value={tecnicoId}
-              onChange={setTecnicoId}
+              value={usaTecnicoLibre ? OTRO_TECNICO : tecnicoId}
+              onChange={(valor) => {
+                if (valor === OTRO_TECNICO) {
+                  setUsaTecnicoLibre(true);
+                  setTecnicoId("");
+                  return;
+                }
+                setUsaTecnicoLibre(false);
+                setTecnicoId(valor);
+                setTecnicoNombre("");
+              }}
               placeholder="Sin asignar"
-              opciones={tecnicos.map((t) => ({
-                valor: t.id,
-                texto: t.nombre,
-              }))}
+              opciones={[
+                ...tecnicos.map((t) => ({ valor: t.id, texto: t.nombre })),
+                { valor: OTRO_TECNICO, texto: "Otro (sin cuenta)…" },
+              ]}
             />
+            {usaTecnicoLibre && (
+              <input
+                value={tecnicoNombre}
+                onChange={(e) => setTecnicoNombre(e.target.value)}
+                placeholder="Nombre del técnico"
+                autoFocus
+                className={`${campoBase()} mt-2`}
+              />
+            )}
           </div>
         )}
 

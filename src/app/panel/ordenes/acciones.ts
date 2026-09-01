@@ -39,6 +39,7 @@ export async function listarOrdenes() {
       fecha: trabajo.fecha,
       fechaEntrega: trabajo.fechaEntrega,
       tecnicoId: trabajo.tecnicoId,
+      tecnicoNombre: trabajo.tecnicoNombre,
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
@@ -87,6 +88,7 @@ export async function obtenerOrden(ordenId: string) {
       fecha: trabajo.fecha,
       fechaEntrega: trabajo.fechaEntrega,
       tecnicoId: trabajo.tecnicoId,
+      tecnicoNombre: trabajo.tecnicoNombre,
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
@@ -162,7 +164,9 @@ export async function datosParaImprimir(ordenId: string) {
       tallerDireccion: user.direccion,
       tallerTelefono: user.telefono,
       tallerEmail: user.email,
-      tecnico: tecnico.name,
+      // Un técnico sin cuenta no tiene fila en `tecnico` — su nombre
+      // libre queda en trabajo.tecnicoNombre en su lugar.
+      tecnico: sql<string | null>`coalesce(${tecnico.name}, ${trabajo.tecnicoNombre})`,
     })
     .from(trabajo)
     .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
@@ -281,6 +285,7 @@ export async function abrirOrden(datos: {
   ordenadoPor?: string;
   ordenadoPorFono?: string;
   tecnicoId?: string;
+  tecnicoNombre?: string;
   piezas?: RepuestoUsado[];
 }) {
   const tallerId = await tallerActual();
@@ -313,7 +318,10 @@ export async function abrirOrden(datos: {
     observaciones: datos.observaciones?.trim() || null,
     ordenadoPor: datos.ordenadoPor?.trim() || null,
     ordenadoPorFono: datos.ordenadoPorFono?.trim() || null,
+    // Mutuamente excluyentes: un técnico con cuenta (id) o un nombre
+    // libre para quien no la tiene, nunca ambos.
     tecnicoId: datos.tecnicoId || null,
+    tecnicoNombre: datos.tecnicoId ? null : datos.tecnicoNombre?.trim() || null,
     estado: "ingresado",
   });
 
@@ -357,6 +365,7 @@ export async function editarOrdenAbierta(
     diagnostico: string;
     descripcion: string;
     tecnicoId?: string;
+    tecnicoNombre?: string;
     fotos?: string[];
     // Cobro parcial: antes se perdía al usar "Guardar sin cerrar" —
     // solo se guardaba de verdad al cerrar la orden con cerrarOrden().
@@ -374,7 +383,10 @@ export async function editarOrdenAbierta(
       kilometraje: datos.kilometraje ? Number(datos.kilometraje) : null,
       diagnostico: datos.diagnostico.trim() || null,
       descripcion: datos.descripcion.trim() || null,
+      // Mutuamente excluyentes: un técnico con cuenta (id) o un
+      // nombre libre para quien no la tiene, nunca ambos.
       tecnicoId: datos.tecnicoId || null,
+      tecnicoNombre: datos.tecnicoId ? null : datos.tecnicoNombre?.trim() || null,
       ...(datos.fotos !== undefined ? { fotos: datos.fotos } : {}),
       ...(datos.manoObraFreno !== undefined
         ? { manoObraFreno: Number(datos.manoObraFreno) || 0 }

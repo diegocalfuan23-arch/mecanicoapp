@@ -39,6 +39,7 @@ type Orden = {
   fecha: Date;
   fechaEntrega: Date | null;
   tecnicoId: string | null;
+  tecnicoNombre: string | null;
   patente: string;
   marca: string | null;
   modelo: string | null;
@@ -48,6 +49,10 @@ type Orden = {
 
 type Tecnico = { id: string; nombre: string };
 type Servicio = { id: string; grupo: string; codigo: string; etiqueta: string };
+
+// Valor de opción imposible de chocar con un id real de usuario —
+// selecciona el modo "escribir nombre libre" en vez de un técnico.
+const OTRO_TECNICO = "__otro__";
 
 function Seccion({
   numero,
@@ -91,6 +96,12 @@ export function EditarOrden({
   );
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico ?? "");
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
+  const [tecnicoNombre, setTecnicoNombre] = useState(
+    orden.tecnicoNombre ?? ""
+  );
+  const [usaTecnicoLibre, setUsaTecnicoLibre] = useState(
+    !!orden.tecnicoNombre
+  );
   const [fotos, setFotos] = useState<string[]>(orden.fotos);
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
   const [manoObraFreno, setManoObraFreno] = useState(
@@ -298,9 +309,18 @@ export function EditarOrden({
                 Técnico a cargo
               </Label>
               <Selector
-                value={tecnicoId}
+                value={usaTecnicoLibre ? OTRO_TECNICO : tecnicoId}
                 onChange={async (valor) => {
+                  if (valor === OTRO_TECNICO) {
+                    // Solo cambia el modo del campo — todavía no hay
+                    // nombre que guardar, se guarda al escribirlo.
+                    setUsaTecnicoLibre(true);
+                    setTecnicoId("");
+                    return;
+                  }
+                  setUsaTecnicoLibre(false);
                   setTecnicoId(valor);
+                  setTecnicoNombre("");
                   await editarOrdenAbierta(orden.id, {
                     sintoma,
                     kilometraje,
@@ -311,11 +331,30 @@ export function EditarOrden({
                   router.refresh();
                 }}
                 placeholder="Sin asignar"
-                opciones={tecnicos.map((t) => ({
-                  valor: t.id,
-                  texto: t.nombre,
-                }))}
+                opciones={[
+                  ...tecnicos.map((t) => ({ valor: t.id, texto: t.nombre })),
+                  { valor: OTRO_TECNICO, texto: "Otro (sin cuenta)…" },
+                ]}
               />
+              {usaTecnicoLibre && (
+                <Input
+                  value={tecnicoNombre}
+                  onChange={(e) => setTecnicoNombre(e.target.value)}
+                  onBlur={async () => {
+                    await editarOrdenAbierta(orden.id, {
+                      sintoma,
+                      kilometraje,
+                      diagnostico,
+                      descripcion,
+                      tecnicoNombre,
+                    });
+                    router.refresh();
+                  }}
+                  placeholder="Nombre del técnico"
+                  autoFocus
+                  className="mt-2 rounded-lg"
+                />
+              )}
             </div>
           )}
         </div>

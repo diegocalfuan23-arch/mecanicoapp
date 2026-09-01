@@ -218,6 +218,11 @@ export const trabajo = pgTable(
     tecnicoId: text("tecnico_id").references(() => user.id, {
       onDelete: "set null",
     }),
+    // Nombre libre del técnico cuando no tiene cuenta en la app —
+    // pedido real: hay talleres donde no todos los que trabajan usan
+    // el sistema, pero igual debe quedar registrado quién lo hizo.
+    // Mutuamente excluyente con tecnicoId: uno de los dos, no ambos.
+    tecnicoNombre: text("tecnico_nombre"),
 
     // Quien autoriza el trabajo puede no ser el dueño del auto (ej. la
     // esposa, un hijo) — Plan Serviteca en adelante.
