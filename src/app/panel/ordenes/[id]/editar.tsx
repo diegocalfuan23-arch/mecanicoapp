@@ -148,20 +148,44 @@ export function EditarOrden({
   // línea, y ve el total acumulado del cliente. Un solo lugar para
   // ver y editar la orden, se cierre hoy o no.
   const [procedimientos, setProcedimientos] = useState<Procedimiento[]>([]);
-  // "Qué se hizo" y sus montos ya no se escriben aparte: salen de los
-  // procedimientos anotados arriba — un solo lugar para esa info, sin
-  // duplicar campos abajo.
   const descripcion = procedimientos.map((p) => p.descripcion).join(", ");
-  const manoObra = String(
-    procedimientos.reduce((s, p) => s + p.manoObra, 0) || ""
-  );
-  const repuestos = String(
-    procedimientos.reduce((s, p) => s + p.repuesto, 0) || ""
-  );
+  // Mano de obra y Repuestos se precargan sumando los procedimientos,
+  // pero quedan editables a mano — pedido real de Tío Lalo: una
+  // orden puede cobrarse sin pasar por "Qué se hizo" línea por línea.
+  const [manoObra, setManoObra] = useState("");
+  const [repuestos, setRepuestos] = useState("");
+  const [montosPersonalizados, setMontosPersonalizados] = useState(false);
 
   useEffect(() => {
-    procedimientosDeOrden(orden.id).then(setProcedimientos);
+    procedimientosDeOrden(orden.id).then((items) => {
+      setProcedimientos(items);
+      if (montosPersonalizados) return;
+      setManoObra(
+        String(items.reduce((s, p) => s + p.manoObra, 0) || "")
+      );
+      setRepuestos(
+        String(items.reduce((s, p) => s + p.repuesto, 0) || "")
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orden.id]);
+
+  // Cada cambio en "Qué se hizo" recalcula Mano de obra/Repuestos
+  // solo mientras el mecánico no los haya editado a mano — una vez
+  // que los toca, esos campos quedan bajo su control y dejan de
+  // seguir a los procedimientos.
+  function onCambioProcedimientos(
+    accion: React.SetStateAction<Procedimiento[]>
+  ) {
+    setProcedimientos((actuales) => {
+      const items = typeof accion === "function" ? accion(actuales) : accion;
+      if (!montosPersonalizados) {
+        setManoObra(String(items.reduce((s, p) => s + p.manoObra, 0) || ""));
+        setRepuestos(String(items.reduce((s, p) => s + p.repuesto, 0) || ""));
+      }
+      return items;
+    });
+  }
 
   // Guarda síntoma/diagnóstico/técnico sin cerrar la orden — separado
   // de enviar(), que sí cierra. El mecánico puede ir dejando esto al
@@ -337,7 +361,7 @@ export function EditarOrden({
         <Procedimientos
           ordenId={orden.id}
           items={procedimientos}
-          onCambio={setProcedimientos}
+          onCambio={onCambioProcedimientos}
         />
       </Seccion>
 
@@ -347,9 +371,16 @@ export function EditarOrden({
             <Label className="mb-2 block text-[13px] font-medium">
               Mano de obra
             </Label>
-            <p className="flex h-9 items-center rounded-lg border border-border bg-input/30 px-3 text-[15px] text-muted-foreground">
-              {manoObra ? pesos(Number(manoObra)) : "—"}
-            </p>
+            <Input
+              value={miles(manoObra)}
+              onChange={(e) => {
+                setMontosPersonalizados(true);
+                setManoObra(soloDigitos(e.target.value));
+              }}
+              placeholder="0"
+              inputMode="numeric"
+              className="rounded-lg"
+            />
           </div>
           {tieneImpresion && (mostrarManoObraFreno || manoObraFreno) && (
             <div>
@@ -369,16 +400,23 @@ export function EditarOrden({
             </div>
           )}
           {/* Cuando se detallan los repuestos cotizados al abrir
-              (Plan Serviteca), el cobro sale de ellos en vez de la
-              suma de procedimientos. */}
+              (Plan Serviteca), el cobro sale de ellos y este campo
+              se oculta para no cobrar el mismo repuesto dos veces. */}
           {piezas.length === 0 && (
             <div>
               <Label className="mb-2 block text-[13px] font-medium">
                 Repuestos
               </Label>
-              <p className="flex h-9 items-center rounded-lg border border-border bg-input/30 px-3 text-[15px] text-muted-foreground">
-                {repuestos ? pesos(Number(repuestos)) : "—"}
-              </p>
+              <Input
+                value={miles(repuestos)}
+                onChange={(e) => {
+                  setMontosPersonalizados(true);
+                  setRepuestos(soloDigitos(e.target.value));
+                }}
+                placeholder="0"
+                inputMode="numeric"
+                className="rounded-lg"
+              />
             </div>
           )}
           <div>
