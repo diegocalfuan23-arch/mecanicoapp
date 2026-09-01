@@ -35,6 +35,8 @@ import {
   Image02Icon,
   Search01Icon,
   FilterIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 
 type Orden = {
@@ -942,6 +944,19 @@ export function ListaOrdenes({
               </span>
             )}
           </button>
+
+          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            Mostrar
+            <select
+              value={porPagina}
+              onChange={(e) => setPorPagina(Number(e.target.value))}
+              className="rounded-lg border border-border bg-card px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary/60"
+            >
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+            </select>
+            por página
+          </label>
         </div>
       </div>
 
@@ -1327,44 +1342,40 @@ export function ListaOrdenes({
         </ul>
       )}
 
-      {visibles.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
-            Mostrar
-            <select
-              value={porPagina}
-              onChange={(e) => setPorPagina(Number(e.target.value))}
-              className="rounded-lg border border-border bg-card px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary/60"
+      {totalPaginas > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-1">
+          <button
+            type="button"
+            disabled={paginaSegura <= 1}
+            onClick={() => setPagina(paginaSegura - 1)}
+            aria-label="Página anterior"
+            className="flex size-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-card disabled:opacity-40"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+          </button>
+          {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setPagina(n)}
+              className={`flex size-8 items-center justify-center rounded-lg text-[13px] transition-colors ${
+                n === paginaSegura
+                  ? "bg-primary font-medium text-primary-foreground"
+                  : "border border-border text-muted-foreground hover:bg-card hover:text-foreground"
+              }`}
             >
-              <option value={15}>15</option>
-              <option value={30}>30</option>
-            </select>
-            por página
-          </label>
-
-          {totalPaginas > 1 && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={paginaSegura <= 1}
-                onClick={() => setPagina(paginaSegura - 1)}
-                className="rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-card disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <span className="text-[13px] text-muted-foreground">
-                Página {paginaSegura} de {totalPaginas}
-              </span>
-              <button
-                type="button"
-                disabled={paginaSegura >= totalPaginas}
-                onClick={() => setPagina(paginaSegura + 1)}
-                className="rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-card disabled:opacity-40"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
+              {n}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={paginaSegura >= totalPaginas}
+            onClick={() => setPagina(paginaSegura + 1)}
+            aria-label="Página siguiente"
+            className="flex size-8 items-center justify-center rounded-lg border border-border transition-colors hover:bg-card disabled:opacity-40"
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+          </button>
         </div>
       )}
     </>
