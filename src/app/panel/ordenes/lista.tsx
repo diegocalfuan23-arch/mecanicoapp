@@ -223,6 +223,7 @@ export function ListaOrdenes({
   const [retomando, setRetomando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("abiertas");
   const [busqueda, setBusqueda] = useState("");
+  const [busquedaAbierta, setBusquedaAbierta] = useState(false);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [kmMinimo, setKmMinimo] = useState("");
   const [kmMaximo, setKmMaximo] = useState("");
@@ -281,8 +282,8 @@ export function ListaOrdenes({
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1 rounded-lg border border-border p-1">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex shrink-0 gap-1 rounded-lg border border-border p-1">
           {[
             { valor: "abiertas", texto: "Abiertas" },
             { valor: "todas", texto: "Todas" },
@@ -301,29 +302,48 @@ export function ListaOrdenes({
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-            <HugeiconsIcon
-              icon={Search01Icon}
-              className="size-4 text-muted-foreground"
-            />
-            <input
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por patente, vehículo…"
-              className="w-48 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60"
-            />
-          </label>
+        <div className="flex min-w-0 items-center gap-2">
+          {/* Buscador: colapsado a solo la lupa en pantallas chicas
+              (se expande al tocarlo), campo completo desde sm: —
+              así toda la fila cabe junto a Abiertas/Todas sin
+              apilarse en móvil. */}
+          {busquedaAbierta ? (
+            <label className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+              <HugeiconsIcon
+                icon={Search01Icon}
+                className="size-4 shrink-0 text-muted-foreground"
+              />
+              <input
+                autoFocus
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                onBlur={() => {
+                  if (!busqueda) setBusquedaAbierta(false);
+                }}
+                placeholder="Buscar por patente, vehículo…"
+                className="w-28 min-w-0 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-48"
+              />
+            </label>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setBusquedaAbierta(true)}
+              aria-label="Buscar"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border transition-colors hover:bg-card"
+            >
+              <HugeiconsIcon icon={Search01Icon} className="size-4" />
+            </button>
+          )}
 
           <button
             type="button"
             onClick={() => setMostrarFiltros((a) => !a)}
-            className={`flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[14px] transition-colors ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[14px] transition-colors ${
               mostrarFiltros ? "bg-card" : "hover:bg-card"
             }`}
           >
             <HugeiconsIcon icon={FilterIcon} className="size-4" />
-            Filtros
+            <span className="hidden sm:inline">Filtros</span>
             {filtrosActivos > 0 && (
               <span className="font-semibold text-acento">
                 {filtrosActivos}
@@ -331,18 +351,15 @@ export function ListaOrdenes({
             )}
           </button>
 
-          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
-            Mostrar
-            <select
-              value={porPagina}
-              onChange={(e) => setPorPagina(Number(e.target.value))}
-              className="rounded-lg border border-border bg-card px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary/60"
-            >
-              <option value={15}>15</option>
-              <option value={30}>30</option>
-            </select>
-            por página
-          </label>
+          <select
+            aria-label="Órdenes por página"
+            value={porPagina}
+            onChange={(e) => setPorPagina(Number(e.target.value))}
+            className="shrink-0 rounded-lg border border-border bg-card px-2 py-2 text-[13px] text-foreground outline-none focus:border-primary/60"
+          >
+            <option value={15}>15</option>
+            <option value={30}>30</option>
+          </select>
         </div>
       </div>
 
