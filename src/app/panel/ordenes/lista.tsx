@@ -283,13 +283,15 @@ export function ListaOrdenes({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         {/* En móvil, abrir el buscador reemplaza toda la fila (como
             la barra de búsqueda de una app) en vez de competir por
             espacio con Abiertas/Todas/Filtros — con eso angosto se
             veía apretado y el texto se cortaba casi de inmediato.
             Desde sm: siempre hay espacio de sobra, así que conviven
-            en la misma fila sin necesidad de ese modo. */}
+            en la misma fila sin necesidad de ese modo. flex-wrap
+            evita que, si igual no cupiera todo, algo se desborde
+            fuera de la tarjeta — baja a una segunda línea en vez. */}
         <div
           className={`flex shrink-0 gap-1 rounded-lg border border-border p-1 ${busquedaAbierta ? "hidden sm:flex" : ""}`}
         >
