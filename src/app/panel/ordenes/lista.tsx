@@ -806,7 +806,13 @@ export function ListaOrdenes({
   // Al llegar desde "Nueva visita" en la ficha del vehículo, con
   // ?abrir=<id> en la URL: abre el formulario ya con ese auto puesto.
   const vehiculoDesdeUrl = params.get("abrir");
-  const [abriendo, setAbriendo] = useState(!!vehiculoDesdeUrl);
+  // "abriendo" se deriva de la URL en vez de un useState propio: el
+  // botón "Ingresar vehículo" del encabezado navega client-side a
+  // esta misma ruta con ?abrir=1, y como ListaOrdenes ya está
+  // montado, un useState inicial no reaccionaría a ese cambio — el
+  // clic no abría nada si ya estabas parado en /panel/ordenes.
+  const [abriendoManual, setAbriendoManual] = useState(false);
+  const abriendo = !!vehiculoDesdeUrl || abriendoManual;
   const [esperando, setEsperando] = useState<string | null>(null);
   const [editandoDescripcion, setEditandoDescripcion] = useState<
     string | null
@@ -884,7 +890,7 @@ export function ListaOrdenes({
         inventario={inventario}
         tecnicos={tecnicos}
         onListo={() => {
-          setAbriendo(false);
+          setAbriendoManual(false);
           // Limpia el ?abrir= de la URL: un refresh no debe reabrir
           // el formulario solo.
           if (vehiculoDesdeUrl) router.replace("/panel/ordenes");
@@ -1051,7 +1057,7 @@ export function ListaOrdenes({
           </p>
           {ordenes.length === 0 && (
             <button
-              onClick={() => setAbriendo(true)}
+              onClick={() => setAbriendoManual(true)}
               className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Ingresar el primer vehículo
