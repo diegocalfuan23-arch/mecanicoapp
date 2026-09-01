@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import {
   listarOrdenes,
   listarVehiculosParaOrden,
@@ -62,15 +63,23 @@ export default async function Ordenes() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight">
-          Órdenes de trabajo
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {ordenes.length === 0
-            ? "Los autos que entran al taller."
-            : `${abiertas} ${abiertas === 1 ? "orden abierta" : "órdenes abiertas"}.`}
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Órdenes de trabajo
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {ordenes.length === 0
+              ? "Los autos que entran al taller."
+              : `${abiertas} ${abiertas === 1 ? "orden abierta" : "órdenes abiertas"}.`}
+          </p>
+        </div>
+        <Link
+          href="/panel/ordenes?abrir=1"
+          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+        >
+          Ingresar vehículo
+        </Link>
       </div>
 
       {ordenes.length > 0 && (

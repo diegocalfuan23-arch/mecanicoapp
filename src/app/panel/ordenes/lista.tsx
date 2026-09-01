@@ -857,10 +857,15 @@ export function ListaOrdenes({
   }
 
   if (abriendo) {
+    // Solo se precarga el vehículo si el id de la URL corresponde a
+    // uno real — el botón "Ingresar vehículo" del encabezado usa
+    // ?abrir=1 sin id específico, y ese valor no debe intentar
+    // seleccionarse como si fuera un vehículo.
+    const vehiculoValido = vehiculos.some((v) => v.id === vehiculoDesdeUrl);
     return (
       <Abrir
         vehiculos={vehiculos}
-        vehiculoIdInicial={vehiculoDesdeUrl ?? undefined}
+        vehiculoIdInicial={vehiculoValido ? vehiculoDesdeUrl! : undefined}
         tieneImpresion={tieneImpresion}
         inventario={inventario}
         tecnicos={tecnicos}
@@ -877,26 +882,26 @@ export function ListaOrdenes({
   return (
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 rounded-lg border border-border p-1">
-            {[
-              { valor: "abiertas", texto: "Abiertas" },
-              { valor: "todas", texto: "Todas" },
-            ].map((f) => (
-              <button
-                key={f.valor}
-                onClick={() => setFiltro(f.valor)}
-                className={`rounded px-4 py-2 text-[14px] transition-colors ${
-                  filtro === f.valor
-                    ? "bg-card font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {f.texto}
-              </button>
-            ))}
-          </div>
+        <div className="flex gap-1 rounded-lg border border-border p-1">
+          {[
+            { valor: "abiertas", texto: "Abiertas" },
+            { valor: "todas", texto: "Todas" },
+          ].map((f) => (
+            <button
+              key={f.valor}
+              onClick={() => setFiltro(f.valor)}
+              className={`rounded px-4 py-2 text-[14px] transition-colors ${
+                filtro === f.valor
+                  ? "bg-card font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f.texto}
+            </button>
+          ))}
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
             <HugeiconsIcon
               icon={Search01Icon}
@@ -926,12 +931,6 @@ export function ListaOrdenes({
             )}
           </button>
         </div>
-        <button
-          onClick={() => setAbriendo(true)}
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          Ingresar vehículo
-        </button>
       </div>
 
       {mostrarFiltros && (
