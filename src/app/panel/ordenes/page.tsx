@@ -14,6 +14,7 @@ import {
   CarFrontIcon,
   Tick02Icon,
   ListViewIcon,
+  AddIcon,
 } from "@hugeicons/core-free-icons";
 
 function Kpi({
@@ -63,8 +64,8 @@ export default async function Ordenes() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">
             Órdenes de trabajo
           </h1>
@@ -74,11 +75,16 @@ export default async function Ordenes() {
               : `${abiertas} ${abiertas === 1 ? "orden abierta" : "órdenes abiertas"}.`}
           </p>
         </div>
+        {/* En móvil, botón circular con solo el "+" — cabe al lado
+            del título sin envolverse a su propia línea. Desde sm:
+            vuelve a texto completo. */}
         <Link
           href="/panel/ordenes?abrir=1"
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          aria-label="Ingresar vehículo"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 sm:size-auto sm:rounded-lg sm:px-6 sm:py-2 sm:font-medium"
         >
-          Ingresar vehículo
+          <HugeiconsIcon icon={AddIcon} className="size-5 sm:hidden" />
+          <span className="hidden sm:inline">Ingresar vehículo</span>
         </Link>
       </div>
 
