@@ -44,6 +44,14 @@ export async function listarOrdenes() {
       modelo: vehiculo.modelo,
       propietario: cliente.nombre,
       telefono: cliente.telefono,
+      // No hay un "total esperado" de procedimientos por orden —
+      // cada trabajo termina llevando una cantidad distinta. Este
+      // conteo solo dice cuántos ya se anotaron, sin fingir que mide
+      // cuánto falta.
+      procedimientos: sql<number>`(
+        select count(*)::int from ${procedimiento}
+        where ${procedimiento.trabajoId} = ${trabajo.id}
+      )`,
     })
     .from(trabajo)
     .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))

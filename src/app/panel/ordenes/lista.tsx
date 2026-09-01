@@ -56,6 +56,7 @@ type Orden = {
   modelo: string | null;
   propietario: string | null;
   telefono: string | null;
+  procedimientos: number;
 };
 
 type VehiculoOpcion = {
@@ -111,17 +112,7 @@ function nombreEstado(valor: string) {
   return ESTADOS.find((e) => e.valor === valor)?.texto ?? valor;
 }
 
-// No hay un campo de "% avance" guardado — se deriva del estado, que
-// sí es real, en vez de un número inventado al azar.
-const PROGRESO_ESTADO: Record<string, number> = {
-  ingresado: 15,
-  en_proceso: 55,
-  esperando_repuesto: 55,
-  terminado: 90,
-  entregado: 100,
-};
-
-// Tampoco hay un campo de prioridad — se deriva de cuánto lleva
+// No hay un campo de prioridad — se deriva de cuánto lleva
 // abierta la orden: más días esperando, más urgente.
 function prioridad(fechaIngreso: Date, estado: string): "Alta" | "Media" {
   if (estado === "terminado" || estado === "entregado") return "Media";
@@ -919,7 +910,6 @@ export function ListaOrdenes({
             }
 
             const nivelPrioridad = prioridad(o.fecha, o.estado);
-            const progreso = PROGRESO_ESTADO[o.estado] ?? 0;
 
             return (
               <li
@@ -1058,22 +1048,18 @@ export function ListaOrdenes({
                     </div>
                   )}
 
-                  {/* progress-wrap: barra de avance del trabajo,
-                      derivada del estado — ver PROGRESO_ESTADO */}
-                  <div className="mt-4">
-                    <div className="flex justify-between text-[11px] text-muted-foreground">
-                      <span>Avance del trabajo</span>
-                      <b className="font-semibold text-foreground">
-                        {progreso}%
-                      </b>
-                    </div>
-                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border">
-                      <span
-                        className="block h-full rounded-full bg-acento"
-                        style={{ width: `${progreso}%` }}
-                      />
-                    </div>
-                  </div>
+                  {/* No hay un "total esperado" de procedimientos por
+                      orden para calcular un % de avance real — cada
+                      trabajo termina llevando una cantidad distinta.
+                      Se muestra el conteo tal cual, sin fingir que
+                      mide cuánto falta. */}
+                  {(puedeVerDetalle || o.estado === "esperando_repuesto") && (
+                    <p className="mt-4 text-[13px] text-muted-foreground">
+                      {o.procedimientos === 0
+                        ? "Sin procedimientos anotados aún"
+                        : `${o.procedimientos} ${o.procedimientos === 1 ? "procedimiento anotado" : "procedimientos anotados"}`}
+                    </p>
+                  )}
 
                   {/* order-actions */}
                   <div
