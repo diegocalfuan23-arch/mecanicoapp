@@ -816,6 +816,8 @@ export function ListaOrdenes({
   const [kmMinimo, setKmMinimo] = useState("");
   const [kmMaximo, setKmMaximo] = useState("");
   const [ordenAZ, setOrdenAZ] = useState(false);
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(15);
 
   const filtrosActivos =
     (kmMinimo ? 1 : 0) + (kmMaximo ? 1 : 0) + (ordenAZ ? 1 : 0);
@@ -843,6 +845,16 @@ export function ListaOrdenes({
       const nombreB = `${b.marca ?? ""} ${b.modelo ?? ""}`.trim();
       return nombreA.localeCompare(nombreB, "es");
     });
+
+  // Si un filtro deja menos páginas de las que había, o cambia el
+  // tamaño de página, la página actual puede quedar fuera de rango
+  // — se recorta acá mismo en vez de con un efecto aparte.
+  const totalPaginas = Math.max(1, Math.ceil(visibles.length / porPagina));
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const visiblesPagina = visibles.slice(
+    (paginaSegura - 1) * porPagina,
+    paginaSegura * porPagina
+  );
 
   async function avanzar(id: string, estado: string) {
     await cambiarEstado(id, estado);
@@ -934,53 +946,84 @@ export function ListaOrdenes({
       </div>
 
       {mostrarFiltros && (
-        <div className="mt-4 flex flex-wrap items-end gap-4 rounded-lg border border-border bg-card p-4">
-          <div>
-            <span className="mb-1 block text-[12px] text-muted-foreground">
-              Kilometraje desde
-            </span>
-            <input
-              value={kmMinimo}
-              onChange={(e) => setKmMinimo(e.target.value.replace(/\D/g, ""))}
-              placeholder="0"
-              inputMode="numeric"
-              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
-            />
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+          <button
+            aria-label="Cerrar filtros"
+            onClick={() => setMostrarFiltros(false)}
+            className="absolute inset-0 bg-black/60"
+          />
+          <div
+            role="dialog"
+            aria-modal
+            className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6"
+          >
+            <h2 className="text-lg font-medium">Filtros</h2>
+
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label>
+                  <span className="mb-1 block text-[12px] text-muted-foreground">
+                    Kilometraje desde
+                  </span>
+                  <input
+                    value={kmMinimo}
+                    onChange={(e) =>
+                      setKmMinimo(e.target.value.replace(/\D/g, ""))
+                    }
+                    placeholder="0"
+                    inputMode="numeric"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
+                  />
+                </label>
+                <label>
+                  <span className="mb-1 block text-[12px] text-muted-foreground">
+                    Kilometraje hasta
+                  </span>
+                  <input
+                    value={kmMaximo}
+                    onChange={(e) =>
+                      setKmMaximo(e.target.value.replace(/\D/g, ""))
+                    }
+                    placeholder="Sin límite"
+                    inputMode="numeric"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
+                  />
+                </label>
+              </div>
+
+              <label className="flex items-center gap-2 text-[14px]">
+                <input
+                  type="checkbox"
+                  checked={ordenAZ}
+                  onChange={(e) => setOrdenAZ(e.target.checked)}
+                  className="size-4 accent-primary"
+                />
+                Ordenar A-Z por vehículo
+              </label>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={() => setMostrarFiltros(false)}
+                className="flex-1 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Aplicar
+              </button>
+              {filtrosActivos > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setKmMinimo("");
+                    setKmMaximo("");
+                    setOrdenAZ(false);
+                  }}
+                  className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-background"
+                >
+                  Limpiar
+                </button>
+              )}
+            </div>
           </div>
-          <div>
-            <span className="mb-1 block text-[12px] text-muted-foreground">
-              Kilometraje hasta
-            </span>
-            <input
-              value={kmMaximo}
-              onChange={(e) => setKmMaximo(e.target.value.replace(/\D/g, ""))}
-              placeholder="Sin límite"
-              inputMode="numeric"
-              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
-            />
-          </div>
-          <label className="flex items-center gap-2 pb-2 text-[14px]">
-            <input
-              type="checkbox"
-              checked={ordenAZ}
-              onChange={(e) => setOrdenAZ(e.target.checked)}
-              className="size-4 accent-primary"
-            />
-            Ordenar A-Z por vehículo
-          </label>
-          {filtrosActivos > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                setKmMinimo("");
-                setKmMaximo("");
-                setOrdenAZ(false);
-              }}
-              className="pb-2 text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              Limpiar filtros
-            </button>
-          )}
         </div>
       )}
 
@@ -1002,7 +1045,7 @@ export function ListaOrdenes({
         </div>
       ) : (
         <ul className="mt-6 grid gap-4 lg:grid-cols-2">
-          {visibles.map((o) => {
+          {visiblesPagina.map((o) => {
             const saldo = o.total - o.abonado;
             const puedeEditarDescripcion =
               o.estado === "terminado" || o.estado === "entregado";
@@ -1282,6 +1325,47 @@ export function ListaOrdenes({
             );
           })}
         </ul>
+      )}
+
+      {visibles.length > 0 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            Mostrar
+            <select
+              value={porPagina}
+              onChange={(e) => setPorPagina(Number(e.target.value))}
+              className="rounded-lg border border-border bg-card px-2 py-1 text-[13px] text-foreground outline-none focus:border-primary/60"
+            >
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+            </select>
+            por página
+          </label>
+
+          {totalPaginas > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={paginaSegura <= 1}
+                onClick={() => setPagina(paginaSegura - 1)}
+                className="rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-card disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <span className="text-[13px] text-muted-foreground">
+                Página {paginaSegura} de {totalPaginas}
+              </span>
+              <button
+                type="button"
+                disabled={paginaSegura >= totalPaginas}
+                onClick={() => setPagina(paginaSegura + 1)}
+                className="rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-card disabled:opacity-40"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </>
   );
