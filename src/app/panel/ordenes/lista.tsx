@@ -283,7 +283,15 @@ export function ListaOrdenes({
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex shrink-0 gap-1 rounded-lg border border-border p-1">
+        {/* En móvil, abrir el buscador reemplaza toda la fila (como
+            la barra de búsqueda de una app) en vez de competir por
+            espacio con Abiertas/Todas/Filtros — con eso angosto se
+            veía apretado y el texto se cortaba casi de inmediato.
+            Desde sm: siempre hay espacio de sobra, así que conviven
+            en la misma fila sin necesidad de ese modo. */}
+        <div
+          className={`flex shrink-0 gap-1 rounded-lg border border-border p-1 ${busquedaAbierta ? "hidden sm:flex" : ""}`}
+        >
           {[
             { valor: "abiertas", texto: "Abiertas" },
             { valor: "todas", texto: "Todas" },
@@ -302,13 +310,11 @@ export function ListaOrdenes({
           ))}
         </div>
 
-        <div className="flex min-w-0 items-center gap-2">
-          {/* Buscador: colapsado a solo la lupa en pantallas chicas
-              (se expande al tocarlo), campo completo desde sm: —
-              así toda la fila cabe junto a Abiertas/Todas sin
-              apilarse en móvil. */}
+        <div
+          className={`flex min-w-0 items-center gap-2 ${busquedaAbierta ? "flex-1" : ""}`}
+        >
           {busquedaAbierta ? (
-            <label className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 sm:flex-none">
               <HugeiconsIcon
                 icon={Search01Icon}
                 className="size-4 shrink-0 text-muted-foreground"
@@ -317,12 +323,32 @@ export function ListaOrdenes({
                 autoFocus
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                onBlur={() => {
-                  if (!busqueda) setBusquedaAbierta(false);
-                }}
                 placeholder="Buscar por patente, vehículo…"
-                className="w-28 min-w-0 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-48"
+                className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-48"
               />
+              {busqueda && (
+                <button
+                  type="button"
+                  aria-label="Limpiar búsqueda"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setBusqueda("")}
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="Cerrar búsqueda"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setBusqueda("");
+                  setBusquedaAbierta(false);
+                }}
+                className="shrink-0 text-muted-foreground hover:text-foreground sm:hidden"
+              >
+                ✕
+              </button>
             </label>
           ) : (
             <button
@@ -340,7 +366,7 @@ export function ListaOrdenes({
             onClick={() => setMostrarFiltros((a) => !a)}
             className={`flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[14px] transition-colors ${
               mostrarFiltros ? "bg-card" : "hover:bg-card"
-            }`}
+            } ${busquedaAbierta ? "hidden sm:flex" : ""}`}
           >
             <HugeiconsIcon icon={FilterIcon} className="size-4" />
             <span className="hidden sm:inline">Filtros</span>
@@ -355,7 +381,7 @@ export function ListaOrdenes({
             aria-label="Órdenes por página"
             value={porPagina}
             onChange={(e) => setPorPagina(Number(e.target.value))}
-            className="shrink-0 rounded-lg border border-border bg-card px-2 py-2 text-[13px] text-foreground outline-none focus:border-primary/60"
+            className={`shrink-0 rounded-lg border border-border bg-card px-2 py-2 text-[13px] text-foreground outline-none focus:border-primary/60 ${busquedaAbierta ? "hidden sm:block" : ""}`}
           >
             <option value={15}>15</option>
             <option value={30}>30</option>
