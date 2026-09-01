@@ -15,6 +15,7 @@ import { ESTADOS } from "./estados";
 import { pesos, fecha } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { Procedimientos } from "@/components/procedimientos";
+import { Selector } from "@/components/ui/selector";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PackageIcon,
@@ -377,15 +378,15 @@ export function ListaOrdenes({
             )}
           </button>
 
-          <select
-            aria-label="Órdenes por página"
-            value={porPagina}
-            onChange={(e) => setPorPagina(Number(e.target.value))}
-            className={`shrink-0 rounded-lg border border-border bg-card px-2 py-2 text-[13px] text-foreground outline-none focus:border-primary/60 ${busquedaAbierta ? "hidden sm:block" : ""}`}
-          >
-            <option value={15}>15</option>
-            <option value={30}>30</option>
-          </select>
+          <Selector
+            value={String(porPagina)}
+            onChange={(v) => setPorPagina(Number(v))}
+            opciones={[
+              { valor: "15", texto: "15" },
+              { valor: "30", texto: "30" },
+            ]}
+            className={`w-[4.5rem] shrink-0 bg-card px-2 py-2 text-[13px] ${busquedaAbierta ? "hidden sm:flex" : ""}`}
+          />
         </div>
       </div>
 
