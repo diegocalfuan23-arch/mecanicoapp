@@ -380,15 +380,24 @@ export function ListaOrdenes({
             )}
           </button>
 
-          <Selector
-            value={String(porPagina)}
-            onChange={(v) => setPorPagina(Number(v))}
-            opciones={[
-              { valor: "15", texto: "15" },
-              { valor: "30", texto: "30" },
-            ]}
-            className={`w-[4.5rem] shrink-0 bg-card px-2 py-2 text-[13px] ${busquedaAbierta ? "hidden sm:flex" : ""}`}
-          />
+          {/* Selector.Trigger trae "w-full" en su clase base — un
+              ancho fijo pasado por className no siempre le gana en
+              especificidad. Envolverlo en un <div> de ancho fijo es
+              lo confiable: el "w-full" interno llena ESE contenedor,
+              en vez de intentar sobrescribir su propia clase. */}
+          <div
+            className={`w-[4.5rem] shrink-0 ${busquedaAbierta ? "hidden sm:block" : ""}`}
+          >
+            <Selector
+              value={String(porPagina)}
+              onChange={(v) => setPorPagina(Number(v))}
+              opciones={[
+                { valor: "15", texto: "15" },
+                { valor: "30", texto: "30" },
+              ]}
+              className="bg-card px-2 py-2 text-[13px]"
+            />
+          </div>
         </div>
       </div>
 
