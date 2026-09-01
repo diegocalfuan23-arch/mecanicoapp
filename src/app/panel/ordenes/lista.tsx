@@ -33,6 +33,8 @@ import {
   PackageIcon,
   Tick02Icon,
   Image02Icon,
+  Search01Icon,
+  FilterIcon,
 } from "@hugeicons/core-free-icons";
 
 type Orden = {
@@ -809,11 +811,38 @@ export function ListaOrdenes({
   >(null);
   const [retomando, setRetomando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("abiertas");
+  const [busqueda, setBusqueda] = useState("");
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [kmMinimo, setKmMinimo] = useState("");
+  const [kmMaximo, setKmMaximo] = useState("");
+  const [ordenAZ, setOrdenAZ] = useState(false);
 
-  const visibles =
+  const filtrosActivos =
+    (kmMinimo ? 1 : 0) + (kmMaximo ? 1 : 0) + (ordenAZ ? 1 : 0);
+
+  const visibles = (
     filtro === "abiertas"
       ? ordenes.filter((o) => o.estado !== "entregado")
-      : ordenes;
+      : ordenes
+  )
+    .filter((o) => {
+      const texto = busqueda.trim().toLowerCase();
+      if (!texto) return true;
+      return `${o.patente} ${o.marca ?? ""} ${o.modelo ?? ""} ${o.propietario ?? ""}`
+        .toLowerCase()
+        .includes(texto);
+    })
+    .filter((o) => {
+      if (kmMinimo && (o.kilometraje ?? 0) < Number(kmMinimo)) return false;
+      if (kmMaximo && (o.kilometraje ?? 0) > Number(kmMaximo)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (!ordenAZ) return 0;
+      const nombreA = `${a.marca ?? ""} ${a.modelo ?? ""}`.trim();
+      const nombreB = `${b.marca ?? ""} ${b.modelo ?? ""}`.trim();
+      return nombreA.localeCompare(nombreB, "es");
+    });
 
   async function avanzar(id: string, estado: string) {
     await cambiarEstado(id, estado);
@@ -848,23 +877,54 @@ export function ListaOrdenes({
   return (
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1 rounded-lg border border-border p-1">
-          {[
-            { valor: "abiertas", texto: "Abiertas" },
-            { valor: "todas", texto: "Todas" },
-          ].map((f) => (
-            <button
-              key={f.valor}
-              onClick={() => setFiltro(f.valor)}
-              className={`rounded px-4 py-2 text-[14px] transition-colors ${
-                filtro === f.valor
-                  ? "bg-card font-medium"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {f.texto}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 rounded-lg border border-border p-1">
+            {[
+              { valor: "abiertas", texto: "Abiertas" },
+              { valor: "todas", texto: "Todas" },
+            ].map((f) => (
+              <button
+                key={f.valor}
+                onClick={() => setFiltro(f.valor)}
+                className={`rounded px-4 py-2 text-[14px] transition-colors ${
+                  filtro === f.valor
+                    ? "bg-card font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {f.texto}
+              </button>
+            ))}
+          </div>
+
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              className="size-4 text-muted-foreground"
+            />
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por patente, vehículo…"
+              className="w-48 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setMostrarFiltros((a) => !a)}
+            className={`flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[14px] transition-colors ${
+              mostrarFiltros ? "bg-card" : "hover:bg-card"
+            }`}
+          >
+            <HugeiconsIcon icon={FilterIcon} className="size-4" />
+            Filtros
+            {filtrosActivos > 0 && (
+              <span className="font-semibold text-acento">
+                {filtrosActivos}
+              </span>
+            )}
+          </button>
         </div>
         <button
           onClick={() => setAbriendo(true)}
@@ -873,6 +933,57 @@ export function ListaOrdenes({
           Ingresar vehículo
         </button>
       </div>
+
+      {mostrarFiltros && (
+        <div className="mt-4 flex flex-wrap items-end gap-4 rounded-lg border border-border bg-card p-4">
+          <div>
+            <span className="mb-1 block text-[12px] text-muted-foreground">
+              Kilometraje desde
+            </span>
+            <input
+              value={kmMinimo}
+              onChange={(e) => setKmMinimo(e.target.value.replace(/\D/g, ""))}
+              placeholder="0"
+              inputMode="numeric"
+              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
+            />
+          </div>
+          <div>
+            <span className="mb-1 block text-[12px] text-muted-foreground">
+              Kilometraje hasta
+            </span>
+            <input
+              value={kmMaximo}
+              onChange={(e) => setKmMaximo(e.target.value.replace(/\D/g, ""))}
+              placeholder="Sin límite"
+              inputMode="numeric"
+              className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60"
+            />
+          </div>
+          <label className="flex items-center gap-2 pb-2 text-[14px]">
+            <input
+              type="checkbox"
+              checked={ordenAZ}
+              onChange={(e) => setOrdenAZ(e.target.checked)}
+              className="size-4 accent-primary"
+            />
+            Ordenar A-Z por vehículo
+          </label>
+          {filtrosActivos > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setKmMinimo("");
+                setKmMaximo("");
+                setOrdenAZ(false);
+              }}
+              className="pb-2 text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
 
       {visibles.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-border py-16 text-center">
