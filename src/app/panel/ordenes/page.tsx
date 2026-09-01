@@ -60,11 +60,11 @@ export default async function Ordenes() {
           <h1 className="text-xl font-semibold tracking-tight">
             Órdenes de trabajo
           </h1>
-          <p className="mt-2 text-muted-foreground">
-            {ordenes.length === 0
-              ? "Los autos que entran al taller."
-              : `${abiertas} ${abiertas === 1 ? "orden abierta" : "órdenes abiertas"}.`}
-          </p>
+          {ordenes.length === 0 && (
+            <p className="mt-2 text-muted-foreground">
+              Los autos que entran al taller.
+            </p>
+          )}
         </div>
         {/* En móvil, botón circular con solo el "+" — cabe al lado
             del título sin envolverse a su propia línea. Desde sm:
