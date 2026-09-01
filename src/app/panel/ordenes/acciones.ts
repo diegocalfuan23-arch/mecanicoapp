@@ -560,6 +560,58 @@ export async function editarProcedimiento(
 }
 
 /**
+ * Reemplaza TODAS las líneas de "qué se hizo" de una orden por las
+ * que llegan — pedido real de Tío Lalo: un solo cuadro de texto
+ * donde escribe línea por línea ("Cambio radiador 35000") en vez de
+ * ir llenando descripción/monto en campos separados por cada línea.
+ * Se usa al perder el foco del cuadro: borra lo anterior y crea de
+ * nuevo desde el texto actual, más simple y confiable que tratar de
+ * calzar cada línea con la fila que ya existía en la base.
+ */
+export async function reemplazarProcedimientos(
+  ordenId: string,
+  lineas: { descripcion: string; manoObra: string }[]
+) {
+  const tallerId = await tallerActual();
+
+  const [duena] = await db
+    .select({ id: trabajo.id })
+    .from(trabajo)
+    .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)))
+    .limit(1);
+
+  if (!duena) return { error: "Orden no encontrada." };
+
+  await db.delete(procedimiento).where(eq(procedimiento.trabajoId, ordenId));
+
+  const validas = lineas.filter((l) => l.descripcion.trim());
+  const nuevos = validas.map((l) => ({
+    id: crypto.randomUUID(),
+    trabajoId: ordenId,
+    descripcion: l.descripcion.trim(),
+    manoObra: Number(l.manoObra) || 0,
+    repuesto: 0,
+    repuestoNombre: null,
+  }));
+
+  if (nuevos.length > 0) {
+    await db.insert(procedimiento).values(nuevos);
+  }
+
+  revalidatePath("/panel/ordenes");
+  return {
+    ok: true,
+    items: nuevos.map((n) => ({
+      id: n.id,
+      descripcion: n.descripcion,
+      manoObra: n.manoObra,
+      repuesto: n.repuesto,
+      repuestoNombre: n.repuestoNombre,
+    })),
+  };
+}
+
+/**
  * Corregir "qué se hizo" en una orden ya Terminada o Entregada —
  * caso real: se acuerda de algo que faltó anotar después de cerrar.
  * No toca montos: eso quedó calculado al cerrar y no se recalcula.
