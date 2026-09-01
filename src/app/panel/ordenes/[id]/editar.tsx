@@ -32,6 +32,8 @@ type Orden = {
   estado: string;
   esperaDetalle: string | null;
   estadoPago: string;
+  manoObraFreno: number;
+  cargoTraslado: number;
   total: number;
   abonado: number;
   fecha: Date;
@@ -91,11 +93,17 @@ export function EditarOrden({
   const [tecnicoId, setTecnicoId] = useState(orden.tecnicoId ?? "");
   const [fotos, setFotos] = useState<string[]>(orden.fotos);
   const [guardadoAbierta, setGuardadoAbierta] = useState(false);
-  const [manoObraFreno, setManoObraFreno] = useState("");
-  const [cargoTraslado, setCargoTraslado] = useState("");
-  const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(false);
+  const [manoObraFreno, setManoObraFreno] = useState(
+    orden.manoObraFreno ? String(orden.manoObraFreno) : ""
+  );
+  const [cargoTraslado, setCargoTraslado] = useState(
+    orden.cargoTraslado ? String(orden.cargoTraslado) : ""
+  );
+  const [mostrarManoObraFreno, setMostrarManoObraFreno] = useState(
+    orden.manoObraFreno > 0
+  );
   const [mostrarServicios, setMostrarServicios] = useState(false);
-  const [estadoPago, setEstadoPago] = useState("pagado");
+  const [estadoPago, setEstadoPago] = useState(orden.estadoPago || "pagado");
   const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
@@ -166,6 +174,9 @@ export function EditarOrden({
       descripcion,
       tecnicoId,
       fotos,
+      manoObraFreno,
+      cargoTraslado,
+      estadoPago,
     });
     setGuardadoAbierta(true);
     setTimeout(() => setGuardadoAbierta(false), 1500);
@@ -546,26 +557,33 @@ export function EditarOrden({
             disabled={enviando}
             className="flex-[1.35] rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            {enviando ? "Guardando…" : "Cerrar orden"}
+            {enviando ? "Guardando…" : "Cerrar orden y cobrar"}
           </button>
           <button
             type="button"
             onClick={guardarAbierta}
             className="flex-1 rounded-lg border border-border bg-background px-6 py-2.5 font-medium transition-colors hover:bg-card"
           >
-            Guardar sin cerrar
+            Guardar avance
           </button>
         </div>
+        <p className="mt-1.5 text-[12px] text-muted-foreground">
+          &ldquo;Cerrar orden y cobrar&rdquo; termina el trabajo y registra el
+          pago. &ldquo;Guardar avance&rdquo; deja todo anotado sin cerrar,
+          para seguir después.
+        </p>
         <div className="mt-2 flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.push("/panel/ordenes")}
-            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-lg px-3 py-1.5 text-[13px] text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
           >
-            Cancelar
+            Cancelar y volver sin guardar
           </button>
           {guardadoAbierta && (
-            <span className="text-[13px] text-muted-foreground">Guardado</span>
+            <span className="text-[13px] text-success">
+              Avance guardado
+            </span>
           )}
         </div>
       </div>

@@ -80,6 +80,8 @@ export async function obtenerOrden(ordenId: string) {
       estado: trabajo.estado,
       esperaDetalle: trabajo.esperaDetalle,
       estadoPago: trabajo.estadoPago,
+      manoObraFreno: trabajo.manoObraFreno,
+      cargoTraslado: trabajo.cargoTraslado,
       total: trabajo.total,
       abonado: trabajo.abonado,
       fecha: trabajo.fecha,
@@ -356,6 +358,11 @@ export async function editarOrdenAbierta(
     descripcion: string;
     tecnicoId?: string;
     fotos?: string[];
+    // Cobro parcial: antes se perdía al usar "Guardar sin cerrar" —
+    // solo se guardaba de verdad al cerrar la orden con cerrarOrden().
+    manoObraFreno?: string;
+    cargoTraslado?: string;
+    estadoPago?: string;
   }
 ) {
   const tallerId = await tallerActual();
@@ -369,6 +376,15 @@ export async function editarOrdenAbierta(
       descripcion: datos.descripcion.trim() || null,
       tecnicoId: datos.tecnicoId || null,
       ...(datos.fotos !== undefined ? { fotos: datos.fotos } : {}),
+      ...(datos.manoObraFreno !== undefined
+        ? { manoObraFreno: Number(datos.manoObraFreno) || 0 }
+        : {}),
+      ...(datos.cargoTraslado !== undefined
+        ? { cargoTraslado: Number(datos.cargoTraslado) || 0 }
+        : {}),
+      ...(datos.estadoPago !== undefined
+        ? { estadoPago: datos.estadoPago }
+        : {}),
       updatedAt: new Date(),
     })
     .where(and(eq(trabajo.id, ordenId), eq(trabajo.tallerId, tallerId)));
