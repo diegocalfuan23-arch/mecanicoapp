@@ -1,11 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import {
-  listarOrdenes,
-  listarVehiculosParaOrden,
-  listarTecnicos,
-} from "./acciones";
-import { listarInventario } from "../inventario/acciones";
+import { listarOrdenes } from "./acciones";
 import { tienePlan } from "@/lib/taller";
 import { ListaOrdenes } from "./lista";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -45,14 +40,10 @@ function Kpi({
 }
 
 export default async function Ordenes() {
-  const [ordenes, vehiculos, inventario, tecnicos, tieneImpresion] =
-    await Promise.all([
-      listarOrdenes(),
-      listarVehiculosParaOrden(),
-      listarInventario(),
-      listarTecnicos(),
-      tienePlan("impresionOrden"),
-    ]);
+  const [ordenes, tieneImpresion] = await Promise.all([
+    listarOrdenes(),
+    tienePlan("impresionOrden"),
+  ]);
 
   const abiertas = ordenes.filter((o) => o.estado !== "entregado").length;
   const entregadas = ordenes.filter((o) => o.estado === "entregado").length;
@@ -79,7 +70,7 @@ export default async function Ordenes() {
             del título sin envolverse a su propia línea. Desde sm:
             vuelve a texto completo. */}
         <Link
-          href="/panel/ordenes?abrir=1"
+          href="/panel/ordenes/nueva"
           aria-label="Ingresar vehículo"
           className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 sm:size-auto sm:rounded-lg sm:px-6 sm:py-2 sm:font-medium"
         >
@@ -118,13 +109,7 @@ export default async function Ordenes() {
       )}
 
       <Suspense>
-        <ListaOrdenes
-          ordenes={ordenes}
-          vehiculos={vehiculos}
-          inventario={inventario}
-          tecnicos={tecnicos}
-          tieneImpresion={tieneImpresion}
-        />
+        <ListaOrdenes ordenes={ordenes} tieneImpresion={tieneImpresion} />
       </Suspense>
     </>
   );
