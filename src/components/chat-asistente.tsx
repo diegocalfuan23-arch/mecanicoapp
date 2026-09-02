@@ -303,13 +303,14 @@ export function ChatAsistente({
             e.preventDefault();
             enviar(entrada);
           }}
-          // Sin sticky: en Android, fijar este form contra un alto
-          // calculado a mano (visualViewport) terminaba dejando un
-          // hueco vacío y scrolleable al abrir el teclado — el cálculo
-          // nunca calzó de forma confiable en la práctica. En flujo
-          // normal, el propio navegador hace scroll-into-view del
-          // input al enfocarlo, sin necesitar nada manual.
-          className="mt-4 flex flex-wrap items-center gap-2 bg-background pt-4"
+          // sticky bottom-0 (CSS puro, sin calcular nada con JS) — el
+          // intento anterior con visualViewport calculado a mano
+          // dejaba un hueco vacío; ese cálculo era el problema, no
+          // sticky en sí. Mismo patrón que ya funciona en el cierre
+          // de orden: se ancla al scroll real de <main>, no al
+          // viewport completo, así que no se ve afectado por el vh
+          // que ocupa o no el teclado de Android.
+          className="sticky bottom-0 mt-4 flex flex-wrap items-center gap-2 bg-background pt-4 pb-2"
         >
           <input
             value={entrada}
