@@ -222,7 +222,13 @@ export function ChatAsistente({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* dvh (no vh): dvh descuenta el teclado en Android/Chrome
+          recientes, vh no — con vh el input quedaba con un hueco
+          vacío debajo al abrirse el teclado. flex-col + flex-1 en el
+          bloque de mensaje empuja el <form> al fondo real sin sticky
+          ni cálculos manuales: sticky no tenía de qué "engancharse"
+          cuando el contenido era más bajo que la pantalla. */}
+      <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
           <button
             onClick={() => setListaAbierta(true)}
@@ -242,13 +248,7 @@ export function ChatAsistente({
         </div>
 
         {mensajes.length === 0 ? (
-          // Sin min-h en vh: un alto medido contra el viewport se
-          // mide igual con el teclado de Android abierto o cerrado,
-          // así que cualquier vh dejaba un hueco vacío debajo del
-          // input al abrirse el teclado. Con solo padding, el bloque
-          // ocupa su tamaño real de contenido — el input queda
-          // siempre pegado a este mensaje, se vea el teclado o no.
-          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
             <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
               ¿Cuánto debe la BXFS19?
             </p>
@@ -303,13 +303,12 @@ export function ChatAsistente({
             e.preventDefault();
             enviar(entrada);
           }}
-          // sticky bottom-0 (CSS puro, sin calcular nada con JS) — el
-          // intento anterior con visualViewport calculado a mano
-          // dejaba un hueco vacío; ese cálculo era el problema, no
-          // sticky en sí. Mismo patrón que ya funciona en el cierre
-          // de orden: se ancla al scroll real de <main>, no al
-          // viewport completo, así que no se ve afectado por el vh
-          // que ocupa o no el teclado de Android.
+          // sticky bottom-0 mantiene el input a la vista si se
+          // scrollea una conversación larga; lo que de verdad ancla
+          // el input al fondo cuando hay poco contenido es el
+          // min-h-[100dvh] + flex-1 de arriba, no este sticky solo
+          // (sticky no tiene de qué "engancharse" si el contenido es
+          // más bajo que la pantalla).
           className="sticky bottom-0 mt-4 flex flex-wrap items-center gap-2 bg-background pt-4 pb-2"
         >
           <input
