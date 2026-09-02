@@ -190,7 +190,7 @@ export function ChatAsistente({
   }
 
   return (
-    <div className="flex gap-8">
+    <div className="flex h-full gap-8">
       {/* Consultas anteriores: columna fija desde tablet */}
       <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
         <Lista
@@ -222,13 +222,13 @@ export function ChatAsistente({
         </div>
       )}
 
-      {/* dvh (no vh): dvh descuenta el teclado en Android/Chrome
-          recientes, vh no — con vh el input quedaba con un hueco
-          vacío debajo al abrirse el teclado. flex-col + flex-1 en el
-          bloque de mensaje empuja el <form> al fondo real sin sticky
-          ni cálculos manuales: sticky no tenía de qué "engancharse"
-          cuando el contenido era más bajo que la pantalla. */}
-      <div className="flex min-h-[100dvh] min-w-0 flex-1 flex-col">
+      {/* h-full (no min-h-[100dvh]): el layout del panel ya le da a
+          <main> su alto real (h-dvh en la raíz menos el header) — un
+          alto propio en vh/dvh se suma AL de <main> y genera scroll
+          de sobra, deslizable, aunque nada deba moverse. Con h-full
+          el bloque ocupa exactamente el alto de <main>, ni más ni
+          menos, y flex-1 en el mensaje empuja el <form> al fondo. */}
+      <div className="flex h-full min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
           <button
             onClick={() => setListaAbierta(true)}
