@@ -242,11 +242,13 @@ export function ChatAsistente({
         </div>
 
         {mensajes.length === 0 ? (
-          // min-h chico (no h-full ni un vh grande): centra el
-          // mensaje sin dejar un hueco vacío entre él y el input —
-          // un min-h alto empujaba el formulario muy abajo en
-          // pantallas de celular más chicas.
-          <div className="flex min-h-[20vh] flex-col items-center justify-center px-4 py-10 text-center">
+          // Sin min-h en vh: un alto medido contra el viewport se
+          // mide igual con el teclado de Android abierto o cerrado,
+          // así que cualquier vh dejaba un hueco vacío debajo del
+          // input al abrirse el teclado. Con solo padding, el bloque
+          // ocupa su tamaño real de contenido — el input queda
+          // siempre pegado a este mensaje, se vea el teclado o no.
+          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
             <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
               ¿Cuánto debe la BXFS19?
             </p>
