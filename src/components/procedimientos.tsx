@@ -25,12 +25,27 @@ function parsearLinea(linea: string): { descripcion: string; manoObra: string } 
 }
 
 /**
- * Lo que se va haciendo, línea por línea — pedido real de Tío Lalo
- * (video + feedback posterior): un cuadro donde escribe varias
- * líneas de un tirón ("cambio radiador 40000", Enter, "sacar culata
- * 300000", Enter, sin confirmar una por una), y al salir del cuadro
- * o tocar "Agregar" cada línea se separa en su propia tarjeta arriba
- * — editable (clic) o eliminable, igual que antes.
+ * Suma los montos de cada línea y arma una descripción legible de
+ * todo el bloque: "cambio radiador 40000\nsacar culata 300000" ->
+ * descripción "cambio radiador, sacar culata" + $340.000.
+ */
+function parsearBloque(texto: string) {
+  const lineas = texto.split("\n").map(parsearLinea).filter((l) => l.descripcion);
+  return {
+    descripcion: lineas.map((l) => l.descripcion).join(", "),
+    manoObra: lineas.reduce((s, l) => s + (Number(l.manoObra) || 0), 0),
+  };
+}
+
+/**
+ * Lo que se va haciendo, en tarjetas — pedido real de Tío Lalo
+ * (video + feedback posterior): un cuadro donde escribe varios
+ * procesos de un tirón ("cambio de sigüeñal 800000", Enter, "cambio
+ * de radiador 120000"), y al salir del cuadro TODO ese texto se
+ * guarda junto como una sola tarjeta, sumando los montos de cada
+ * línea — no una tarjeta por línea. Cada tarjeta se puede tocar para
+ * reabrir su texto completo y seguir agregando o corrigiendo, o
+ * eliminarla entera.
  *
  * Compartido entre el formulario de cierre (/panel/ordenes/[id]) y
  * el modal de corrección de órdenes ya cerradas (EditarDescripcion
@@ -62,25 +77,31 @@ export function Procedimientos({
 
   function editar(p: Procedimiento) {
     setEditandoId(p.id);
+    // El desglose por línea ya se perdió al fusionar en una tarjeta
+    // — se reabre como descripción + total en una línea; si hace
+    // falta reordenar en varias líneas de nuevo, se hace a mano.
     setTexto(
       p.manoObra ? `${p.descripcion} ${MILES.format(p.manoObra)}` : p.descripcion
     );
   }
 
-  async function agregarLinea(cruda: string) {
-    const { descripcion, manoObra } = parsearLinea(cruda);
-    if (!descripcion) return;
+  async function guardar() {
+    const { descripcion, manoObra } = parsearBloque(texto);
+    if (!descripcion) {
+      limpiar();
+      return;
+    }
 
     const datos = {
       descripcion,
-      manoObra,
+      manoObra: String(manoObra),
       repuesto: "",
       repuestoNombre: "",
     };
     const optimista: Procedimiento = {
       id: editandoId ?? `tmp-${crypto.randomUUID()}`,
       descripcion,
-      manoObra: Number(manoObra) || 0,
+      manoObra,
       repuesto: 0,
       repuestoNombre: null,
     };
@@ -91,6 +112,7 @@ export function Procedimientos({
         ? actuales.map((p) => (p.id === editandoId ? optimista : p))
         : [...actuales, optimista]
     );
+    limpiar();
 
     const res = editandoId
       ? await editarProcedimiento(editandoId, datos)
@@ -100,24 +122,6 @@ export function Procedimientos({
         actuales.map((p) => (p.id === optimista.id ? res.item : p))
       );
     }
-  }
-
-  // Editando una tarjeta existente: solo esa línea, sin partir en
-  // varias — si el mecánico agregó saltos de línea por error acá,
-  // se tratan como una sola descripción larga en vez de crear más.
-  async function confirmarEdicion() {
-    await agregarLinea(texto.replace(/\n/g, " "));
-    limpiar();
-  }
-
-  // Cuadro nuevo: cada línea no vacía se agrega como su propia
-  // tarjeta — así se puede escribir o pegar varios procesos de un
-  // tirón, sin confirmar uno por uno con Enter.
-  async function agregarTodo() {
-    const lineas = texto.split("\n").filter((l) => l.trim());
-    if (lineas.length === 0) return;
-    setTexto("");
-    for (const l of lineas) await agregarLinea(l);
   }
 
   async function quitar(id: string) {
@@ -174,16 +178,15 @@ export function Procedimientos({
       <textarea
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
-        onBlur={editandoId ? confirmarEdicion : agregarTodo}
+        onBlur={guardar}
         placeholder={"Cambio radiador 40000\nSacar culata 300000"}
-        rows={editandoId ? 1 : 3}
+        rows={3}
         className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
       />
       <div className="mt-2 flex items-center justify-between gap-2">
         <p className="text-[12px] text-muted-foreground">
-          {editandoId
-            ? "Corrige y sal del campo para guardar."
-            : "Una línea por trabajo, con el monto al final — se agregan todas juntas."}
+          Una línea por trabajo, con el monto al final — se suman y
+          quedan como una sola tarjeta.
         </p>
         {editandoId && (
           <button
