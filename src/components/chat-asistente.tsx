@@ -242,10 +242,11 @@ export function ChatAsistente({
         </div>
 
         {mensajes.length === 0 ? (
-          // min-h (no h-full): deja el mensaje centrado ocupando la
-          // mayor parte de la pantalla, como cualquier chat, sin
-          // forzar un alto exacto que se descuadre con el teclado.
-          <div className="flex min-h-[55vh] flex-col items-center justify-center px-4 text-center">
+          // min-h chico (no h-full ni un vh grande): centra el
+          // mensaje sin dejar un hueco vacío entre él y el input —
+          // un min-h alto empujaba el formulario muy abajo en
+          // pantallas de celular más chicas.
+          <div className="flex min-h-[20vh] flex-col items-center justify-center px-4 py-10 text-center">
             <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
               ¿Cuánto debe la BXFS19?
             </p>
