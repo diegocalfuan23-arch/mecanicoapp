@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   reemplazarProcedimientos,
   type Procedimiento,
 } from "@/app/panel/ordenes/acciones";
 import { pesos } from "@/lib/formato";
+
+const MILES = new Intl.NumberFormat("es-CL");
 
 /**
  * Un último número en la línea es el monto de esa línea; el resto es
@@ -22,7 +24,27 @@ function parsearLinea(linea: string): { descripcion: string; manoObra: string } 
 
 function lineasATexto(items: Procedimiento[]) {
   return items
-    .map((p) => (p.manoObra ? `${p.descripcion} ${p.manoObra}` : p.descripcion))
+    .map((p) =>
+      p.manoObra
+        ? `${p.descripcion} ${MILES.format(p.manoObra)}`
+        : p.descripcion
+    )
+    .join("\n");
+}
+
+/**
+ * Formatea con puntos de miles solo el número al final de cada
+ * línea, sin tocar el resto del texto — "cambio radiador 40000" se
+ * ve "cambio radiador 40.000" mientras se escribe.
+ */
+function formatearMontos(texto: string) {
+  return texto
+    .split("\n")
+    .map((linea) => {
+      const { descripcion, manoObra } = parsearLinea(linea);
+      if (!manoObra) return linea;
+      return `${descripcion} ${MILES.format(Number(manoObra))}`;
+    })
     .join("\n");
 }
 
@@ -52,6 +74,18 @@ export function Procedimientos({
 }) {
   const [texto, setTexto] = useState(() => lineasATexto(items));
   const [guardando, setGuardando] = useState(false);
+  // items llega vacío en el primer render (procedimientosDeOrden es
+  // async) y se completa después — sin esto, el useState inicial de
+  // arriba nunca se vuelve a evaluar y el cuadro queda vacío aunque
+  // ya hubiera procedimientos guardados. Solo sincroniza una vez, y
+  // no si el usuario ya está escribiendo (evita pisarle el texto).
+  const yaSincronizado = useRef(false);
+  useEffect(() => {
+    if (yaSincronizado.current) return;
+    if (items.length === 0) return;
+    yaSincronizado.current = true;
+    setTexto(lineasATexto(items));
+  }, [items]);
 
   // Suma en vivo mientras se escribe, antes de guardar nada — el
   // total responde al tipeo, no solo después de perder el foco.
@@ -60,6 +94,10 @@ export function Procedimientos({
     .reduce((s, l) => s + (Number(parsearLinea(l).manoObra) || 0), 0);
 
   async function guardar() {
+    // Puntos de miles en el monto al perder el foco — no en cada
+    // tecla, para no saltarle el cursor al mecánico mientras escribe.
+    setTexto(formatearMontos(texto));
+
     const lineas = texto
       .split("\n")
       .map(parsearLinea)
