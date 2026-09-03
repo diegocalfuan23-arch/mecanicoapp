@@ -1,6 +1,9 @@
 import { Buscador } from "./buscador";
+import { tienePlan } from "@/lib/taller";
 
-export default function Historial() {
+export default async function Historial() {
+  const tieneImpresion = await tienePlan("impresionOrden");
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
@@ -12,7 +15,7 @@ export default function Historial() {
         </p>
       </div>
 
-      <Buscador />
+      <Buscador tieneImpresion={tieneImpresion} />
     </div>
   );
 }
