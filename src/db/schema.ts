@@ -463,3 +463,25 @@ export const mensaje = pgTable(
   },
   (t) => [index("mensaje_conversacion_idx").on(t.conversacionId, t.fecha)]
 );
+
+/**
+ * Caché de lo que devuelve GetAPI por patente — compartido entre
+ * todos los talleres, sin tallerId: son datos públicos del vehículo
+ * (marca, modelo, VIN...), no algo privado de un taller. Evita
+ * volver a consultar la API si dos talleres buscan la misma patente,
+ * o el mismo taller la busca dos veces — importante con el límite
+ * bajo de consultas por minuto de la key de prueba.
+ */
+export const vehiculoExterno = pgTable("vehiculo_externo", {
+  patente: text("patente").primaryKey(),
+  vin: text("vin"),
+  marca: text("marca"),
+  modelo: text("modelo"),
+  anio: integer("anio"),
+  color: text("color"),
+  motor: text("motor"),
+  cilindrada: text("cilindrada"),
+  tipo: text("tipo"),
+  kilometraje: integer("kilometraje"),
+  consultadoEn: timestamp("consultado_en").notNull().defaultNow(),
+});

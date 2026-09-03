@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { vehiculo, cliente, trabajo } from "@/db/schema";
+import { vehiculo, cliente, trabajo, vehiculoExterno } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 import { siguienteNumeroCliente } from "@/app/panel/propietarios/acciones";
 import { TIPOS_VEHICULO } from "@/lib/tipos-vehiculo";
@@ -38,8 +38,11 @@ export type DatosVehiculo = {
 /**
  * Autocompleta datos del vehículo por patente — Plan Serviteca.
  * Usa GetAPI (getapi.cl), con key de prueba mientras se evalúa si
- * conviene un plan pago. No guarda nada: solo trae los datos para
- * que el mecánico los revise antes de registrar el vehículo.
+ * conviene un plan pago. No guarda el VEHÍCULO del taller, pero SÍ
+ * cachea la respuesta en vehiculoExterno (compartida entre todos los
+ * talleres) para no volver a gastar cuota de la API si la misma
+ * patente se busca de nuevo — marca/modelo/VIN prácticamente nunca
+ * cambian, así que el caché no vence.
  */
 export async function buscarPorPatente(patente: string) {
   // El botón solo se ve con Plan Serviteca, pero una server action es
@@ -49,11 +52,35 @@ export async function buscarPorPatente(patente: string) {
     return { error: "Esta función es del Plan Serviteca." };
   }
 
-  const key = process.env.GETAPI_KEY;
-  if (!key) return { error: "Búsqueda por patente no configurada." };
-
   const limpia = patente.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (!limpia) return { error: "Escribe una patente." };
+
+  const [enCache] = await db
+    .select()
+    .from(vehiculoExterno)
+    .where(eq(vehiculoExterno.patente, limpia))
+    .limit(1);
+
+  if (enCache) {
+    return {
+      ok: true as const,
+      datos: {
+        vin: enCache.vin ?? "",
+        marca: enCache.marca ?? "",
+        modelo: enCache.modelo ?? "",
+        anio: enCache.anio ? String(enCache.anio) : "",
+        color: enCache.color ?? "",
+        motor: enCache.motor ?? "",
+        cilindrada: enCache.cilindrada ?? "",
+        tipo: enCache.tipo ?? "",
+        kilometrajeInicial:
+          enCache.kilometraje != null ? String(enCache.kilometraje) : "",
+      },
+    };
+  }
+
+  const key = process.env.GETAPI_KEY;
+  if (!key) return { error: "Búsqueda por patente no configurada." };
 
   let res: Response;
   try {
@@ -97,22 +124,39 @@ export async function buscarPorPatente(patente: string) {
       )
     : undefined;
 
-  return {
-    ok: true as const,
-    datos: {
-      vin: d.vinNumber ?? "",
-      marca: d.model?.brand?.name ?? "",
-      modelo: d.model?.name ?? "",
-      anio: d.year ? String(d.year) : "",
-      color: d.color ?? "",
-      motor,
-      cilindrada: d.engine ?? "",
-      tipo: tipo ?? "",
-      kilometrajeInicial: d.mileage != null ? String(d.mileage) : "",
-      // No traído a propósito: propietario/RUT no existen en
-      // registros públicos sin verificación de identidad.
-    },
+  const datos = {
+    vin: d.vinNumber ?? "",
+    marca: d.model?.brand?.name ?? "",
+    modelo: d.model?.name ?? "",
+    anio: d.year ? String(d.year) : "",
+    color: d.color ?? "",
+    motor,
+    cilindrada: d.engine ?? "",
+    tipo: tipo ?? "",
+    kilometrajeInicial: d.mileage != null ? String(d.mileage) : "",
+    // No traído a propósito: propietario/RUT no existen en
+    // registros públicos sin verificación de identidad.
   };
+
+  // Se guarda en caché para no volver a gastar cuota — onConflict
+  // por si dos búsquedas de la misma patente entraran a la vez.
+  await db
+    .insert(vehiculoExterno)
+    .values({
+      patente: limpia,
+      vin: datos.vin || null,
+      marca: datos.marca || null,
+      modelo: datos.modelo || null,
+      anio: d.year ?? null,
+      color: datos.color || null,
+      motor: datos.motor || null,
+      cilindrada: datos.cilindrada || null,
+      tipo: datos.tipo || null,
+      kilometraje: d.mileage ?? null,
+    })
+    .onConflictDoNothing();
+
+  return { ok: true as const, datos };
 }
 
 export async function listarVehiculos() {
