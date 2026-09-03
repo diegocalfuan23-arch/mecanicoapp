@@ -42,7 +42,7 @@ export default function Recuperar() {
     return (
       <MarcoAuth
         titulo="Revisa tu correo"
-        bajada={`Si ${form.values.correo.trim()} tiene una cuenta, le llegó un enlace para cambiar la contraseña.`}
+        bajada={`Si ${form.values.correo.trim()} tiene una cuenta registrada, le llegó un enlace para cambiar la contraseña. Si no llega en unos minutos, puede que la cuenta esté con otro correo.`}
         pie={
           <>
             ¿No llegó? Mira en spam, o{" "}
