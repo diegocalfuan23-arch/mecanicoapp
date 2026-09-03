@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   agregarProcedimiento,
   editarProcedimiento,
@@ -67,16 +67,31 @@ export function Procedimientos({
 }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  // true entre que se escribe algo y que ese algo queda persistido —
+  // distingue "guardando" (petición en curso) de "hay texto que el
+  // debounce todavía no mandó a guardar".
+  const [sinGuardar, setSinGuardar] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Fila donde se va guardando el autoguardado en background,
+  // distinta de editandoId (que es para reabrir una tarjeta YA
+  // confirmada). Se crea la primera vez que hay texto y se
+  // actualiza (nunca duplica) mientras el mecánico sigue escribiendo.
+  const borradorIdRef = useRef<string | null>(null);
 
   const total = items.reduce((s, p) => s + p.manoObra + p.repuesto, 0);
 
   function limpiar() {
+    if (timerRef.current) clearTimeout(timerRef.current);
     setEditandoId(null);
     setTexto("");
+    setSinGuardar(false);
+    borradorIdRef.current = null;
   }
 
   function editar(p: Procedimiento) {
     setEditandoId(p.id);
+    borradorIdRef.current = p.id;
     // El desglose por línea ya se perdió al fusionar en una tarjeta
     // — se reabre como descripción + total en una línea; si hace
     // falta reordenar en varias líneas de nuevo, se hace a mano.
@@ -85,12 +100,9 @@ export function Procedimientos({
     );
   }
 
-  async function guardar() {
+  async function guardarBorrador() {
     const { descripcion, manoObra } = parsearBloque(texto);
-    if (!descripcion) {
-      limpiar();
-      return;
-    }
+    if (!descripcion) return;
 
     const datos = {
       descripcion,
@@ -98,30 +110,63 @@ export function Procedimientos({
       repuesto: "",
       repuestoNombre: "",
     };
+    const idActual = borradorIdRef.current;
     const optimista: Procedimiento = {
-      id: editandoId ?? `tmp-${crypto.randomUUID()}`,
+      id: idActual ?? `tmp-${crypto.randomUUID()}`,
       descripcion,
       manoObra,
       repuesto: 0,
       repuestoNombre: null,
     };
-    // Optimista: la tarjeta aparece al instante, sin esperar al
-    // servidor — la respuesta real solo confirma o corrige el id.
     onCambio((actuales) =>
-      editandoId
-        ? actuales.map((p) => (p.id === editandoId ? optimista : p))
+      idActual
+        ? actuales.map((p) => (p.id === idActual ? optimista : p))
         : [...actuales, optimista]
     );
-    limpiar();
 
-    const res = editandoId
-      ? await editarProcedimiento(editandoId, datos)
+    setGuardando(true);
+    const res = idActual
+      ? await editarProcedimiento(idActual, datos)
       : await agregarProcedimiento(ordenId, datos);
+    setGuardando(false);
+    setSinGuardar(false);
     if (res?.ok && res.item) {
+      borradorIdRef.current = res.item.id;
+      setEditandoId((actual) => (actual ? res.item!.id : actual));
       onCambio((actuales) =>
-        actuales.map((p) => (p.id === optimista.id ? res.item : p))
+        actuales.map((p) => (p.id === optimista.id ? res.item! : p))
       );
     }
+  }
+
+  // Guardar solo con onBlur no bastaba: si el mecánico sale de la
+  // pantalla sin tocar afuera del campo primero (botón atrás, cerrar
+  // la app), el texto escrito se perdía entero sin ningún aviso —
+  // bug real reportado por Tío Lalo (orden con texto escrito, cero
+  // procedimientos guardados). Este efecto persiste el texto solo,
+  // 1.5s después de que el mecánico deja de escribir, SIN limpiar el
+  // campo ni convertirlo en tarjeta — eso solo pasa al confirmar
+  // (onBlur o Enter), para no borrarle el texto de encima mientras
+  // sigue escribiendo.
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!texto.trim()) return;
+    timerRef.current = setTimeout(() => {
+      guardarBorrador();
+    }, 1500);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [texto]);
+
+  // Confirmar (perder el foco, o Enter): igual que el autoguardado,
+  // pero además limpia el campo y deja el texto convertido en
+  // tarjeta — el punto en que el mecánico "termina" esa nota.
+  async function confirmar() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await guardarBorrador();
+    limpiar();
   }
 
   async function quitar(id: string) {
@@ -177,8 +222,11 @@ export function Procedimientos({
 
       <textarea
         value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        onBlur={guardar}
+        onChange={(e) => {
+          setTexto(e.target.value);
+          if (e.target.value.trim()) setSinGuardar(true);
+        }}
+        onBlur={confirmar}
         placeholder={"Cambio radiador 40000\nSacar culata 300000"}
         rows={3}
         className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
@@ -187,6 +235,9 @@ export function Procedimientos({
         <p className="text-[12px] text-muted-foreground">
           Una línea por trabajo, con el monto al final — se suman y
           quedan como una sola tarjeta.
+          {guardando && " · Guardando…"}
+          {!guardando && sinGuardar && " · Sin guardar aún"}
+          {!guardando && !sinGuardar && texto.trim() && " · Guardado"}
         </p>
         {editandoId && (
           <button
