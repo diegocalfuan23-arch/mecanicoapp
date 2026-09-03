@@ -215,6 +215,12 @@ export function Buscador({
                   <dd>{externo.motor}</dd>
                 </div>
               )}
+              {externo.cilindrada && (
+                <div>
+                  <dt className="text-[11px] uppercase">Cilindrada</dt>
+                  <dd>{externo.cilindrada}</dd>
+                </div>
+              )}
               {externo.vin && (
                 <div>
                   <dt className="text-[11px] uppercase">VIN</dt>
