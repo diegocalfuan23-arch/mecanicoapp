@@ -24,6 +24,12 @@ const origenes = [urlBase];
 if (process.env.VERCEL_URL) {
   origenes.push(conProtocolo(process.env.VERCEL_URL));
 }
+// mecanicoapp.com es el dominio nuevo (urlBase), pero el link viejo
+// mecanicoapp.vercel.app sigue circulando (usuarios con el bookmark
+// de antes) — mientras dure la transición, ambos deben aceptarse.
+if (!origenes.includes("https://mecanicoapp.vercel.app")) {
+  origenes.push("https://mecanicoapp.vercel.app");
+}
 
 export const auth = betterAuth({
   baseURL: urlBase,
