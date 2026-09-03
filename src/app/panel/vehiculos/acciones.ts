@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { vehiculo, cliente, trabajo } from "@/db/schema";
-import { tallerActual } from "@/lib/taller";
+import { tallerActual, tienePlan } from "@/lib/taller";
 import { siguienteNumeroCliente } from "@/app/panel/propietarios/acciones";
 
 function id() {
@@ -33,6 +33,66 @@ export type DatosVehiculo = {
   comparteHistorial: boolean;
   notas?: string;
 };
+
+/**
+ * Autocompleta datos del vehículo por patente — Plan Serviteca.
+ * Usa GetAPI (getapi.cl), con key de prueba mientras se evalúa si
+ * conviene un plan pago. No guarda nada: solo trae los datos para
+ * que el mecánico los revise antes de registrar el vehículo.
+ */
+export async function buscarPorPatente(patente: string) {
+  // El botón solo se ve con Plan Serviteca, pero una server action es
+  // invocable igual sin pasar por la UI — sin este chequeo, cualquiera
+  // podría gastar la key compartida (3 consultas/min en la demo).
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const key = process.env.GETAPI_KEY;
+  if (!key) return { error: "Búsqueda por patente no configurada." };
+
+  const limpia = patente.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!limpia) return { error: "Escribe una patente." };
+
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://chile.getapi.cl/v1/vehicles/plate/${limpia}`,
+      { headers: { "X-Api-Key": key } }
+    );
+  } catch {
+    return { error: "No se pudo conectar con el servicio de patentes." };
+  }
+
+  if (res.status === 404) {
+    return { error: "No se encontró esa patente." };
+  }
+  if (!res.ok) {
+    return { error: "El servicio de patentes no respondió. Intenta de nuevo." };
+  }
+
+  const cuerpo = await res.json();
+  const d = cuerpo?.data;
+  if (!d) return { error: "No se encontró esa patente." };
+
+  // "Motor" en el formulario es texto libre tipo "2.4 diésel"
+  // (cilindrada + combustible), no el número de serie del motor —
+  // se arma igual que el mecánico lo escribiría a mano.
+  const motor = [d.engine, d.fuel?.toLowerCase()].filter(Boolean).join(" ");
+
+  return {
+    ok: true as const,
+    datos: {
+      vin: d.vinNumber ?? "",
+      marca: d.model?.brand?.name ?? "",
+      modelo: d.model?.name ?? "",
+      anio: d.year ? String(d.year) : "",
+      color: d.color ?? "",
+      motor,
+      cilindrada: d.engine ?? "",
+    },
+  };
+}
 
 export async function listarVehiculos() {
   const tallerId = await tallerActual();

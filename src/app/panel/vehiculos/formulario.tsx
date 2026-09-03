@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { guardarVehiculo, actualizarVehiculo } from "./acciones";
+import { guardarVehiculo, actualizarVehiculo, buscarPorPatente } from "./acciones";
 import { miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 
@@ -109,6 +109,8 @@ export function FormularioVehiculo({
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
+  const [buscando, setBuscando] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null);
   const editando = !!vehiculo;
 
   const form = useFormik({
@@ -161,6 +163,34 @@ export function FormularioVehiculo({
 
   const err = (campo: keyof typeof form.values) =>
     form.touched[campo] ? (form.errors[campo] as string | undefined) : undefined;
+
+  /**
+   * Autocompleta por patente (Plan Serviteca) — solo llena los campos
+   * que el mecánico todavía no escribió, para no pisarle algo que ya
+   * corrigió a mano.
+   */
+  async function buscarPatente() {
+    setErrorBusqueda(null);
+    if (!form.values.patente.trim()) {
+      setErrorBusqueda("Escribe la patente primero.");
+      return;
+    }
+
+    setBuscando(true);
+    const res = await buscarPorPatente(form.values.patente);
+    setBuscando(false);
+
+    if (!res.ok) {
+      setErrorBusqueda(res.error ?? "No se pudo buscar la patente.");
+      return;
+    }
+
+    for (const [campo, valor] of Object.entries(res.datos)) {
+      if (!valor) continue;
+      if (form.values[campo as keyof typeof form.values]) continue;
+      form.setFieldValue(campo, valor);
+    }
+  }
 
   /**
    * En modo autoguardar no hay botón "Guardar": cada onBlur dispara el
@@ -243,6 +273,25 @@ export function FormularioVehiculo({
         <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
           El vehículo
         </h3>
+
+        {tieneImpresion && !editando && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={buscarPatente}
+              disabled={buscando}
+              className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card disabled:opacity-60"
+            >
+              {buscando ? "Buscando…" : "Buscar por patente"}
+            </button>
+            {errorBusqueda && (
+              <p className="mt-2 text-[13px] text-destructive">
+                {errorBusqueda}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {campo("patente", "Patente", {
             placeholder: "ABCD12",
