@@ -227,14 +227,15 @@ export function Procedimientos({
           if (e.target.value.trim()) setSinGuardar(true);
         }}
         onBlur={confirmar}
-        placeholder={"Cambio radiador 40000\nSacar culata 300000"}
+        placeholder={"Ej: cambio radiador 40000\n(esto es solo un ejemplo, escribe aquí)"}
         rows={3}
-        className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+        className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/30 placeholder:italic focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
       />
       <div className="mt-2 flex items-center justify-between gap-2">
         <p className="text-[12px] text-muted-foreground">
-          Una línea por trabajo, con el monto al final — se suman y
-          quedan como una sola tarjeta.
+          {texto.trim()
+            ? "Una línea por trabajo, con el monto al final — se suman y quedan como una sola tarjeta."
+            : "Vacío por ahora: escribe aquí lo que hiciste, con el monto al final de cada línea."}
           {guardando && " · Guardando…"}
           {!guardando && sinGuardar && " · Sin guardar aún"}
           {!guardando && !sinGuardar && texto.trim() && " · Guardado"}
