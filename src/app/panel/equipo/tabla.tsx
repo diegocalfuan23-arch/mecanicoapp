@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { agregarAyudante, quitarAyudante } from "./acciones";
+import { agregarAyudante, quitarAyudante, cambiarVePagos } from "./acciones";
 
 type Miembro = {
   id: string;
   nombre: string;
   correo: string;
+  vePagos: boolean;
   createdAt: Date;
 };
 
@@ -106,11 +107,14 @@ function Formulario({ onListo }: { onListo: () => void }) {
   );
 }
 
-export function TablaEquipo({ miembros }: { miembros: Miembro[] }) {
+export function TablaEquipo({ miembros: iniciales }: { miembros: Miembro[] }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [confirmando, setConfirmando] = useState<Miembro | null>(null);
   const [quitando, setQuitando] = useState(false);
+  // Optimista: el checkbox responde al instante, sin esperar la
+  // vuelta del servidor ni un router.refresh() completo por cada clic.
+  const [miembros, setMiembros] = useState(iniciales);
 
   async function quitar() {
     if (!confirmando) return;
@@ -119,6 +123,14 @@ export function TablaEquipo({ miembros }: { miembros: Miembro[] }) {
     setQuitando(false);
     setConfirmando(null);
     router.refresh();
+  }
+
+  async function alternarVePagos(m: Miembro) {
+    const nuevo = !m.vePagos;
+    setMiembros((actuales) =>
+      actuales.map((x) => (x.id === m.id ? { ...x, vePagos: nuevo } : x))
+    );
+    await cambiarVePagos(m.id, nuevo);
   }
 
   if (abierto) {
@@ -198,6 +210,15 @@ export function TablaEquipo({ miembros }: { miembros: Miembro[] }) {
               <p className="mt-1 truncate text-[14px] text-muted-foreground">
                 {m.correo}
               </p>
+              <label className="mt-4 flex items-center gap-2 text-[13px]">
+                <input
+                  type="checkbox"
+                  checked={m.vePagos}
+                  onChange={() => alternarVePagos(m)}
+                  className="size-4 accent-primary"
+                />
+                Ve Pagos y precios de repuestos
+              </label>
               <button
                 onClick={() => setConfirmando(m)}
                 className="mt-4 self-start text-[13px] text-muted-foreground underline underline-offset-4 hover:text-destructive"

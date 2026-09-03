@@ -161,15 +161,18 @@ function Enlaces({
   alNavegar,
   tieneInventario,
   tieneServicios,
+  vePagos,
 }: {
   alNavegar?: () => void;
   tieneInventario: boolean;
   tieneServicios: boolean;
+  vePagos: boolean;
 }) {
   const ruta = usePathname();
   const secciones = SECCIONES.filter((s) => {
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneServicios;
+    if (s.href === "/panel/pagos") return vePagos;
     return true;
   });
 
@@ -205,9 +208,11 @@ function Enlaces({
 export function Sidebar({
   tieneInventario,
   tieneServicios,
+  vePagos,
 }: {
   tieneInventario: boolean;
   tieneServicios: boolean;
+  vePagos: boolean;
 }) {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
@@ -215,6 +220,7 @@ export function Sidebar({
         <Enlaces
           tieneInventario={tieneInventario}
           tieneServicios={tieneServicios}
+          vePagos={vePagos}
         />
       </div>
     </aside>
@@ -225,9 +231,11 @@ export function Sidebar({
 export function MenuMovil({
   tieneInventario,
   tieneServicios,
+  vePagos,
 }: {
   tieneInventario: boolean;
   tieneServicios: boolean;
+  vePagos: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
 
@@ -263,6 +271,7 @@ export function MenuMovil({
               alNavegar={() => setAbierto(false)}
               tieneInventario={tieneInventario}
               tieneServicios={tieneServicios}
+              vePagos={vePagos}
             />
           </div>
         </div>

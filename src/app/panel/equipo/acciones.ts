@@ -17,11 +17,27 @@ export async function listarEquipo() {
       id: miembroTaller.id,
       nombre: user.name,
       correo: user.email,
+      vePagos: miembroTaller.vePagos,
       createdAt: miembroTaller.createdAt,
     })
     .from(miembroTaller)
     .innerJoin(user, eq(miembroTaller.userId, user.id))
     .where(eq(miembroTaller.tallerId, tallerId));
+}
+
+/**
+ * El dueño decide, ayudante por ayudante, si ve Pagos y los precios
+ * de costo/venta del inventario — pedido real de Carserv.
+ */
+export async function cambiarVePagos(miembroId: string, vePagos: boolean) {
+  const tallerId = await tallerActual();
+
+  await db
+    .update(miembroTaller)
+    .set({ vePagos })
+    .where(and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId)));
+
+  revalidatePath("/panel/equipo");
 }
 
 export async function agregarAyudante(datos: {

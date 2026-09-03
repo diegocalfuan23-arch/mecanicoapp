@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { puedeVerPagos } from "@/lib/taller";
 import {
   listarDeudas,
   resumenDeuda,
@@ -7,6 +9,11 @@ import {
 import { VistasPagos } from "./vistas";
 
 export default async function Pagos() {
+  // El dueño puede ocultarle esto a un ayudante puntual (pedido real
+  // de Carserv) — si entra directo por URL, no basta con ocultar el
+  // link del sidebar.
+  if (!(await puedeVerPagos())) redirect("/panel");
+
   const [deudas, resumen, cobros, mes] = await Promise.all([
     listarDeudas(),
     resumenDeuda(),

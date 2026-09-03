@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { tienePlan } from "@/lib/taller";
+import { tienePlan, puedeVerPagos } from "@/lib/taller";
 import { RegistrarSW } from "@/components/registrar-sw";
 import { BotonInstalar } from "@/components/boton-instalar";
 import { BotonSalir } from "./boton-salir";
@@ -22,6 +22,7 @@ export default async function LayoutPanel({
   // en el sidebar.
   const tieneInventario = await tienePlan("inventario");
   const tieneServicios = await tienePlan("impresionOrden");
+  const vePagos = await puedeVerPagos();
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
@@ -32,6 +33,7 @@ export default async function LayoutPanel({
             <MenuMovil
               tieneInventario={tieneInventario}
               tieneServicios={tieneServicios}
+              vePagos={vePagos}
             />
             <Link
               href="/panel"
@@ -56,6 +58,7 @@ export default async function LayoutPanel({
         <Sidebar
           tieneInventario={tieneInventario}
           tieneServicios={tieneServicios}
+          vePagos={vePagos}
         />
         <main className="scroll-discreto min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
           {children}

@@ -60,6 +60,11 @@ export const miembroTaller = pgTable(
       .unique(),
     // ayudante — único rol por ahora, sin permisos diferenciados.
     rol: text("rol").notNull().default("ayudante"),
+    // Si el ayudante ve Pagos y los precios de costo/venta del
+    // inventario — pedido real (Carserv): el dueño decide, ayudante
+    // por ayudante, quién ve esa info y quién no. true por defecto:
+    // no le saca acceso a nadie de golpe al desplegar esto.
+    vePagos: boolean("ve_pagos").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("miembro_taller_taller_idx").on(t.tallerId)]

@@ -74,3 +74,23 @@ export async function tienePlan(
   const plan = await planActual();
   return FUNCIONES_POR_PLAN[plan][funcion];
 }
+
+/**
+ * Si el usuario de la sesión actual puede ver Pagos y los precios de
+ * costo/venta del inventario — pedido real (Carserv): el dueño del
+ * taller decide, ayudante por ayudante, quién ve esa información.
+ * El dueño siempre puede: solo un ayudante puede tener esto apagado.
+ */
+export async function puedeVerPagos() {
+  const sesion = await auth.api.getSession({ headers: await headers() });
+  if (!sesion) return false;
+
+  const [miembro] = await db
+    .select({ vePagos: miembroTaller.vePagos })
+    .from(miembroTaller)
+    .where(eq(miembroTaller.userId, sesion.user.id))
+    .limit(1);
+
+  // Sin fila en miembroTaller: es el dueño, ve todo.
+  return miembro?.vePagos ?? true;
+}
