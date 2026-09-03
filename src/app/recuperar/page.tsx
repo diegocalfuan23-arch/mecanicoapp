@@ -6,6 +6,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { authClient } from "@/lib/auth-client";
 import { MarcoAuth, Campo } from "@/components/marco-auth";
+import { correoTieneCuenta } from "./acciones";
+import { toaster } from "@/components/ui/toaster";
 
 const esquema = Yup.object({
   correo: Yup.string()
@@ -23,9 +25,22 @@ export default function Recuperar() {
     validationSchema: esquema,
     onSubmit: async (valores) => {
       setErrorServidor(null);
+      const correo = valores.correo.trim();
+
+      // Pedido explícito: avisar de una si el correo no tiene cuenta,
+      // en vez del mensaje ambiguo de siempre — se acepta el trade-off
+      // de exponer qué correos están registrados (ver acciones.ts).
+      const existe = await correoTieneCuenta(correo);
+      if (!existe) {
+        toaster.add({
+          title: "Ese correo no está registrado",
+          description: "Revisa que esté bien escrito, o crea una cuenta nueva.",
+        });
+        return;
+      }
 
       const { error } = await authClient.requestPasswordReset({
-        email: valores.correo.trim(),
+        email: correo,
         redirectTo: "/recuperar/cambiar",
       });
 
@@ -42,7 +57,7 @@ export default function Recuperar() {
     return (
       <MarcoAuth
         titulo="Revisa tu correo"
-        bajada={`Si ${form.values.correo.trim()} tiene una cuenta registrada, le llegó un enlace para cambiar la contraseña. Si no llega en unos minutos, puede que la cuenta esté con otro correo.`}
+        bajada={`Le mandamos un enlace a ${form.values.correo.trim()} para cambiar la contraseña. Si no llega en unos minutos, revisa spam.`}
         pie={
           <>
             ¿No llegó? Mira en spam, o{" "}
