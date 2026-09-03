@@ -43,6 +43,12 @@ export function Buscador({
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
   const [recientes, setRecientes] = useState<string[]>([]);
+  // Patente que viene de un clic en "Búsquedas recientes": ya se sabe
+  // que está completa, así que los efectos de abajo se saltan el
+  // debounce (pensado para tecleo letra por letra) y consultan de
+  // una — la patente ya vivía en la BD, no tiene sentido hacer
+  // esperar al mecánico un segundo y medio para verla de nuevo.
+  const [busquedaInmediata, setBusquedaInmediata] = useState("");
 
   useEffect(() => {
     busquedasRecientes().then(setRecientes);
@@ -91,24 +97,27 @@ export function Buscador({
     // directo de `consulta`, sin duplicarlo en resultados/buscoAlgo).
     if (!q) return;
 
-    const espera = setTimeout(() => {
-      empezarBusqueda(async () => {
-        const propios = await buscarVehiculos(q);
-        setResultados(propios);
-        setBuscoAlgo(true);
-        setExterno(null);
-        // Solo se guarda como "búsqueda de patente" si la consulta
-        // luce como una patente (no cualquier término que haya
-        // matcheado por marca, modelo o nombre del dueño).
-        const patenteLimpia = q.toUpperCase().replace(/[^A-Z0-9]/g, "");
-        if (propios.length > 0 && patenteLimpia.length >= 5) {
-          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
-        }
-      });
-    }, 250);
+    const espera = setTimeout(
+      () => {
+        empezarBusqueda(async () => {
+          const propios = await buscarVehiculos(q);
+          setResultados(propios);
+          setBuscoAlgo(true);
+          setExterno(null);
+          // Solo se guarda como "búsqueda de patente" si la consulta
+          // luce como una patente (no cualquier término que haya
+          // matcheado por marca, modelo o nombre del dueño).
+          const patenteLimpia = q.toUpperCase().replace(/[^A-Z0-9]/g, "");
+          if (propios.length > 0 && patenteLimpia.length >= 5) {
+            guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
+          }
+        });
+      },
+      q === busquedaInmediata ? 0 : 250
+    );
 
     return () => clearTimeout(espera);
-  }, [consulta]);
+  }, [consulta, busquedaInmediata]);
 
   // Registro externo (GetAPI): debounce mucho más largo a propósito
   // — la key de prueba solo permite 3 consultas por minuto, y con
@@ -121,25 +130,35 @@ export function Buscador({
     if (!q || !tieneImpresion || buscando || resultados.length > 0) return;
     if (!buscoAlgo) return;
 
-    const espera = setTimeout(() => {
-      setBuscandoExterno(true);
-      setErrorExterno(null);
-      buscarPorPatente(q).then((res) => {
-        setBuscandoExterno(false);
-        if (res.ok) {
-          setExterno(res.datos);
-          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
-        } else if (res.error && res.error !== "No se encontró esa patente.") {
-          // "No encontrada" cae al mensaje normal de siempre — solo
-          // se avisa aparte cuando algo salió mal de verdad (límite
-          // de consultas, sin conexión, etc.).
-          setErrorExterno(res.error);
-        }
-      });
-    }, 1200);
+    const espera = setTimeout(
+      () => {
+        setBuscandoExterno(true);
+        setErrorExterno(null);
+        buscarPorPatente(q).then((res) => {
+          setBuscandoExterno(false);
+          if (res.ok) {
+            setExterno(res.datos);
+            guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
+          } else if (res.error && res.error !== "No se encontró esa patente.") {
+            // "No encontrada" cae al mensaje normal de siempre — solo
+            // se avisa aparte cuando algo salió mal de verdad (límite
+            // de consultas, sin conexión, etc.).
+            setErrorExterno(res.error);
+          }
+        });
+      },
+      q === busquedaInmediata ? 0 : 1200
+    );
 
     return () => clearTimeout(espera);
-  }, [consulta, tieneImpresion, buscando, buscoAlgo, resultados.length]);
+  }, [
+    consulta,
+    tieneImpresion,
+    buscando,
+    buscoAlgo,
+    resultados.length,
+    busquedaInmediata,
+  ]);
 
   return (
     <>
@@ -342,7 +361,10 @@ export function Buscador({
               <button
                 key={patente}
                 type="button"
-                onClick={() => setConsulta(patente)}
+                onClick={() => {
+                  setBusquedaInmediata(patente);
+                  setConsulta(patente);
+                }}
                 className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-primary/40"
               >
                 {patente}
