@@ -68,6 +68,11 @@ export async function buscarPorPatente(patente: string) {
   if (res.status === 404) {
     return { error: "No se encontró esa patente." };
   }
+  if (res.status === 429) {
+    return {
+      error: "Se alcanzó el límite de consultas por minuto. Espera un momento.",
+    };
+  }
   if (!res.ok) {
     return { error: "El servicio de patentes no respondió. Intenta de nuevo." };
   }

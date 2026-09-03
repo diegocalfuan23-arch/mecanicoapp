@@ -34,6 +34,7 @@ export function Buscador({
   const [buscoAlgo, setBuscoAlgo] = useState(false);
   const [externo, setExterno] = useState<DatosExternos | null>(null);
   const [buscandoExterno, setBuscandoExterno] = useState(false);
+  const [errorExterno, setErrorExterno] = useState<string | null>(null);
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
 
@@ -70,6 +71,8 @@ export function Buscador({
     router.push("/panel/vehiculos");
   }
 
+  // Búsqueda local: rápida, es tu propia base de datos — sin costo
+  // externo por cada tecla.
   useEffect(() => {
     const q = consulta.trim();
     // Cuadro vacío: no hay nada que sincronizar con el servidor, así
@@ -78,28 +81,47 @@ export function Buscador({
     // directo de `consulta`, sin duplicarlo en resultados/buscoAlgo).
     if (!q) return;
 
-    // Espera a que deje de escribir antes de consultar
     const espera = setTimeout(() => {
       empezarBusqueda(async () => {
         const propios = await buscarVehiculos(q);
         setResultados(propios);
         setBuscoAlgo(true);
         setExterno(null);
-
-        // Sin coincidencia local: Plan Serviteca busca el vehículo
-        // en el registro externo (GetAPI), aunque nunca haya pasado
-        // por este taller.
-        if (propios.length === 0 && tieneImpresion) {
-          setBuscandoExterno(true);
-          const res = await buscarPorPatente(q);
-          setBuscandoExterno(false);
-          if (res.ok) setExterno(res.datos);
-        }
       });
     }, 250);
 
     return () => clearTimeout(espera);
-  }, [consulta, tieneImpresion]);
+  }, [consulta]);
+
+  // Registro externo (GetAPI): debounce mucho más largo a propósito
+  // — la key de prueba solo permite 3 consultas por minuto, y con
+  // 250ms cada letra tecleada gastaba el límite antes de terminar de
+  // escribir la patente completa (bug real: "UD8011" con 6 letras
+  // dispararía 6 consultas). Se espera bastante más que deje de
+  // escribir, y solo corre si ya se sabe que no hay nada local.
+  useEffect(() => {
+    const q = consulta.trim();
+    if (!q || !tieneImpresion || buscando || resultados.length > 0) return;
+    if (!buscoAlgo) return;
+
+    const espera = setTimeout(() => {
+      setBuscandoExterno(true);
+      setErrorExterno(null);
+      buscarPorPatente(q).then((res) => {
+        setBuscandoExterno(false);
+        if (res.ok) {
+          setExterno(res.datos);
+        } else if (res.error && res.error !== "No se encontró esa patente.") {
+          // "No encontrada" cae al mensaje normal de siempre — solo
+          // se avisa aparte cuando algo salió mal de verdad (límite
+          // de consultas, sin conexión, etc.).
+          setErrorExterno(res.error);
+        }
+      });
+    }, 1200);
+
+    return () => clearTimeout(espera);
+  }, [consulta, tieneImpresion, buscando, buscoAlgo, resultados.length]);
 
   return (
     <>
@@ -140,6 +162,12 @@ export function Buscador({
             No está en tu taller. Buscando en el registro…
           </p>
         )}
+
+      {!buscandoExterno && errorExterno && (
+        <p className="mt-6 text-[13px] text-destructive" role="alert">
+          {errorExterno}
+        </p>
+      )}
 
       {/* Sin coincidencia local, pero sí en el registro externo (Plan
           Serviteca): se ve como una tarjeta más, marcada como que no
