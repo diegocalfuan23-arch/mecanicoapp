@@ -3,7 +3,12 @@
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { buscarVehiculos, type ResultadoBusqueda } from "./acciones";
+import {
+  buscarVehiculos,
+  guardarBusquedaPatente,
+  busquedasRecientes,
+  type ResultadoBusqueda,
+} from "./acciones";
 import { buscarPorPatente, guardarVehiculo } from "@/app/panel/vehiculos/acciones";
 
 type Resultado = ResultadoBusqueda;
@@ -37,6 +42,11 @@ export function Buscador({
   const [errorExterno, setErrorExterno] = useState<string | null>(null);
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
+  const [recientes, setRecientes] = useState<string[]>([]);
+
+  useEffect(() => {
+    busquedasRecientes().then(setRecientes);
+  }, []);
 
   /** Registro en un clic con lo que ya trajo GetAPI — sin pasar por
    * el formulario. El propietario queda vacío: eso no existe en
@@ -87,6 +97,13 @@ export function Buscador({
         setResultados(propios);
         setBuscoAlgo(true);
         setExterno(null);
+        // Solo se guarda como "búsqueda de patente" si la consulta
+        // luce como una patente (no cualquier término que haya
+        // matcheado por marca, modelo o nombre del dueño).
+        const patenteLimpia = q.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (propios.length > 0 && patenteLimpia.length >= 5) {
+          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
+        }
       });
     }, 250);
 
@@ -111,6 +128,7 @@ export function Buscador({
         setBuscandoExterno(false);
         if (res.ok) {
           setExterno(res.datos);
+          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
         } else if (res.error && res.error !== "No se encontró esa patente.") {
           // "No encontrada" cae al mensaje normal de siempre — solo
           // se avisa aparte cuando algo salió mal de verdad (límite
@@ -312,6 +330,26 @@ export function Buscador({
             </li>
           ))}
         </ul>
+      )}
+
+      {!consulta.trim() && recientes.length > 0 && (
+        <div className="mt-8">
+          <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">
+            Búsquedas recientes
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {recientes.map((patente) => (
+              <button
+                key={patente}
+                type="button"
+                onClick={() => setConsulta(patente)}
+                className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-primary/40"
+              >
+                {patente}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {!consulta.trim() && (

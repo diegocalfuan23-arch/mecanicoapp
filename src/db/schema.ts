@@ -485,3 +485,23 @@ export const vehiculoExterno = pgTable("vehiculo_externo", {
   kilometraje: integer("kilometraje"),
   consultadoEn: timestamp("consultado_en").notNull().defaultNow(),
 });
+
+/**
+ * Búsquedas recientes por patente — personal de cada mecánico (por
+ * userId, no por taller: el dueño y cada ayudante ven solo las
+ * suyas), para no reescribir la misma patente dos veces. Vive en el
+ * servidor a propósito, no en localStorage — así persiste aunque el
+ * mecánico cambie de celular o navegador.
+ */
+export const busquedaPatente = pgTable(
+  "busqueda_patente",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    patente: text("patente").notNull(),
+    buscadoEn: timestamp("buscado_en").notNull().defaultNow(),
+  },
+  (t) => [index("busqueda_patente_user_idx").on(t.userId, t.buscadoEn)]
+);

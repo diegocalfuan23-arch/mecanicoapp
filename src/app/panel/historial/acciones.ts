@@ -1,9 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
+import { randomUUID } from "crypto";
 import { eq, and, or, ne, ilike, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { vehiculo, cliente, trabajo, user } from "@/db/schema";
+import { vehiculo, cliente, trabajo, user, busquedaPatente } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
+import { auth } from "@/lib/auth";
 
 export type ResultadoBusqueda = {
   id: string;
@@ -190,4 +193,47 @@ export async function fichaVehiculo(vehiculoId: string) {
     : null;
 
   return { datos, trabajos, gastado, debe, verMontos, esPropio: datos.esPropio };
+}
+
+/**
+ * Historial de búsquedas: personal de cada mecánico, no del taller —
+ * un ayudante y el dueño buscan cosas distintas día a día. Por eso
+ * guarda sesion.user.id directo, no tallerActual() (que junta a todos
+ * los miembros del mismo taller bajo un solo id).
+ */
+export async function guardarBusquedaPatente(patente: string) {
+  const sesion = await auth.api.getSession({ headers: await headers() });
+  if (!sesion) return;
+
+  const limpia = patente.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!limpia) return;
+
+  await db.insert(busquedaPatente).values({
+    id: randomUUID(),
+    userId: sesion.user.id,
+    patente: limpia,
+  });
+}
+
+/** Últimas patentes que este mecánico buscó, sin repetir. */
+export async function busquedasRecientes(): Promise<string[]> {
+  const sesion = await auth.api.getSession({ headers: await headers() });
+  if (!sesion) return [];
+
+  const filas = await db
+    .select({ patente: busquedaPatente.patente })
+    .from(busquedaPatente)
+    .where(eq(busquedaPatente.userId, sesion.user.id))
+    .orderBy(desc(busquedaPatente.buscadoEn))
+    .limit(20);
+
+  const vistas = new Set<string>();
+  const unicas: string[] = [];
+  for (const { patente } of filas) {
+    if (vistas.has(patente)) continue;
+    vistas.add(patente);
+    unicas.push(patente);
+    if (unicas.length === 6) break;
+  }
+  return unicas;
 }
