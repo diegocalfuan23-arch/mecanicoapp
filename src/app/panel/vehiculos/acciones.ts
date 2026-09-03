@@ -89,19 +89,17 @@ export async function buscarPorPatente(patente: string) {
       { headers: { "X-Api-Key": key } }
     );
   } catch {
-    return { error: "No se pudo conectar con el servicio de patentes." };
+    return { error: "No se pudo buscar la patente. Intenta de nuevo." };
   }
 
   if (res.status === 404) {
     return { error: "No se encontró esa patente." };
   }
   if (res.status === 429) {
-    return {
-      error: "Se alcanzó el límite de consultas por minuto. Espera un momento.",
-    };
+    return { error: "Muchas búsquedas seguidas. Espera un momento e intenta de nuevo." };
   }
   if (!res.ok) {
-    return { error: "El servicio de patentes no respondió. Intenta de nuevo." };
+    return { error: "No se pudo buscar la patente. Intenta de nuevo." };
   }
 
   const cuerpo = await res.json();
