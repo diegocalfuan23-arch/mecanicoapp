@@ -97,6 +97,7 @@ export function FormularioVehiculo({
   vehiculo,
   autoguardar = false,
   tieneImpresion = false,
+  patenteInicial,
 }: {
   onListo: () => void;
   /** Si viene, el formulario edita esa ficha en vez de crear una nueva. */
@@ -105,6 +106,8 @@ export function FormularioVehiculo({
   autoguardar?: boolean;
   /** Plan Serviteca: agrega cilindrada y patente de móvil/flota. */
   tieneImpresion?: boolean;
+  /** Al llegar desde "Historial por patente" sin encontrar el auto. */
+  patenteInicial?: string;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
@@ -115,7 +118,7 @@ export function FormularioVehiculo({
 
   const form = useFormik({
     initialValues: {
-      patente: texto(vehiculo?.patente),
+      patente: texto(vehiculo?.patente) || (patenteInicial ?? ""),
       vin: texto(vehiculo?.vin),
       marca: texto(vehiculo?.marca),
       modelo: texto(vehiculo?.modelo),

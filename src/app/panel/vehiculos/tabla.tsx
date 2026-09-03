@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
 import { eliminarVehiculo } from "./acciones";
 
@@ -85,7 +85,15 @@ export function TablaVehiculos({
   tieneImpresion: boolean;
 }) {
   const router = useRouter();
-  const [abierto, setAbierto] = useState(false);
+  const params = useSearchParams();
+  // Al llegar desde "Historial por patente" sin encontrar el auto,
+  // con ?patente=<valor> en la URL: abre el formulario con eso
+  // precargado. Derivado de la URL en cada render (no un useState
+  // inicial) — si no, navegar acá de nuevo con otra patente no
+  // reabriría el formulario, porque el componente ya estaría montado.
+  const patenteDesdeUrl = params.get("patente");
+  const [abiertoManual, setAbiertoManual] = useState(false);
+  const abierto = !!patenteDesdeUrl || abiertoManual;
   const [editando, setEditando] = useState<Vehiculo | null>(null);
   const [confirmando, setConfirmando] = useState<Vehiculo | null>(null);
   const [borrando, setBorrando] = useState(false);
@@ -136,9 +144,13 @@ export function TablaVehiculos({
             vehiculo={editando ?? undefined}
             autoguardar={!!editando}
             tieneImpresion={tieneImpresion}
+            patenteInicial={patenteDesdeUrl ?? undefined}
             onListo={() => {
-              setAbierto(false);
+              setAbiertoManual(false);
               setEditando(null);
+              // Limpia el ?patente= de la URL: un refresh no debe
+              // reabrir el formulario solo.
+              if (patenteDesdeUrl) router.replace("/panel/vehiculos");
             }}
           />
         </div>
@@ -202,7 +214,7 @@ export function TablaVehiculos({
           className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 sm:max-w-sm"
         />
         <button
-          onClick={() => setAbierto(true)}
+          onClick={() => setAbiertoManual(true)}
           className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           Registrar vehículo
@@ -218,7 +230,7 @@ export function TablaVehiculos({
           </p>
           {vehiculos.length === 0 && (
             <button
-              onClick={() => setAbierto(true)}
+              onClick={() => setAbiertoManual(true)}
               className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Registrar el primero

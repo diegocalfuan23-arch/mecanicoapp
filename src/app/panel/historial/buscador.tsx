@@ -14,12 +14,11 @@ export function Buscador() {
 
   useEffect(() => {
     const q = consulta.trim();
-
-    if (!q) {
-      setResultados([]);
-      setBuscoAlgo(false);
-      return;
-    }
+    // Cuadro vacío: no hay nada que sincronizar con el servidor, así
+    // que no dispara setState desde el cuerpo del efecto — solo
+    // "no programar la consulta" (el estado vacío se deriva más abajo
+    // directo de `consulta`, sin duplicarlo en resultados/buscoAlgo).
+    if (!q) return;
 
     // Espera a que deje de escribir antes de consultar
     const espera = setTimeout(() => {
@@ -62,13 +61,13 @@ export function Buscador() {
         <p className="mt-6 text-muted-foreground">Buscando…</p>
       )}
 
-      {!buscando && buscoAlgo && resultados.length === 0 && (
+      {!buscando && !!consulta.trim() && buscoAlgo && resultados.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-border py-12 text-center">
           <p className="text-muted-foreground">
             Ningún vehículo coincide con «{consulta.trim()}».
           </p>
           <Link
-            href="/panel/vehiculos"
+            href={`/panel/vehiculos?patente=${encodeURIComponent(consulta.trim())}`}
             className="mt-4 inline-block text-acento hover:underline"
           >
             Registrarlo
@@ -76,7 +75,7 @@ export function Buscador() {
         </div>
       )}
 
-      {resultados.length > 0 && (
+      {!!consulta.trim() && resultados.length > 0 && (
         <ul className="mt-6 flex flex-col gap-2">
           {resultados.map((v) => (
             <li key={v.id}>
