@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { vehiculo, cliente, trabajo } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 import { siguienteNumeroCliente } from "@/app/panel/propietarios/acciones";
+import { TIPOS_VEHICULO } from "@/lib/tipos-vehiculo";
 
 function id() {
   return crypto.randomUUID();
@@ -80,6 +81,17 @@ export async function buscarPorPatente(patente: string) {
   // se arma igual que el mecánico lo escribiría a mano.
   const motor = [d.engine, d.fuel?.toLowerCase()].filter(Boolean).join(" ");
 
+  // El tipo de GetAPI ("STATION WAGON") rara vez calza tal cual con
+  // la lista fija del formulario ("Station wagon") — se intenta un
+  // match simple; sin coincidencia clara, queda vacío en vez de
+  // forzar un tipo incorrecto (el mecánico lo elige a mano).
+  const tipoExterno: string | undefined = d.model?.typeVehicle?.name;
+  const tipo = tipoExterno
+    ? TIPOS_VEHICULO.find(
+        (t) => t.toLowerCase() === tipoExterno.toLowerCase()
+      )
+    : undefined;
+
   return {
     ok: true as const,
     datos: {
@@ -90,6 +102,10 @@ export async function buscarPorPatente(patente: string) {
       color: d.color ?? "",
       motor,
       cilindrada: d.engine ?? "",
+      tipo: tipo ?? "",
+      kilometrajeInicial: d.mileage != null ? String(d.mileage) : "",
+      // No traído a propósito: propietario/RUT no existen en
+      // registros públicos sin verificación de identidad.
     },
   };
 }

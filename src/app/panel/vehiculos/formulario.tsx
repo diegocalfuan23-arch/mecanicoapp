@@ -7,24 +7,9 @@ import * as Yup from "yup";
 import { guardarVehiculo, actualizarVehiculo, buscarPorPatente } from "./acciones";
 import { miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
+import { TIPOS_VEHICULO } from "@/lib/tipos-vehiculo";
 
-const TIPOS = [
-  "Sedán",
-  "Hatchback",
-  "City car",
-  "Mini",
-  "Coupé",
-  "Cabriolet",
-  "Station wagon",
-  "Crossover",
-  "SUV",
-  "Pick up",
-  "Furgón",
-  "Minibús",
-  "Camión",
-  "Bus",
-  "Moto",
-];
+const TIPOS: string[] = [...TIPOS_VEHICULO];
 
 const PROCEDENCIAS = [
   "Japonés",

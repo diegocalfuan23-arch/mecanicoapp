@@ -1,0 +1,17 @@
+export const TIPOS_VEHICULO = [
+  "Sedán",
+  "Hatchback",
+  "City car",
+  "Mini",
+  "Coupé",
+  "Cabriolet",
+  "Station wagon",
+  "Crossover",
+  "SUV",
+  "Pick up",
+  "Furgón",
+  "Minibús",
+  "Camión",
+  "Bus",
+  "Moto",
+] as const;

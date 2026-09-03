@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { buscarVehiculos, type ResultadoBusqueda } from "./acciones";
-import { buscarPorPatente } from "@/app/panel/vehiculos/acciones";
+import { buscarPorPatente, guardarVehiculo } from "@/app/panel/vehiculos/acciones";
 
 type Resultado = ResultadoBusqueda;
 type DatosExternos = {
@@ -14,6 +15,8 @@ type DatosExternos = {
   color: string;
   motor: string;
   cilindrada: string;
+  tipo: string;
+  kilometrajeInicial: string;
 };
 
 export function Buscador({
@@ -24,12 +27,48 @@ export function Buscador({
    * de trabajos, eso solo existe para autos que ya pasaron por acá. */
   tieneImpresion?: boolean;
 }) {
+  const router = useRouter();
   const [consulta, setConsulta] = useState("");
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [buscando, empezarBusqueda] = useTransition();
   const [buscoAlgo, setBuscoAlgo] = useState(false);
   const [externo, setExterno] = useState<DatosExternos | null>(null);
   const [buscandoExterno, setBuscandoExterno] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
+  const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
+
+  /** Registro en un clic con lo que ya trajo GetAPI — sin pasar por
+   * el formulario. El propietario queda vacío: eso no existe en
+   * registros públicos, se completa después a mano. */
+  async function registrarDeUnClic() {
+    if (!externo) return;
+    setRegistrando(true);
+    setErrorRegistro(null);
+
+    const res = await guardarVehiculo({
+      patente: consulta.trim(),
+      vin: externo.vin,
+      marca: externo.marca,
+      modelo: externo.modelo,
+      anio: externo.anio,
+      color: externo.color,
+      tipo: externo.tipo,
+      motor: externo.motor,
+      cilindrada: externo.cilindrada,
+      kilometrajeInicial: externo.kilometrajeInicial,
+      primeraVez: true,
+      comparteHistorial: false,
+    });
+
+    setRegistrando(false);
+    if (res?.error) {
+      setErrorRegistro(res.error);
+      return;
+    }
+    // Ya quedó registrado — se va a la ficha en Vehículos, no al
+    // formulario de "nuevo" (eso volvería a pedir la misma patente).
+    router.push("/panel/vehiculos");
+  }
 
   useEffect(() => {
     const q = consulta.trim();
@@ -105,7 +144,9 @@ export function Buscador({
       {/* Sin coincidencia local, pero sí en el registro externo (Plan
           Serviteca): se ve como una tarjeta más, marcada como que no
           ha pasado por acá — solo trae datos del auto, nunca
-          historial de trabajos (eso no existe fuera de este taller). */}
+          historial de trabajos (eso no existe fuera de este taller).
+          El propietario nunca viene de acá: no existe en registros
+          públicos, se completa después a mano. */}
       {!buscando &&
         !buscandoExterno &&
         !!consulta.trim() &&
@@ -126,17 +167,69 @@ export function Buscador({
                 No registrado en tu taller
               </span>
             </div>
-            {externo.color && (
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                {externo.color}
+
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[13px] text-muted-foreground sm:grid-cols-3">
+              {externo.color && (
+                <div>
+                  <dt className="text-[11px] uppercase">Color</dt>
+                  <dd>{externo.color}</dd>
+                </div>
+              )}
+              {externo.tipo && (
+                <div>
+                  <dt className="text-[11px] uppercase">Tipo</dt>
+                  <dd>{externo.tipo}</dd>
+                </div>
+              )}
+              {externo.motor && (
+                <div>
+                  <dt className="text-[11px] uppercase">Motor</dt>
+                  <dd>{externo.motor}</dd>
+                </div>
+              )}
+              {externo.vin && (
+                <div>
+                  <dt className="text-[11px] uppercase">VIN</dt>
+                  <dd className="font-mono">{externo.vin}</dd>
+                </div>
+              )}
+              {externo.kilometrajeInicial && (
+                <div>
+                  <dt className="text-[11px] uppercase">Kilometraje</dt>
+                  <dd>
+                    {Number(externo.kilometrajeInicial).toLocaleString("es-CL")}{" "}
+                    km
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            <p className="mt-3 text-[12px] text-muted-foreground">
+              El dueño no viene en este registro — se agrega después.
+            </p>
+
+            {errorRegistro && (
+              <p className="mt-2 text-[13px] text-destructive" role="alert">
+                {errorRegistro}
               </p>
             )}
-            <Link
-              href={`/panel/vehiculos?patente=${encodeURIComponent(consulta.trim())}`}
-              className="mt-4 inline-block text-acento hover:underline"
-            >
-              Registrarlo
-            </Link>
+
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={registrarDeUnClic}
+                disabled={registrando}
+                className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                {registrando ? "Registrando…" : "Registrarlo con estos datos"}
+              </button>
+              <Link
+                href={`/panel/vehiculos?patente=${encodeURIComponent(consulta.trim())}`}
+                className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                Revisar antes de guardar
+              </Link>
+            </div>
           </div>
         )}
 
