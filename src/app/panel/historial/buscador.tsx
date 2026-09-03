@@ -149,19 +149,9 @@ export function Buscador({
         />
       </div>
 
-      {buscando && (
+      {(buscando || buscandoExterno) && (
         <p className="mt-6 text-muted-foreground">Buscando…</p>
       )}
-
-      {!buscando &&
-        !!consulta.trim() &&
-        buscoAlgo &&
-        resultados.length === 0 &&
-        buscandoExterno && (
-          <p className="mt-6 text-muted-foreground">
-            No está en tu taller. Buscando en el registro…
-          </p>
-        )}
 
       {!buscandoExterno && errorExterno && (
         <p className="mt-6 text-[13px] text-destructive" role="alert">
