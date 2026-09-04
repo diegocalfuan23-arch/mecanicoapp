@@ -32,6 +32,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/diagnosticos",
+    texto: "Diagnósticos",
+    icono: (
+      <path
+        d="M6 3.5v4a3 3 0 006 0v-4M9 12.5a3.5 3.5 0 107 0v-1M13.5 15.5a2 2 0 100-4 2 2 0 000 4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/presupuestos",
     texto: "Presupuestos",
     icono: (
@@ -172,6 +186,7 @@ function Enlaces({
   const secciones = SECCIONES.filter((s) => {
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneServicios;
+    if (s.href === "/panel/diagnosticos") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
     return true;

@@ -574,3 +574,67 @@ export const itemPresupuesto = pgTable(
   },
   (t) => [index("item_presupuesto_presupuesto_idx").on(t.presupuestoId)]
 );
+
+/**
+ * Revisión técnica del auto, separada de la Orden — Plan Serviteca.
+ * Mismo criterio que presupuesto: patente/cliente sueltos (no exige
+ * vehiculoId), porque el diagnóstico puede hacerse antes de decidir
+ * si se abre una orden de trabajo. Sin aprobar/rechazar (no es una
+ * cotización): solo queda "vinculado" cuando se asocia a una Orden.
+ */
+export const diagnostico = pgTable(
+  "diagnostico",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    numero: integer("numero").notNull(),
+
+    patente: text("patente").notNull(),
+    clienteNombre: text("cliente_nombre"),
+    clienteTelefono: text("cliente_telefono"),
+
+    // Mismo patrón mutuamente excluyente que trabajo.tecnicoId/tecnicoNombre.
+    tecnicoId: text("tecnico_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    tecnicoNombre: text("tecnico_nombre"),
+
+    falla: text("falla"),
+    procedimiento: text("procedimiento"),
+
+    fotos: text("fotos").array().notNull().default([]),
+    videos: text("videos").array().notNull().default([]),
+    documentos: text("documentos").array().notNull().default([]),
+
+    // pendiente · vinculado
+    estado: text("estado").notNull().default("pendiente"),
+    trabajoId: text("trabajo_id").references(() => trabajo.id, {
+      onDelete: "set null",
+    }),
+
+    fecha: timestamp("fecha").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("diagnostico_taller_idx").on(t.tallerId, t.fecha),
+    index("diagnostico_estado_idx").on(t.tallerId, t.estado),
+  ]
+);
+
+/** Cada paso del checklist de un diagnóstico — se agregan a mano, sin plantillas por ahora. */
+export const pasoDiagnostico = pgTable(
+  "paso_diagnostico",
+  {
+    id: text("id").primaryKey(),
+    diagnosticoId: text("diagnostico_id")
+      .notNull()
+      .references(() => diagnostico.id, { onDelete: "cascade" }),
+    texto: text("texto").notNull(),
+    hecho: boolean("hecho").notNull().default(false),
+    orden: integer("orden").notNull().default(0),
+  },
+  (t) => [index("paso_diagnostico_diagnostico_idx").on(t.diagnosticoId)]
+);

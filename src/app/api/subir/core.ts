@@ -35,6 +35,43 @@ export const rutasSubida = {
     .onUploadComplete(async ({ file }) => {
       return { url: file.ufsUrl };
     }),
+
+  /** Evidencia de un diagnóstico — Plan Serviteca. */
+  fotoDiagnostico: f({
+    image: { maxFileSize: "8MB", maxFileCount: 20 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
+
+  videoDiagnostico: f({
+    video: { maxFileSize: "64MB", maxFileCount: 5 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
+
+  documentoDiagnostico: f({
+    pdf: { maxFileSize: "8MB", maxFileCount: 3 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type RutasSubida = typeof rutasSubida;
