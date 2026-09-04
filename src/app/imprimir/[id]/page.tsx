@@ -11,7 +11,7 @@ import {
   marcasDesdeDanos,
 } from "@/lib/zonas-auto";
 import {
-  NIVELES_COMBUSTIBLE,
+  combustiblePorcentaje,
   accesoriosParaTipo,
   esAccesorioLibre,
   textoAccesorioLibre,
@@ -180,8 +180,9 @@ export default async function ImprimirOrden({
           <Campo
             etiqueta="Nivel de combustible"
             valor={
-              NIVELES_COMBUSTIBLE.find((n) => n.id === orden.combustible)
-                ?.etiqueta ?? ""
+              combustiblePorcentaje(orden.combustible) != null
+                ? `${combustiblePorcentaje(orden.combustible)}%`
+                : ""
             }
           />
           <p className="mt-3 mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">

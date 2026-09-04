@@ -7,10 +7,10 @@ import { miles, soloDigitos } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { FotosVehiculo } from "@/components/fotos-vehiculo";
 import { Selector } from "@/components/ui/selector";
+import { Slider } from "@/components/ui/slider";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
 import {
-  NIVELES_COMBUSTIBLE,
   accesoriosParaTipo,
   esAccesorioLibre,
   codificarAccesorioLibre,
@@ -114,7 +114,7 @@ export function Abrir({
   const [fotos, setFotos] = useState<string[]>([]);
   const [danos, setDanos] = useState<string[]>([]);
   const [danoOtro, setDanoOtro] = useState("");
-  const [combustible, setCombustible] = useState("");
+  const [combustible, setCombustible] = useState(50);
   const [accesorios, setAccesorios] = useState<string[]>([]);
   const [accesorioLibre, setAccesorioLibre] = useState("");
   const [observaciones, setObservaciones] = useState("");
@@ -142,7 +142,7 @@ export function Abrir({
       fotos,
       danos,
       danoOtro,
-      combustible,
+      combustible: tieneImpresion ? String(combustible) : "",
       accesorios,
       observaciones,
       ordenadoPor,
@@ -369,27 +369,15 @@ export function Abrir({
 
         {tieneImpresion && (
           <div>
-            <span className="mb-2 block text-[13px] font-medium">
-              Nivel de combustible
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {NIVELES_COMBUSTIBLE.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  onClick={() =>
-                    setCombustible(combustible === n.id ? "" : n.id)
-                  }
-                  className={`rounded-lg border px-4 py-2 text-[14px] transition-colors ${
-                    combustible === n.id
-                      ? "border-foreground bg-foreground/10 text-foreground"
-                      : "border-border hover:bg-background"
-                  }`}
-                >
-                  {n.etiqueta}
-                </button>
-              ))}
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[13px] font-medium">
+                Nivel de combustible
+              </span>
+              <span className="text-[13px] tabular-nums text-muted-foreground">
+                {combustible}%
+              </span>
             </div>
+            <Slider value={combustible} onChange={setCombustible} />
           </div>
         )}
 

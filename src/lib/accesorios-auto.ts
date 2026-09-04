@@ -64,10 +64,27 @@ export function etiquetaAccesorio(valor: string) {
   return ACCESORIOS_AUTO.find((a) => a.id === valor)?.etiqueta ?? valor;
 }
 
-export const NIVELES_COMBUSTIBLE = [
-  { id: "vacio", etiqueta: "Vacío" },
-  { id: "1/4", etiqueta: "1/4" },
-  { id: "1/2", etiqueta: "1/2" },
-  { id: "3/4", etiqueta: "3/4" },
-  { id: "lleno", etiqueta: "Lleno" },
-] as const;
+// Valores fijos de antes del slider — solo quedan para leer órdenes
+// viejas que ya guardaron uno de estos, no se vuelven a escribir.
+const NIVELES_COMBUSTIBLE_VIEJOS: Record<string, number> = {
+  vacio: 0,
+  "1/4": 25,
+  "1/2": 50,
+  "3/4": 75,
+  lleno: 100,
+};
+
+/**
+ * Convierte lo guardado en `combustible` a un porcentaje 0-100, sea
+ * el string numérico que escribe el slider actual ("65") o uno de los
+ * niveles fijos de antes ("1/2"). null si no hay dato o no se puede
+ * interpretar.
+ */
+export function combustiblePorcentaje(valor: string | null): number | null {
+  if (!valor) return null;
+  if (valor in NIVELES_COMBUSTIBLE_VIEJOS) {
+    return NIVELES_COMBUSTIBLE_VIEJOS[valor];
+  }
+  const n = Number(valor);
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : null;
+}

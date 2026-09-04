@@ -249,7 +249,10 @@ export const trabajo = pgTable(
     // Daño que no calza con ninguna zona del diagrama (ej. "rueda de
     // auxilio pinchada") — texto libre aparte, Plan Serviteca.
     danoOtro: text("dano_otro"),
-    // vacio · 1/4 · 1/2 · 3/4 · lleno — Plan Serviteca.
+    // Porcentaje (0-100) como texto, ej. "65" — Plan Serviteca. Órdenes
+    // viejas pueden traer los valores fijos de antes (vacio · 1/4 · 1/2
+    // · 3/4 · lleno); ver combustiblePorcentaje() en accesorios-auto.ts
+    // para leer ambos formatos sin romper el historial.
     combustible: text("combustible"),
     // Qué accesorios trae el auto al recibirlo, para respaldo ante un
     // reclamo al retirarlo ("no traía la rueda de repuesto"). Cada
