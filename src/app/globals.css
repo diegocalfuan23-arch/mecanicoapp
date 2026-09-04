@@ -45,20 +45,20 @@
   --card-foreground: oklch(0.2 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0 0);
-  --primary: oklch(0.63 0.17 48);
+  --primary: oklch(0.668 0.199 37.7);
   --primary-foreground: oklch(1 0 0);
-  --acento: oklch(0.55 0.16 48);
+  --acento: oklch(0.6 0.19 37.7);
   --secondary: oklch(0.99 0 0);
   --secondary-foreground: oklch(0.2 0 0);
   --muted: oklch(0.99 0 0);
   --muted-foreground: oklch(0.55 0 0);
-  --accent: oklch(0.96 0.012 62);
+  --accent: oklch(0.96 0.03 37.7);
   --accent-foreground: oklch(0.2 0 0);
   --destructive: oklch(0.58 0.21 25);
   --success: oklch(0.55 0.15 150);
   --border: oklch(0.93 0 0);
   --input: oklch(0.93 0 0);
-  --ring: oklch(0.63 0.17 48);
+  --ring: oklch(0.668 0.199 37.7);
   --radius: 0.625rem;
 }
 
@@ -71,21 +71,21 @@
   --popover: oklch(0.2 0.009 60);
   --popover-foreground: oklch(0.97 0.004 60);
   /* Botones: oscuro, para que el texto blanco encima se lea bien */
-  --primary: oklch(0.63 0.17 48);
+  --primary: oklch(0.668 0.199 37.7);
   --primary-foreground: oklch(1 0 0);
   /* Texto y detalles sobre fondo oscuro: más claro, para que resalte */
-  --acento: oklch(0.78 0.15 62);
+  --acento: oklch(0.75 0.18 37.7);
   --secondary: oklch(0.26 0.01 60);
   --secondary-foreground: oklch(0.97 0.004 60);
   --muted: oklch(0.26 0.01 60);
   --muted-foreground: oklch(0.7 0.012 60);
-  --accent: oklch(0.3 0.03 62);
+  --accent: oklch(0.3 0.05 37.7);
   --accent-foreground: oklch(0.97 0.004 60);
   --destructive: oklch(0.62 0.21 25);
   --success: oklch(0.68 0.16 150);
   --border: oklch(0.3 0.01 60);
   --input: oklch(0.3 0.01 60);
-  --ring: oklch(0.76 0.16 62);
+  --ring: oklch(0.72 0.19 37.7);
   --radius: 0.625rem;
 }
 
