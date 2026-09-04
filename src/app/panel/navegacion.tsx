@@ -32,20 +32,6 @@ const SECCIONES = [
     ),
   },
   {
-    href: "/panel/asistente",
-    texto: "Asistente",
-    icono: (
-      <path
-        d="M4 4.5h12a1 1 0 011 1v7a1 1 0 01-1 1H8.5L5 16.5V13.5H4a1 1 0 01-1-1v-7a1 1 0 011-1zM7 8h6M7 10.5h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    ),
-  },
-  {
     href: "/panel/presupuestos",
     texto: "Presupuestos",
     icono: (

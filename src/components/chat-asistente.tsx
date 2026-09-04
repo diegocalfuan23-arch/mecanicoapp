@@ -7,68 +7,70 @@ import {
   leerConversacion,
   borrarConversacion,
 } from "@/app/panel/asistente/acciones";
-import { Button } from "@/components/ui/button";
 
 type Mensaje = { rol: "usuario" | "asistente"; texto: string };
 type Conversacion = { id: string; titulo: string; updatedAt: Date };
 
-function Lista({
+function ListaConversaciones({
   conversaciones,
   activa,
-  nueva,
   abrir,
   borrar,
 }: {
   conversaciones: Conversacion[];
   activa: string | null;
-  nueva: () => void;
   abrir: (id: string) => void;
   borrar: (id: string) => void;
 }) {
-  return (
-    <>
-      <Button variant="outline" onClick={nueva} className="w-full text-left">
-        Nueva consulta
-      </Button>
+  if (conversaciones.length === 0) {
+    return (
+      <p className="px-4 py-6 text-center text-[13px] text-muted-foreground">
+        Sin consultas anteriores.
+      </p>
+    );
+  }
 
-      <ul className="mt-4 flex flex-col gap-1">
-        {conversaciones.map((c) => (
-          <li key={c.id} className="group flex items-center gap-1">
-            <button
-              onClick={() => abrir(c.id)}
-              className={`min-w-0 flex-1 truncate rounded-lg px-4 py-2 text-left text-[14px] transition-colors ${
-                activa === c.id
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:bg-background hover:text-foreground"
-              }`}
-            >
-              {c.titulo}
-            </button>
-            <button
-              onClick={() => borrar(c.id)}
-              aria-label="Borrar conversación"
-              className="shrink-0 rounded-lg px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus:opacity-100"
-            >
-              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                <path
-                  d="M6 6l8 8M14 6l-8 8"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </>
+  return (
+    <ul className="scroll-discreto max-h-80 overflow-y-auto py-1">
+      {conversaciones.map((c) => (
+        <li key={c.id} className="group flex items-center gap-1 px-1">
+          <button
+            onClick={() => abrir(c.id)}
+            className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2 text-left text-[13px] transition-colors ${
+              activa === c.id
+                ? "bg-foreground/10 text-foreground"
+                : "text-muted-foreground hover:bg-background hover:text-foreground"
+            }`}
+          >
+            {c.titulo}
+          </button>
+          <button
+            onClick={() => borrar(c.id)}
+            aria-label="Borrar conversación"
+            className="shrink-0 rounded-lg px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive focus:opacity-100"
+          >
+            <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+              <path
+                d="M6 6l8 8M14 6l-8 8"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 /**
  * Conversación con el asistente del taller: se puede escribir o dictar, y
  * cada respuesta se lee en voz alta para que el mecánico la escuche con
- * las manos ocupadas. Las conversaciones quedan guardadas para retomarlas.
+ * las manos ocupadas. Las conversaciones quedan guardadas para retomarlas
+ * — accesibles desde el ícono de historial en el header propio del chat,
+ * no en una columna lateral fija (este componente vive dentro del panel
+ * flotante, que ya es angosto en pantallas chicas).
  */
 export function ChatAsistente({
   conversaciones: inicial,
@@ -81,7 +83,7 @@ export function ChatAsistente({
   const [entrada, setEntrada] = useState("");
   const [pensando, setPensando] = useState(false);
   const [vozActiva, setVozActiva] = useState(true);
-  const [listaAbierta, setListaAbierta] = useState(false);
+  const [historialAbierto, setHistorialAbierto] = useState(false);
   const finRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -90,7 +92,7 @@ export function ChatAsistente({
   }, [mensajes, pensando]);
 
   async function abrir(id: string) {
-    setListaAbierta(false);
+    setHistorialAbierto(false);
     const previos = await leerConversacion(id);
     if (!previos) return;
     setActiva(id);
@@ -101,7 +103,7 @@ export function ChatAsistente({
     audioRef.current?.pause();
     setActiva(null);
     setMensajes([]);
-    setListaAbierta(false);
+    setHistorialAbierto(false);
   }
 
   async function borrar(id: string) {
@@ -188,79 +190,106 @@ export function ChatAsistente({
   }
 
   return (
-    <div className="flex h-full gap-8">
-      {/* Consultas anteriores: columna fija desde tablet */}
-      <aside className="scroll-discreto hidden w-56 shrink-0 overflow-y-auto lg:block">
-        <Lista
-          conversaciones={conversaciones}
-          activa={activa}
-          nueva={nueva}
-          abrir={abrir}
-          borrar={borrar}
-        />
-      </aside>
-
-      {/* Cajón de consultas en móvil */}
-      {listaAbierta && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="relative flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-1">
           <button
-            aria-label="Cerrar"
-            onClick={() => setListaAbierta(false)}
-            className="absolute inset-0 bg-black/60"
-          />
-          <div className="scroll-discreto absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-border bg-card p-4">
-            <Lista
-          conversaciones={conversaciones}
-          activa={activa}
-          nueva={nueva}
-          abrir={abrir}
-          borrar={borrar}
-        />
-          </div>
-        </div>
-      )}
-
-      {/* h-full (no min-h-[100dvh]): el layout del panel ya le da a
-          <main> su alto real (h-dvh en la raíz menos el header) — un
-          alto propio en vh/dvh se suma AL de <main> y genera scroll
-          de sobra, deslizable, aunque nada deba moverse. Con h-full
-          el bloque ocupa exactamente el alto de <main>, ni más ni
-          menos, y flex-1 en el mensaje empuja el <form> al fondo. */}
-      <div className="flex h-full min-w-0 flex-1 flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
-          <Button
-            variant="outline"
-            onClick={() => setListaAbierta(true)}
-            className="lg:hidden"
+            onClick={() => setHistorialAbierto((v) => !v)}
+            aria-label="Conversaciones anteriores"
+            aria-expanded={historialAbierto}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
           >
-            Consultas
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setVozActiva(!vozActiva);
-              if (vozActiva) audioRef.current?.pause();
-            }}
-            className="ml-auto"
+            <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
+              <path
+                d="M10 5.5V10l3 2M17 10a7 7 0 11-7-7 7 7 0 017 7z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={nueva}
+            aria-label="Nueva consulta"
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
           >
-            {vozActiva ? "Voz activada" : "Voz apagada"}
-          </Button>
+            <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
+              <path
+                d="M5 5.5h7a1 1 0 011 1V16a.5.5 0 01-.8.4L10 15l-2.2 1.4A.5.5 0 015 16V6.5a1 1 0 011-1zM4.5 4l8-1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
 
+        <span className="text-[14px] font-medium">Asistente</span>
+
+        <button
+          onClick={() => {
+            setVozActiva(!vozActiva);
+            if (vozActiva) audioRef.current?.pause();
+          }}
+          aria-label={vozActiva ? "Apagar voz" : "Activar voz"}
+          aria-pressed={vozActiva}
+          className={`rounded-lg p-2 transition-colors hover:bg-background ${
+            vozActiva ? "text-foreground" : "text-muted-foreground"
+          }`}
+        >
+          <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
+            <path
+              d="M4 8v4h3l4 3V5L7 8H4z"
+              fill="currentColor"
+            />
+            {vozActiva && (
+              <path
+                d="M14 7a4 4 0 010 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            )}
+          </svg>
+        </button>
+
+        {historialAbierto && (
+          <>
+            <button
+              aria-label="Cerrar historial"
+              onClick={() => setHistorialAbierto(false)}
+              className="fixed inset-0 z-10 cursor-default"
+            />
+            <div className="scroll-discreto absolute top-full left-4 z-20 mt-1 w-72 rounded-xl border border-border bg-card py-1 shadow-lg">
+              <ListaConversaciones
+                conversaciones={conversaciones}
+                activa={activa}
+                abrir={abrir}
+                borrar={borrar}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="scroll-discreto min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {mensajes.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
-            <p className="text-2xl leading-snug font-medium text-muted-foreground/60">
+          <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+            <p className="text-xl leading-snug font-medium text-muted-foreground/60">
               ¿Cuánto debe la BXFS19?
             </p>
-            <p className="mt-4 text-[13px] text-muted-foreground">
+            <p className="mt-3 text-[13px] text-muted-foreground">
               Pregunta por patente, kilometraje, qué se le hizo o cuánto debe.
             </p>
           </div>
         ) : (
-          <ul className="scroll-discreto flex flex-col gap-6">
+          <ul className="flex flex-col gap-5">
             {mensajes.map((m, i) => {
-              // La última respuesta es lo que el mecánico vino a leer: va
-              // grande. Las anteriores bajan a tamaño de cuerpo.
               const destacada =
                 m.rol === "asistente" && i === mensajes.length - 1;
 
@@ -272,10 +301,10 @@ export function ChatAsistente({
                   <div
                     className={`inline-block max-w-[85%] rounded-xl px-4 py-2 ${
                       m.rol === "usuario"
-                        ? "bg-foreground/10 text-[15px] text-foreground"
+                        ? "bg-foreground/10 text-[14px] text-foreground"
                         : destacada
-                          ? "bg-card text-2xl leading-snug font-medium"
-                          : "bg-card text-[15px]"
+                          ? "bg-background text-lg leading-snug font-medium"
+                          : "bg-background text-[14px]"
                     }`}
                   >
                     {m.texto}
@@ -292,56 +321,50 @@ export function ChatAsistente({
               );
             })}
             {pensando && (
-              <li className="text-[15px] text-muted-foreground">Buscando…</li>
+              <li className="text-[14px] text-muted-foreground">Buscando…</li>
             )}
             <div ref={finRef} />
           </ul>
         )}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            enviar(entrada);
-          }}
-          // sticky bottom-0 mantiene el input a la vista si se
-          // scrollea una conversación larga; lo que de verdad ancla
-          // el input al fondo cuando hay poco contenido es el
-          // min-h-[100dvh] + flex-1 de arriba, no este sticky solo
-          // (sticky no tiene de qué "engancharse" si el contenido es
-          // más bajo que la pantalla).
-          className="sticky bottom-0 mt-4 flex flex-wrap items-center gap-2 bg-background pt-4 pb-2"
-        >
-          <input
-            value={entrada}
-            onChange={(e) => setEntrada(e.target.value)}
-            placeholder="Escribe tu pregunta"
-            className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-4 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
-          {/* Mismo lugar para los dos: micrófono si no hay texto, enviar
-              si lo hay — igual que WhatsApp, sin los dos botones a la vez. */}
-          {entrada.trim() ? (
-            <button
-              type="submit"
-              disabled={pensando}
-              aria-label="Enviar"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-            >
-              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-                <path
-                  d="M3 10h13M11 5l5 5-5 5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          ) : (
-            <Dictar etiqueta="Hablar" onTexto={enviar} compacto />
-          )}
-        </form>
       </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          enviar(entrada);
+        }}
+        className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border bg-background px-4 py-3"
+      >
+        <input
+          value={entrada}
+          onChange={(e) => setEntrada(e.target.value)}
+          placeholder="Escribe tu pregunta"
+          className="min-w-0 flex-1 rounded-lg border border-border bg-card px-4 py-3 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+        />
+        {/* Mismo lugar para los dos: micrófono si no hay texto, enviar
+            si lo hay — igual que WhatsApp, sin los dos botones a la vez. */}
+        {entrada.trim() ? (
+          <button
+            type="submit"
+            disabled={pensando}
+            aria-label="Enviar"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+              <path
+                d="M3 10h13M11 5l5 5-5 5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : (
+          <Dictar etiqueta="Hablar" onTexto={enviar} compacto />
+        )}
+      </form>
     </div>
   );
 }
