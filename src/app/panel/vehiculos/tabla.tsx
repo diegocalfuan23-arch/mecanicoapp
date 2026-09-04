@@ -5,6 +5,7 @@ import { Menu } from "@base-ui/react/menu";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
 import { eliminarVehiculo } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 type Vehiculo = VehiculoEditable;
 
@@ -192,15 +193,15 @@ export function TablaVehiculos({
                   {borrando ? "Borrando…" : "Sí, eliminar"}
                 </button>
               )}
-              <button
+              <Button
+                variant="outline"
                 onClick={() => {
                   setConfirmando(null);
                   setErrorBorrado(null);
                 }}
-                className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
               >
                 {errorBorrado ? "Entendido" : "Cancelar"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -213,12 +214,9 @@ export function TablaVehiculos({
           placeholder="Buscar por patente, marca o dueño"
           className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 sm:max-w-sm"
         />
-        <button
-          onClick={() => setAbiertoManual(true)}
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
+        <Button onClick={() => setAbiertoManual(true)} className="shrink-0">
           Registrar vehículo
-        </button>
+        </Button>
       </div>
 
       {filtrados.length === 0 ? (

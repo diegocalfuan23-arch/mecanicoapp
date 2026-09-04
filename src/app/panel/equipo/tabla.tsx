@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { agregarAyudante, quitarAyudante, cambiarVePagos } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 type Miembro = {
   id: string;
@@ -87,20 +88,12 @@ function Formulario({ onListo }: { onListo: () => void }) {
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <button
-            type="submit"
-            disabled={enviando}
-            className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={enviando}>
             {enviando ? "Agregando…" : "Agregar ayudante"}
-          </button>
-          <button
-            type="button"
-            onClick={onListo}
-            className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
-          >
+          </Button>
+          <Button variant="outline" type="button" onClick={onListo}>
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -167,24 +160,18 @@ export function TablaEquipo({ miembros: iniciales }: { miembros: Miembro[] }) {
               >
                 {quitando ? "Quitando…" : "Sí, quitar"}
               </button>
-              <button
-                onClick={() => setConfirmando(null)}
-                className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
-              >
+              <Button variant="outline" onClick={() => setConfirmando(null)}>
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          onClick={() => setAbierto(true)}
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
+        <Button onClick={() => setAbierto(true)} className="shrink-0">
           Agregar ayudante
-        </button>
+        </Button>
       </div>
 
       {miembros.length === 0 ? (

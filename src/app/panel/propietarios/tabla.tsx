@@ -7,6 +7,7 @@ import * as Yup from "yup";
 import { guardarPropietario, actualizarPropietario } from "./acciones";
 import { pesos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
+import { Button } from "@/components/ui/button";
 
 type Propietario = {
   id: string;
@@ -224,24 +225,16 @@ function Formulario({
       )}
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <button
-          type="submit"
-          disabled={form.isSubmitting}
-          className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={form.isSubmitting}>
           {form.isSubmitting
             ? "Guardando…"
             : editando
               ? "Guardar cambios"
               : "Registrar propietario"}
-        </button>
-        <button
-          type="button"
-          onClick={onListo}
-          className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
-        >
+        </Button>
+        <Button variant="outline" type="button" onClick={onListo}>
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -299,12 +292,9 @@ export function TablaPropietarios({
           placeholder="Buscar por nombre o teléfono"
           className="w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 sm:max-w-sm"
         />
-        <button
-          onClick={() => setAbierto(true)}
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
+        <Button onClick={() => setAbierto(true)} className="shrink-0">
           Registrar propietario
-        </button>
+        </Button>
       </div>
 
       {filtrados.length === 0 ? (
@@ -371,12 +361,9 @@ export function TablaPropietarios({
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setEditando(p)}
-                    className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
-                  >
+                  <Button variant="outline" onClick={() => setEditando(p)}>
                     Editar
-                  </button>
+                  </Button>
                 {p.telefono && (
                   <a
                     href={`https://wa.me/${p.telefono.replace(/\D/g, "")}`}
@@ -474,12 +461,9 @@ export function TablaPropietarios({
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => setEditando(p)}
-                      className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-background"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setEditando(p)}>
                       Editar
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}

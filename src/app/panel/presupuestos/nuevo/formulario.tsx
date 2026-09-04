@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { crearPresupuesto, type ItemCotizado } from "../acciones";
 import { ItemsCotizados } from "../items-cotizados";
+import { Button } from "@/components/ui/button";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -113,13 +114,9 @@ export function NuevoPresupuesto() {
       )}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={enviando || !patente.trim()}
-          className="rounded-lg bg-primary px-6 py-2.5 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={enviando || !patente.trim()}>
           {enviando ? "Guardando…" : "Crear presupuesto"}
-        </button>
+        </Button>
       </div>
     </form>
   );

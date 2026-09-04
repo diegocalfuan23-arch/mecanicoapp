@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { miles, soloDigitos, pesos } from "@/lib/formato";
 import type { ItemCotizado } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 /** Editor simple de líneas cotizadas: nombre, cantidad, precio. Más
  * liviano que RepuestosUsados (de Órdenes) a propósito — acá todavía
@@ -71,14 +72,15 @@ export function ItemsCotizados({
           placeholder="Precio"
           className={`${campo} w-32 shrink-0`}
         />
-        <button
+        <Button
+          size="sm"
           type="button"
           onClick={agregar}
           disabled={!nombre.trim()}
-          className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="shrink-0"
         >
           Agregar
-        </button>
+        </Button>
       </div>
 
       {items.length > 0 && (

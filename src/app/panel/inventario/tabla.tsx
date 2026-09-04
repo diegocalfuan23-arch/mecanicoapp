@@ -8,6 +8,7 @@ import {
   eliminarInsumo,
 } from "./acciones";
 import { pesos, miles, soloDigitos } from "@/lib/formato";
+import { Button } from "@/components/ui/button";
 
 type Insumo = {
   id: string;
@@ -201,30 +202,18 @@ function Formulario({
             <span className="text-[13px] text-muted-foreground">
               {guardado ? "Guardado" : "Los cambios se guardan solos"}
             </span>
-            <button
-              type="button"
-              onClick={volver}
-              className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-            >
+            <Button variant="outline" type="button" onClick={volver}>
               Volver
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-4 sm:flex-row">
-            <button
-              type="submit"
-              disabled={enviando}
-              className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-            >
+            <Button type="submit" disabled={enviando}>
               {enviando ? "Guardando…" : "Registrar insumo"}
-            </button>
-            <button
-              type="button"
-              onClick={onListo}
-              className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
-            >
+            </Button>
+            <Button variant="outline" type="button" onClick={onListo}>
               Cancelar
-            </button>
+            </Button>
           </div>
         )}
       </form>
@@ -290,24 +279,18 @@ export function TablaInventario({ insumos }: { insumos: Insumo[] }) {
               >
                 {borrando ? "Borrando…" : "Sí, eliminar"}
               </button>
-              <button
-                onClick={() => setConfirmando(null)}
-                className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
-              >
+              <Button variant="outline" onClick={() => setConfirmando(null)}>
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       <div className="flex justify-end">
-        <button
-          onClick={() => setAbierto(true)}
-          className="shrink-0 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
+        <Button onClick={() => setAbierto(true)} className="shrink-0">
           Nuevo insumo
-        </button>
+        </Button>
       </div>
 
       {insumos.length === 0 ? (

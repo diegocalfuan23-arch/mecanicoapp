@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type Estado = "quieto" | "grabando" | "transcribiendo" | "error";
 
@@ -137,14 +138,16 @@ export function Dictar({
 
   return (
     <div className="inline-flex items-center gap-2">
-      <button
+      <Button
+        variant="outline"
+        size="sm"
         type="button"
         onClick={empezar}
-        className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-background"
+        className="inline-flex items-center gap-2"
       >
         {icono}
         {etiqueta}
-      </button>
+      </Button>
       {estado === "error" && (
         <span className="text-[12px] text-destructive">
           No se pudo grabar. Intenta de nuevo.

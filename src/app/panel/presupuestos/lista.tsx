@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { aprobarPresupuesto, rechazarPresupuesto } from "./acciones";
 import { pesos, fecha } from "@/lib/formato";
+import { Button } from "@/components/ui/button";
 
 type Presupuesto = {
   id: string;
@@ -96,22 +97,23 @@ export function ListaPresupuestos({
 
           {p.estado === "pendiente" && (
             <div className="flex shrink-0 items-center gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 type="button"
                 onClick={() => rechazar(p.id)}
                 disabled={enCurso === p.id}
-                className="rounded-lg border border-border px-3 py-1.5 text-[13px] transition-colors hover:bg-background disabled:opacity-60"
               >
                 Rechazar
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 type="button"
                 onClick={() => aprobar(p.id)}
                 disabled={enCurso === p.id}
-                className="rounded-lg bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {enCurso === p.id ? "Aprobando…" : "Aprobar"}
-              </button>
+              </Button>
             </div>
           )}
         </li>

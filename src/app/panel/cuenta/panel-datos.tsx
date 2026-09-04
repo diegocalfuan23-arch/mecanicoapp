@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { exportarMisDatos, eliminarMiCuenta } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 export function PanelDatos({ correo }: { correo: string }) {
   const router = useRouter();
@@ -59,13 +60,14 @@ export function PanelDatos({ correo }: { correo: string }) {
           clientes, órdenes, pagos y conversaciones. Es un archivo que
           puedes abrir o llevar a otro sistema.
         </p>
-        <button
+        <Button
+          variant="outline"
           onClick={descargar}
           disabled={exportando}
-          className="mt-4 rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background disabled:opacity-60"
+          className="mt-4"
         >
           {exportando ? "Preparando…" : "Descargar mis datos"}
-        </button>
+        </Button>
       </div>
 
       <div className="rounded-xl border border-destructive/40 bg-card p-6">
@@ -106,16 +108,16 @@ export function PanelDatos({ correo }: { correo: string }) {
               >
                 {borrando ? "Borrando…" : "Borrar todo definitivamente"}
               </button>
-              <button
+              <Button
+                variant="outline"
                 onClick={() => {
                   setConfirmando(false);
                   setEscrito("");
                   setError(null);
                 }}
-                className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
               >
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         )}

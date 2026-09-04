@@ -11,6 +11,7 @@ import {
   type BusquedaReciente,
 } from "./acciones";
 import { buscarPorPatente, guardarVehiculo } from "@/app/panel/vehiculos/acciones";
+import { Button } from "@/components/ui/button";
 
 type Resultado = ResultadoBusqueda;
 type DatosExternos = {
@@ -329,14 +330,9 @@ export function Buscador({
             )}
 
             <div className="mt-4 flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                onClick={registrarDeUnClic}
-                disabled={registrando}
-                className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-              >
+              <Button type="button" onClick={registrarDeUnClic} disabled={registrando}>
                 {registrando ? "Registrando…" : "Registrarlo con estos datos"}
-              </button>
+              </Button>
               <Link
                 href={`/panel/vehiculos?patente=${encodeURIComponent(consulta.trim())}`}
                 className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"

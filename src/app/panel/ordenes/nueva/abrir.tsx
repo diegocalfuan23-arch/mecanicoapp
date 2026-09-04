@@ -10,6 +10,7 @@ import { Selector } from "@/components/ui/selector";
 import { Slider } from "@/components/ui/slider";
 import { RepuestosUsados } from "@/components/repuestos-usados";
 import { DiagramaAuto } from "@/components/diagrama-auto";
+import { Button } from "@/components/ui/button";
 import {
   accesoriosParaTipo,
   esAccesorioLibre,
@@ -524,7 +525,8 @@ export function Abrir({
                 placeholder="Otro accesorio (ej: cadenas de nieve)"
                 className={`${campoBase()} bg-card`}
               />
-              <button
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => {
                   if (!accesorioLibre.trim()) return;
@@ -534,10 +536,10 @@ export function Abrir({
                   ]);
                   setAccesorioLibre("");
                 }}
-                className="shrink-0 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                className="shrink-0"
               >
                 Agregar
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -569,20 +571,16 @@ export function Abrir({
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <button
-            type="submit"
-            disabled={enviando}
-            className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={enviando}>
             {enviando ? "Abriendo…" : "Abrir orden"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
             type="button"
             onClick={() => router.push("/panel/ordenes")}
-            className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-background"
           >
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
     </div>

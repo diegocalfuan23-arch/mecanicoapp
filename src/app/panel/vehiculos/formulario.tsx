@@ -8,6 +8,7 @@ import { guardarVehiculo, actualizarVehiculo, buscarPorPatente } from "./accione
 import { miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { TIPOS_VEHICULO } from "@/lib/tipos-vehiculo";
+import { Button } from "@/components/ui/button";
 
 const TIPOS: string[] = [...TIPOS_VEHICULO];
 
@@ -264,14 +265,14 @@ export function FormularioVehiculo({
 
         {tieneImpresion && !editando && (
           <div className="mt-4">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={buscarPatente}
               disabled={buscando}
-              className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card disabled:opacity-60"
             >
               {buscando ? "Buscando…" : "Buscar por patente"}
-            </button>
+            </Button>
             {errorBusqueda && (
               <p className="mt-2 text-[13px] text-destructive">
                 {errorBusqueda}
@@ -407,34 +408,22 @@ export function FormularioVehiculo({
                 ? "Guardado"
                 : "Los cambios se guardan solos"}
           </span>
-          <button
-            type="button"
-            onClick={onListo}
-            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-          >
+          <Button variant="outline" type="button" onClick={onListo}>
             Volver
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-4 sm:flex-row">
-          <button
-            type="submit"
-            disabled={form.isSubmitting}
-            className="rounded-lg bg-primary px-6 py-4 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={form.isSubmitting}>
             {form.isSubmitting
               ? "Guardando…"
               : editando
                 ? "Guardar cambios"
                 : "Registrar vehículo"}
-          </button>
-          <button
-            type="button"
-            onClick={onListo}
-            className="rounded-lg border border-border px-6 py-4 font-medium transition-colors hover:bg-card"
-          >
+          </Button>
+          <Button variant="outline" type="button" onClick={onListo}>
             Cancelar
-          </button>
+          </Button>
         </div>
       )}
     </form>

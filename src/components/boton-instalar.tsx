@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type EventoInstalar = Event & {
   prompt: () => Promise<void>;
@@ -30,14 +31,15 @@ const ICONO = (
  */
 export function BotonInstalar() {
   const [evento, setEvento] = useState<EventoInstalar | null>(null);
-  const [instalada, setInstalada] = useState(false);
+  const [instalada, setInstalada] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(display-mode: standalone)").matches
+  );
   const [ayuda, setAyuda] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setInstalada(true);
-      return;
-    }
+    if (instalada) return;
 
     const capturar = (e: Event) => {
       e.preventDefault();
@@ -52,6 +54,9 @@ export function BotonInstalar() {
       window.removeEventListener("beforeinstallprompt", capturar);
       window.removeEventListener("appinstalled", alInstalar);
     };
+    // Solo al montar: no debe volver a registrar los listeners cuando
+    // `instalada` cambia a true desde dentro del propio efecto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (instalada) return null;
@@ -68,14 +73,15 @@ export function BotonInstalar() {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
         onClick={tocar}
         aria-label="Instalar app"
-        className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-[13px] font-medium transition-colors hover:bg-background sm:px-4"
+        className="flex shrink-0 items-center gap-2 sm:px-4"
       >
         {ICONO}
         <span className="hidden sm:inline">Instalar app</span>
-      </button>
+      </Button>
 
       {ayuda && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -100,7 +106,7 @@ export function BotonInstalar() {
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-[13px] font-medium">
                   2
                 </span>
-                Busca "Instalar app" o "Agregar a pantalla de inicio".
+                Busca &quot;Instalar app&quot; o &quot;Agregar a pantalla de inicio&quot;.
               </li>
               <li className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-[13px] font-medium">
@@ -110,12 +116,13 @@ export function BotonInstalar() {
                 cualquier otra app.
               </li>
             </ol>
-            <button
+            <Button
+              variant="outline"
               onClick={() => setAyuda(false)}
-              className="mt-6 w-full rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-background"
+              className="mt-6 w-full"
             >
               Entendido
-            </button>
+            </Button>
           </div>
         </div>
       )}

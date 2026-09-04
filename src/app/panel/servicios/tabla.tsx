@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { crearServicio, editarServicio, eliminarServicio } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 type Servicio = {
   id: string;
@@ -48,16 +49,18 @@ function SelectorGrupo({
           className={campo}
         />
         {grupos.length > 0 && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             type="button"
             onClick={() => {
               setEsNuevo(false);
               onCambio(grupos[0]);
             }}
-            className="shrink-0 rounded-lg border border-border px-3 text-[13px] text-muted-foreground hover:bg-card"
+            className="shrink-0 text-muted-foreground"
           >
             Elegir
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -294,19 +297,12 @@ function Formulario({
         {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
 
         <div className="mt-4 flex gap-2">
-          <button
-            type="submit"
-            className="rounded-lg bg-primary px-4 py-2 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
+          <Button type="submit">
             {servicio ? "Guardar cambios" : "Agregar"}
-          </button>
-          <button
-            type="button"
-            onClick={() => onListo()}
-            className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-card"
-          >
+          </Button>
+          <Button variant="outline" type="button" onClick={() => onListo()}>
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -337,12 +333,7 @@ export function TablaServicios({
   return (
     <div>
       <div className="flex justify-end">
-        <button
-          onClick={() => setAgregando("")}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          Agregar servicio
-        </button>
+        <Button onClick={() => setAgregando("")}>Agregar servicio</Button>
       </div>
 
       {agregando !== null && (

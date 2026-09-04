@@ -16,6 +16,7 @@ import { pesos, fecha } from "@/lib/formato";
 import { Dictar } from "@/components/dictar";
 import { Procedimientos } from "@/components/procedimientos";
 import { Selector } from "@/components/ui/selector";
+import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PackageIcon,
@@ -116,13 +117,9 @@ function EditarDescripcion({
         />
 
         <div className="mt-4 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={onListo}
-            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-          >
+          <Button variant="outline" type="button" onClick={onListo}>
             Volver
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -196,13 +193,9 @@ function EsperarRepuesto({
           >
             {enviando ? "Guardando…" : "El auto se va del taller"}
           </button>
-          <button
-            type="button"
-            onClick={onListo}
-            className="rounded-lg border border-border px-6 py-2 font-medium transition-colors hover:bg-card"
-          >
+          <Button variant="outline" type="button" onClick={onListo}>
             Cancelar
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -459,24 +452,24 @@ export function ListaOrdenes({
             </div>
 
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-              <button
+              <Button
                 onClick={() => setMostrarFiltros(false)}
-                className="flex-1 rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                className="flex-1"
               >
                 Aplicar
-              </button>
+              </Button>
               {filtrosActivos > 0 && (
-                <button
+                <Button
+                  variant="outline"
                   type="button"
                   onClick={() => {
                     setKmMinimo("");
                     setKmMaximo("");
                     setOrdenAZ(false);
                   }}
-                  className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-background"
                 >
                   Limpiar
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -686,35 +679,36 @@ export function ListaOrdenes({
                       </a>
                     )}
                     {o.estado === "ingresado" && (
-                      <button
+                      <Button
+                        variant="outline"
                         onClick={() => avanzar(o.id, "en_proceso")}
-                        className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
                       >
                         Empezar
-                      </button>
+                      </Button>
                     )}
                     {(o.estado === "ingresado" ||
                       o.estado === "en_proceso") && (
-                      <button
+                      <Button
+                        variant="outline"
                         onClick={() =>
                           setEsperando(esperando === o.id ? null : o.id)
                         }
-                        className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
+                        className="flex items-center gap-1.5"
                       >
                         <HugeiconsIcon icon={PackageIcon} className="size-4" />
                         Falta repuesto
-                      </button>
+                      </Button>
                     )}
                     {o.estado === "esperando_repuesto" && (
-                      <button
+                      <Button
+                        variant="outline"
                         onClick={() => volvio(o.id)}
                         disabled={retomando === o.id}
-                        className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
                       >
                         {retomando === o.id
                           ? "Guardando…"
                           : "Volvió el auto"}
-                      </button>
+                      </Button>
                     )}
                     {(o.estado === "ingresado" ||
                       o.estado === "en_proceso") && (

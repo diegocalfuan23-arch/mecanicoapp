@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrarAbono, saldarTrabajo } from "./acciones";
 import { pesos, fecha, miles, soloDigitos } from "@/lib/formato";
+import { Button } from "@/components/ui/button";
 
 type Deuda = {
   id: string;
@@ -70,20 +71,12 @@ function Abonar({
           autoFocus
           className="flex-1 rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
         />
-        <button
-          type="submit"
-          disabled={enviando || !monto}
-          className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={enviando || !monto}>
           {enviando ? "Guardando…" : "Registrar abono"}
-        </button>
-        <button
-          type="button"
-          onClick={onCerrar}
-          className="rounded-lg border border-border px-6 py-2 transition-colors hover:bg-card"
-        >
+        </Button>
+        <Button variant="outline" type="button" onClick={onCerrar}>
           Cancelar
-        </button>
+        </Button>
       </div>
       {error && <p className="mt-2 text-[13px] text-destructive">{error}</p>}
     </form>
@@ -162,21 +155,21 @@ export function ListaDeudas({ deudas }: { deudas: Deuda[] }) {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
+              <Button
+                variant="outline"
                 onClick={() => setAbriendo(abriendo === d.id ? null : d.id)}
-                className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background"
               >
                 Abonar
-              </button>
+              </Button>
               {/* Con borde y no sólido: repetido en cada fila, un botón
                   sólido pesaba más que el total de la pantalla. */}
-              <button
+              <Button
+                variant="outline"
                 onClick={() => saldar(d.id)}
                 disabled={saldando === d.id}
-                className="rounded-lg border border-border px-4 py-2 text-[14px] font-medium transition-colors hover:bg-background disabled:opacity-60"
               >
                 {saldando === d.id ? "Guardando…" : "Marcar pagado"}
-              </button>
+              </Button>
               {d.telefono && (
                 <a
                   href={`https://wa.me/${d.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(

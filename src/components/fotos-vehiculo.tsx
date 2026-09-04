@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useUploadThing } from "@/lib/subida";
+import { Button } from "@/components/ui/button";
 
 const MAXIMO = 12;
 
@@ -141,22 +142,22 @@ export function FotosVehiculo({
       />
 
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
+          variant="outline"
           type="button"
           onClick={() => camara.current?.click()}
           disabled={lleno || subiendo > 0}
-          className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
         >
           {subiendo > 0 ? "Subiendo…" : "Sacar fotos"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           type="button"
           onClick={() => galeria.current?.click()}
           disabled={lleno || subiendo > 0}
-          className="rounded-lg border border-border px-4 py-2 text-[14px] transition-colors hover:bg-background disabled:opacity-60"
         >
           Elegir del teléfono
-        </button>
+        </Button>
       </div>
 
       <p className="mt-2 text-[12px] text-muted-foreground">

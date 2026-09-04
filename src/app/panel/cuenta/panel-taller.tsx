@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUploadThing } from "@/lib/subida";
 import { guardarDatosTaller } from "./acciones";
+import { Button } from "@/components/ui/button";
 
 export function PanelTaller({
   taller,
@@ -149,13 +150,9 @@ export function PanelTaller({
         {error && <p className="text-[13px] text-destructive">{error}</p>}
 
         <div className="flex items-center gap-4">
-          <button
-            type="submit"
-            disabled={guardando}
-            className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={guardando}>
             {guardando ? "Guardando…" : "Guardar"}
-          </button>
+          </Button>
           {guardado && (
             <span className="text-[13px] text-muted-foreground">
               Guardado

@@ -7,6 +7,7 @@ import {
   leerConversacion,
   borrarConversacion,
 } from "@/app/panel/asistente/acciones";
+import { Button } from "@/components/ui/button";
 
 type Mensaje = { rol: "usuario" | "asistente"; texto: string };
 type Conversacion = { id: string; titulo: string; updatedAt: Date };
@@ -26,12 +27,9 @@ function Lista({
 }) {
   return (
     <>
-      <button
-        onClick={nueva}
-        className="w-full rounded-lg border border-border px-4 py-2 text-left text-[14px] transition-colors hover:bg-background"
-      >
+      <Button variant="outline" onClick={nueva} className="w-full text-left">
         Nueva consulta
-      </button>
+      </Button>
 
       <ul className="mt-4 flex flex-col gap-1">
         {conversaciones.map((c) => (
@@ -230,21 +228,23 @@ export function ChatAsistente({
           menos, y flex-1 en el mensaje empuja el <form> al fondo. */}
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
-          <button
+          <Button
+            variant="outline"
             onClick={() => setListaAbierta(true)}
-            className="rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card lg:hidden"
+            className="lg:hidden"
           >
             Consultas
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => {
               setVozActiva(!vozActiva);
               if (vozActiva) audioRef.current?.pause();
             }}
-            className="ml-auto rounded-lg border border-border px-4 py-2 text-[13px] transition-colors hover:bg-card"
+            className="ml-auto"
           >
             {vozActiva ? "Voz activada" : "Voz apagada"}
-          </button>
+          </Button>
         </div>
 
         {mensajes.length === 0 ? (

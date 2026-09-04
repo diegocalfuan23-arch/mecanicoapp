@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type Orden = {
   id: string;
@@ -676,20 +677,17 @@ export function EditarOrden({
           Desde sm: hay espacio de sobra y vuelve al flujo normal. */}
       <div className="sticky bottom-0 -mx-4 z-10 bg-card/95 px-4 pt-3 pb-4 shadow-[0_-12px_30px_rgba(0,0,0,0.35)] backdrop-blur sm:relative sm:inset-auto sm:z-auto sm:mx-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
         <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={enviando}
-            className="flex-[1.35] rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={enviando} className="flex-[1.35]">
             {enviando ? "Guardando…" : "Cerrar orden y cobrar"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
             type="button"
             onClick={guardarAbierta}
-            className="flex-1 rounded-lg border border-border bg-background px-6 py-2.5 font-medium transition-colors hover:bg-card"
+            className="flex-1 bg-background"
           >
             Guardar avance
-          </button>
+          </Button>
         </div>
         <p className="mt-1.5 text-[12px] text-muted-foreground">
           &ldquo;Cerrar orden y cobrar&rdquo; termina el trabajo y registra el
