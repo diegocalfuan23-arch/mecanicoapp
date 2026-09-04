@@ -5,7 +5,6 @@ import { auth } from "@/lib/auth";
 import { tienePlan, puedeVerPagos } from "@/lib/taller";
 import { RegistrarSW } from "@/components/registrar-sw";
 import { BotonInstalar } from "@/components/boton-instalar";
-import { BotonSalir } from "./boton-salir";
 import { Sidebar, MenuMovil } from "./navegacion";
 
 export default async function LayoutPanel({
@@ -16,7 +15,6 @@ export default async function LayoutPanel({
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
 
-  const taller = (sesion.user as { taller?: string }).taller;
   // Inventario y Servicios son del Plan Serviteca — Tío Lalo/Pipe no
   // los ven ni los necesitan, y no hay que dejarles el ítem sin uso
   // en el sidebar.
@@ -43,11 +41,7 @@ export default async function LayoutPanel({
             </Link>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <span className="hidden max-w-40 truncate text-sm text-muted-foreground sm:block">
-              {taller ?? sesion.user.name}
-            </span>
             <BotonInstalar />
-            <BotonSalir />
           </div>
         </div>
       </header>

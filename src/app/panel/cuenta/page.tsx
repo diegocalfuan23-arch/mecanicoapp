@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 import { PanelDatos } from "./panel-datos";
 import { PanelTaller } from "./panel-taller";
+import { BotonSalir } from "../boton-salir";
 
 export default async function Cuenta() {
   const sesion = await auth.api.getSession({ headers: await headers() });
@@ -55,6 +56,10 @@ export default async function Cuenta() {
         </Link>
         .
       </p>
+
+      <div className="mt-8 border-t border-border pt-6">
+        <BotonSalir />
+      </div>
     </div>
   );
 }
