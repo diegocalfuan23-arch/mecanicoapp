@@ -300,6 +300,14 @@ export const trabajo = pgTable(
     estadoPago: text("estado_pago").notNull().default("pagado"),
     abonado: integer("abonado").notNull().default(0),
     fechaPago: timestamp("fecha_pago"),
+    // Solo tiene sentido si estadoPago es "pagado": efectivo ·
+    // transferencia · debito · credito. La máquina POS de tarjeta no
+    // está conectada al sistema — esto es lo que el mecánico marca a
+    // mano después de cobrar, igual que hoy marca "pagado" o "fiado".
+    metodoPago: text("metodo_pago"),
+    // Solo si metodoPago es "credito" — cuántas cuotas eligió el
+    // cliente en la máquina POS al momento de pagar.
+    cuotas: integer("cuotas"),
 
     fecha: timestamp("fecha").notNull().defaultNow(),
     createdAt: timestamp("created_at").notNull().defaultNow(),

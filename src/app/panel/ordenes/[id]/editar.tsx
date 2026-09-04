@@ -32,6 +32,8 @@ type Orden = {
   estado: string;
   esperaDetalle: string | null;
   estadoPago: string;
+  metodoPago: string | null;
+  cuotas: number | null;
   manoObraFreno: number;
   cargoTraslado: number;
   total: number;
@@ -115,6 +117,8 @@ export function EditarOrden({
   );
   const [mostrarServicios, setMostrarServicios] = useState(false);
   const [estadoPago, setEstadoPago] = useState(orden.estadoPago || "pagado");
+  const [metodoPago, setMetodoPago] = useState(orden.metodoPago ?? "");
+  const [cuotas, setCuotas] = useState(orden.cuotas ? String(orden.cuotas) : "");
   const [montoAbonado, setMontoAbonado] = useState("");
   const [conIva, setConIva] = useState(false);
   const [piezas, setPiezas] = useState<RepuestoUsado[]>([]);
@@ -249,6 +253,8 @@ export function EditarOrden({
       cargoTraslado,
       estadoPago,
       montoAbonado: estadoPago === "fiado" ? montoAbonado : "",
+      metodoPago: estadoPago === "pagado" ? metodoPago : "",
+      cuotas: estadoPago === "pagado" && metodoPago === "credito" ? cuotas : "",
       conIva,
       piezas,
       servicios,
@@ -494,6 +500,47 @@ export function EditarOrden({
           >
             + Mano de obra freno
           </button>
+        )}
+
+        {/* Método de pago: solo tiene sentido si quedó pagado, y solo
+            en Plan Serviteca — la máquina POS de tarjeta no está
+            conectada al sistema, esto es lo que el mecánico marca a
+            mano después de cobrar. */}
+        {tieneImpresion && estadoPago === "pagado" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="mb-2 block text-[13px] font-medium">
+                Método de pago (opcional)
+              </Label>
+              <Selector
+                value={metodoPago}
+                onChange={(v) => {
+                  setMetodoPago(v);
+                  if (v !== "credito") setCuotas("");
+                }}
+                opciones={[
+                  { valor: "efectivo", texto: "Efectivo" },
+                  { valor: "transferencia", texto: "Transferencia" },
+                  { valor: "debito", texto: "Débito" },
+                  { valor: "credito", texto: "Crédito" },
+                ]}
+              />
+            </div>
+            {metodoPago === "credito" && (
+              <div>
+                <Label className="mb-2 block text-[13px] font-medium">
+                  Cuotas
+                </Label>
+                <Input
+                  value={cuotas}
+                  onChange={(e) => setCuotas(soloDigitos(e.target.value))}
+                  placeholder="3"
+                  inputMode="numeric"
+                  className="rounded-lg"
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {/* Solo si quedó fiado: cuánto entregó ahora, para no perder ese

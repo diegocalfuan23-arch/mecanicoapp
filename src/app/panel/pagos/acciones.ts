@@ -57,6 +57,10 @@ export async function listarCobros() {
       monto: abono.monto,
       fecha: abono.fecha,
       descripcion: trabajo.descripcion,
+      // Del trabajo pagado que originó el abono — solo tiene valor si
+      // ese trabajo quedó "pagado" (Plan Serviteca).
+      metodoPago: trabajo.metodoPago,
+      cuotas: trabajo.cuotas,
       patente: vehiculo.patente,
       propietario: cliente.nombre,
     })

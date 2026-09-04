@@ -11,9 +11,27 @@ type Cobro = {
   monto: number;
   fecha: Date;
   descripcion: string | null;
+  metodoPago: string | null;
+  cuotas: number | null;
   patente: string;
   propietario: string | null;
 };
+
+const NOMBRE_METODO_PAGO: Record<string, string> = {
+  efectivo: "Efectivo",
+  transferencia: "Transferencia",
+  debito: "Débito",
+  credito: "Crédito",
+};
+
+function textoMetodoPago(c: Pick<Cobro, "metodoPago" | "cuotas">) {
+  if (!c.metodoPago) return null;
+  const nombre = NOMBRE_METODO_PAGO[c.metodoPago] ?? c.metodoPago;
+  if (c.metodoPago === "credito" && c.cuotas) {
+    return `${nombre} · ${c.cuotas} ${c.cuotas === 1 ? "cuota" : "cuotas"}`;
+  }
+  return nombre;
+}
 
 function ListaCobros({ cobros }: { cobros: Cobro[] }) {
   if (cobros.length === 0) {
@@ -46,6 +64,7 @@ function ListaCobros({ cobros }: { cobros: Cobro[] }) {
           </p>
           <p className="mt-2 text-[13px] text-muted-foreground">
             {c.propietario ?? "Sin dueño registrado"} · {fecha(c.fecha)}
+            {textoMetodoPago(c) && ` · ${textoMetodoPago(c)}`}
           </p>
         </li>
       ))}

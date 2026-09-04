@@ -81,6 +81,8 @@ export async function obtenerOrden(ordenId: string) {
       estado: trabajo.estado,
       esperaDetalle: trabajo.esperaDetalle,
       estadoPago: trabajo.estadoPago,
+      metodoPago: trabajo.metodoPago,
+      cuotas: trabajo.cuotas,
       manoObraFreno: trabajo.manoObraFreno,
       cargoTraslado: trabajo.cargoTraslado,
       total: trabajo.total,
@@ -657,6 +659,8 @@ export async function cerrarOrden(datos: {
   cargoTraslado: string;
   estadoPago: string;
   montoAbonado?: string;
+  metodoPago?: string;
+  cuotas?: string;
   conIva?: boolean;
   piezas?: RepuestoUsado[];
   servicios?: string[];
@@ -712,6 +716,18 @@ export async function cerrarOrden(datos: {
   const abonado =
     estadoPago === "pagado" ? total : estadoPago === "abonado" ? montoAbonado : 0;
 
+  // Método de pago (y cuotas si es crédito): solo tiene sentido si
+  // quedó pagado, y es Plan Serviteca — igual que servicios/manoObraFreno,
+  // ignorar lo que llegue sin ese plan en vez de confiar en el cliente.
+  const metodoPago =
+    tieneImpresion && estadoPago === "pagado" && datos.metodoPago
+      ? datos.metodoPago
+      : null;
+  const cuotas =
+    metodoPago === "credito" && Number(datos.cuotas) > 0
+      ? Number(datos.cuotas)
+      : null;
+
   await db
     .update(trabajo)
     .set({
@@ -726,6 +742,8 @@ export async function cerrarOrden(datos: {
       ...(datos.fotos !== undefined ? { fotos: datos.fotos } : {}),
       estadoPago,
       abonado,
+      metodoPago,
+      cuotas,
       fechaPago: estadoPago === "pagado" ? new Date() : null,
       estado: "terminado",
       updatedAt: new Date(),
