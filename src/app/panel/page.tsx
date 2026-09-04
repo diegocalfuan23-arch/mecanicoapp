@@ -8,6 +8,22 @@ import { vehiculo, cliente, trabajo, abono } from "@/db/schema";
 import { tallerActual, puedeVerPagos } from "@/lib/taller";
 import { pesos } from "@/lib/formato";
 import { ESTADOS } from "./ordenes/estados";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  CarFrontIcon,
+  UserGroupIcon,
+  Wallet01Icon,
+  HelpCircleIcon,
+} from "@hugeicons/core-free-icons";
+
+// Un color pastel distinto por tarjeta, como la referencia (Bujía) —
+// azul/verde/ámbar para diferenciarlas de un vistazo, no el mismo
+// tono repetido para todo.
+const COLOR_ICONO: Record<string, string> = {
+  azul: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  verde: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  ambar: "bg-acento/15 text-acento",
+};
 
 function nombreEstado(valor: string) {
   return ESTADOS.find((e) => e.valor === valor)?.texto ?? valor;
@@ -89,23 +105,32 @@ export default async function Panel() {
     {
       href: "/panel/vehiculos",
       titulo: "Vehículos",
+      ayuda: "Autos registrados en tu taller.",
       valor: String(autos.total),
       pie: autos.total === 0 ? "Registra el primero" : "Ver todos",
+      icono: CarFrontIcon,
+      color: COLOR_ICONO.azul,
     },
     {
       href: "/panel/propietarios",
       titulo: "Propietarios",
+      ayuda: "Clientes dueños de esos vehículos.",
       valor: String(duenos.total),
       pie: duenos.total === 0 ? "Registra el primero" : "Ver todos",
+      icono: UserGroupIcon,
+      color: COLOR_ICONO.verde,
     },
     ...(vePagos
       ? [
           {
             href: "/panel/pagos",
             titulo: "Te deben",
+            ayuda: "Suma de lo pendiente en trabajos fiados o abonados.",
             valor: pesos(deuda.monto),
             pie: deuda.monto === 0 ? "Todo al día" : "Ver los pagos",
             alerta: deuda.monto > 0,
+            icono: Wallet01Icon,
+            color: COLOR_ICONO.ambar,
           },
         ]
       : []),
@@ -122,17 +147,31 @@ export default async function Panel() {
           <Link
             key={t.href}
             href={t.href}
-            className="rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/40"
+            className="flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/40"
           >
-            <span className="text-[13px] tracking-wide text-muted-foreground uppercase">
-              {t.titulo}
-            </span>
-            <p
-              className={`mt-2 text-[30px] leading-none font-bold sm:text-[40px] ${t.alerta ? "text-acento" : ""}`}
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                {t.titulo}
+                <span title={t.ayuda} role="img" aria-label={t.ayuda}>
+                  <HugeiconsIcon
+                    icon={HelpCircleIcon}
+                    className="size-3.5 shrink-0"
+                    aria-hidden
+                  />
+                </span>
+              </span>
+              <p
+                className={`mt-2 text-2xl font-bold tracking-tight ${t.alerta ? "text-acento" : ""}`}
+              >
+                {t.valor}
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground">{t.pie}</p>
+            </div>
+            <div
+              className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${t.color}`}
             >
-              {t.valor}
-            </p>
-            <p className="mt-1 text-[14px] text-muted-foreground">{t.pie}</p>
+              <HugeiconsIcon icon={t.icono} className="size-4.5" />
+            </div>
           </Link>
         ))}
       </div>
