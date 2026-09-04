@@ -76,17 +76,13 @@ export function PanelAsistente({
   const { abierto, alternar } = useAsistente();
   if (!abierto) return null;
 
-  // fixed inset-0: cubre TODO el viewport, sin depender de ningún
-  // cálculo de offset o containing block de un padre — un absolute
-  // anclado al header (o incluso al layout raíz) siempre terminaba
-  // dejando un resto de la pantalla de atrás asomando, porque su alto
-  // dependía de medir el header a mano. El propio ChatAsistente ya
-  // tiene su título "Asistente" en su header interno, así que tapar
-  // también el header de MecánicoApp mientras está abierto no pierde
-  // contexto — es lo mismo que hacía la página dedicada de antes,
-  // solo que ahora se abre encima en vez de navegar.
+  // absolute inset-0 dentro del MISMO contenedor que ya envuelve a
+  // Sidebar + <main> (ver layout.tsx: ese div tiene relative,
+  // flex-1, min-h-0) — cubre exactamente el espacio bajo el header,
+  // sin taparlo, y sin adivinar ninguna altura en píxeles: hereda el
+  // cálculo que ya hace ese flex-1 para <main> hoy.
   return (
-    <div className="fixed inset-0 z-30 flex flex-col bg-background">
+    <div className="absolute inset-0 z-30 flex flex-col bg-background">
       <ChatAsistente conversaciones={conversaciones} onCerrar={alternar} />
     </div>
   );

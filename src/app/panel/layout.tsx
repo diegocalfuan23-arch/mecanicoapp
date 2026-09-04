@@ -54,11 +54,15 @@ export default async function LayoutPanel({
             </div>
           </div>
         </header>
-        <PanelAsistente conversaciones={conversaciones} />
 
-        {/* min-h-0 deja que el chat haga su propio scroll interno en vez de
-            estirar la página. Las demás pantallas scrollean dentro de main. */}
-        <div className="flex min-h-0 min-w-0 flex-1">
+        {/* El panel del Asistente ocupa exactamente el mismo espacio que
+            <main> (mismo contenedor flex-1/min-h-0, con position:
+            relative para que el panel se pueda cubrir con absolute
+            inset-0 sobre Sidebar + main) — así el header queda siempre
+            visible arriba, sin adivinar su alto en píxeles ni tapar
+            toda la pantalla con position:fixed. */}
+        <div className="relative flex min-h-0 min-w-0 flex-1">
+          <PanelAsistente conversaciones={conversaciones} />
           <Sidebar
             tieneInventario={tieneInventario}
             tieneServicios={tieneServicios}
