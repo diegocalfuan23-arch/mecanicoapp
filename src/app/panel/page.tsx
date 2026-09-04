@@ -10,18 +10,20 @@ import { pesos } from "@/lib/formato";
 import { ESTADOS } from "./ordenes/estados";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  CarFrontIcon,
-  UserGroupIcon,
-  Wallet01Icon,
+  ClipboardIcon,
+  Tick02Icon,
+  Clock01Icon,
+  Coins01Icon,
   HelpCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 // Un color pastel distinto por tarjeta, como la referencia (Bujía) —
-// azul/verde/ámbar para diferenciarlas de un vistazo, no el mismo
-// tono repetido para todo.
+// azul/verde/rojo/ámbar para diferenciarlas de un vistazo, no el
+// mismo tono repetido para todo.
 const COLOR_ICONO: Record<string, string> = {
   azul: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   verde: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  rojo: "bg-red-500/10 text-red-600 dark:text-red-400",
   ambar: "bg-acento/15 text-acento",
 };
 
@@ -41,95 +43,127 @@ export default async function Panel() {
   // igual vería cuánto deben los clientes acá en Inicio.
   const vePagos = await puedeVerPagos();
 
-  const [[autos], [duenos], [deuda], ordenesRecientes, pagosRecientes] =
-    await Promise.all([
-      db
-        .select({ total: count() })
-        .from(vehiculo)
-        .where(eq(vehiculo.tallerId, tallerId)),
-      db
-        .select({ total: count() })
-        .from(cliente)
-        .where(eq(cliente.tallerId, tallerId)),
-      vePagos
-        ? db
-            .select({
-              monto:
-                sql<number>`coalesce(sum(${trabajo.total} - ${trabajo.abonado}), 0)`.mapWith(
-                  Number
-                ),
-            })
-            .from(trabajo)
-            .where(
-              and(
-                eq(trabajo.tallerId, tallerId),
-                ne(trabajo.estadoPago, "pagado")
-              )
-            )
-        : [{ monto: 0 }],
-      db
-        .select({
-          id: trabajo.id,
-          numero: trabajo.numero,
-          estado: trabajo.estado,
-          patente: vehiculo.patente,
-          marca: vehiculo.marca,
-          modelo: vehiculo.modelo,
-          fecha: trabajo.fecha,
-        })
-        .from(trabajo)
-        .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
-        .where(eq(trabajo.tallerId, tallerId))
-        .orderBy(desc(trabajo.numero))
-        .limit(4),
-      vePagos
-        ? db
-            .select({
-              id: abono.id,
-              monto: abono.monto,
-              fecha: abono.fecha,
-              patente: vehiculo.patente,
-              propietario: cliente.nombre,
-            })
-            .from(abono)
-            .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
-            .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
-            .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
-            .where(eq(trabajo.tallerId, tallerId))
-            .orderBy(desc(abono.fecha))
-            .limit(4)
-        : [],
-    ]);
+  const inicioMes = new Date();
+  inicioMes.setDate(1);
+  inicioMes.setHours(0, 0, 0, 0);
+
+  const [
+    [abiertas],
+    [finalizadas],
+    [pendientes],
+    [ingresosMes],
+    ordenesRecientes,
+    pagosRecientes,
+  ] = await Promise.all([
+    // Total de trabajo vivo en el taller ahora mismo: todo lo que no
+    // se ha entregado todavía, sin importar cuándo entró.
+    db
+      .select({ total: count() })
+      .from(trabajo)
+      .where(
+        and(eq(trabajo.tallerId, tallerId), ne(trabajo.estado, "entregado"))
+      ),
+    // Terminadas pero sin retirar aún — lo que hay que avisarle al
+    // cliente que ya está listo.
+    db
+      .select({ total: count() })
+      .from(trabajo)
+      .where(
+        and(eq(trabajo.tallerId, tallerId), eq(trabajo.estado, "terminado"))
+      ),
+    // Sigue trabajándose: ingresado, en proceso, o esperando repuesto.
+    db
+      .select({ total: count() })
+      .from(trabajo)
+      .where(
+        and(
+          eq(trabajo.tallerId, tallerId),
+          ne(trabajo.estado, "terminado"),
+          ne(trabajo.estado, "entregado")
+        )
+      ),
+    vePagos
+      ? db
+          .select({
+            monto: sql<number>`coalesce(sum(${abono.monto}), 0)`.mapWith(Number),
+          })
+          .from(abono)
+          .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+          .where(
+            and(eq(trabajo.tallerId, tallerId), sql`${abono.fecha} >= ${inicioMes}`)
+          )
+      : [{ monto: 0 }],
+    db
+      .select({
+        id: trabajo.id,
+        numero: trabajo.numero,
+        estado: trabajo.estado,
+        patente: vehiculo.patente,
+        marca: vehiculo.marca,
+        modelo: vehiculo.modelo,
+        fecha: trabajo.fecha,
+      })
+      .from(trabajo)
+      .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+      .where(eq(trabajo.tallerId, tallerId))
+      .orderBy(desc(trabajo.numero))
+      .limit(4),
+    vePagos
+      ? db
+          .select({
+            id: abono.id,
+            monto: abono.monto,
+            fecha: abono.fecha,
+            patente: vehiculo.patente,
+            propietario: cliente.nombre,
+          })
+          .from(abono)
+          .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+          .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+          .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
+          .where(eq(trabajo.tallerId, tallerId))
+          .orderBy(desc(abono.fecha))
+          .limit(4)
+      : [],
+  ]);
 
   const tarjetas = [
     {
-      href: "/panel/vehiculos",
-      titulo: "Vehículos",
-      ayuda: "Autos registrados en tu taller.",
-      valor: String(autos.total),
-      pie: autos.total === 0 ? "Registra el primero" : "Ver todos",
-      icono: CarFrontIcon,
+      href: "/panel/ordenes",
+      titulo: "Órdenes de trabajo",
+      ayuda: "Órdenes abiertas ahora mismo, sin entregar todavía.",
+      valor: String(abiertas.total),
+      pie: abiertas.total === 0 ? "Nada en el taller" : "Ver todas",
+      icono: ClipboardIcon,
       color: COLOR_ICONO.azul,
     },
     {
-      href: "/panel/propietarios",
-      titulo: "Propietarios",
-      ayuda: "Clientes dueños de esos vehículos.",
-      valor: String(duenos.total),
-      pie: duenos.total === 0 ? "Registra el primero" : "Ver todos",
-      icono: UserGroupIcon,
+      href: "/panel/ordenes",
+      titulo: "Finalizadas",
+      ayuda: "Terminadas, esperando que el cliente las retire.",
+      valor: String(finalizadas.total),
+      pie: finalizadas.total === 0 ? "Nada listo aún" : "Ver todas",
+      icono: Tick02Icon,
       color: COLOR_ICONO.verde,
+    },
+    {
+      href: "/panel/ordenes",
+      titulo: "Pendientes",
+      ayuda: "Ingresadas, en proceso, o esperando repuesto.",
+      valor: String(pendientes.total),
+      pie: pendientes.total === 0 ? "Sin pendientes" : "Ver todas",
+      icono: Clock01Icon,
+      color: COLOR_ICONO.rojo,
     },
     ...(vePagos
       ? [
           {
             href: "/panel/pagos",
-            titulo: "Te deben",
-            ayuda: "Suma de lo pendiente en trabajos fiados o abonados.",
-            valor: pesos(deuda.monto),
-            pie: deuda.monto === 0 ? "Todo al día" : "Ver los pagos",
-            alerta: deuda.monto > 0,
-            icono: Wallet01Icon,
+            titulo: "Ingresos",
+            ayuda: "Lo cobrado en el mes en curso.",
+            valor: pesos(ingresosMes.monto),
+            pie: "Este mes",
+            icono: Coins01Icon,
             color: COLOR_ICONO.ambar,
           },
         ]
@@ -142,10 +176,10 @@ export default async function Panel() {
         Hola, {sesion.user.name.split(" ")[0]}
       </h1>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tarjetas.map((t) => (
           <Link
-            key={t.href}
+            key={t.titulo}
             href={t.href}
             className="flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/40"
           >
@@ -160,9 +194,7 @@ export default async function Panel() {
                   />
                 </span>
               </span>
-              <p
-                className={`mt-2 text-2xl font-bold tracking-tight ${t.alerta ? "text-acento" : ""}`}
-              >
+              <p className="mt-2 text-2xl font-bold tracking-tight">
                 {t.valor}
               </p>
               <p className="mt-1 text-[13px] text-muted-foreground">{t.pie}</p>
