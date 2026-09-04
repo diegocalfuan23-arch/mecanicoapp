@@ -8,6 +8,7 @@ import { user } from "@/db/schema";
 import { PanelDatos } from "./panel-datos";
 import { PanelTaller } from "./panel-taller";
 import { BotonSalir } from "../boton-salir";
+import { SelectorTema } from "@/components/selector-tema";
 
 export default async function Cuenta() {
   const sesion = await auth.api.getSession({ headers: await headers() });
@@ -44,6 +45,10 @@ export default async function Cuenta() {
 
       <div className="mt-6">
         <PanelDatos correo={sesion.user.email} />
+      </div>
+
+      <div className="mt-6">
+        <SelectorTema />
       </div>
 
       <p className="mt-8 text-[13px] text-muted-foreground">
