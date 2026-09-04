@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -43,16 +43,61 @@ export function Buscador({
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
   const [recientes, setRecientes] = useState<string[]>([]);
-  // Patente que viene de un clic en "Búsquedas recientes": ya se sabe
-  // que está completa, así que los efectos de abajo se saltan el
-  // debounce (pensado para tecleo letra por letra) y consultan de
-  // una — la patente ya vivía en la BD, no tiene sentido hacer
-  // esperar al mecánico un segundo y medio para verla de nuevo.
-  const [busquedaInmediata, setBusquedaInmediata] = useState("");
+  // Marca que `consulta` ya fue resuelta a mano por buscarYa(), para
+  // que los efectos de debounce de abajo no la vuelvan a buscar por
+  // su cuenta cuando setConsulta() los dispare igual. Es un ref (no
+  // estado) justamente para no reordenar renders: solo lo leen los
+  // efectos, nunca pinta nada.
+  const resueltaAMano = useRef<string | null>(null);
 
   useEffect(() => {
     busquedasRecientes().then(setRecientes);
   }, []);
+
+  /**
+   * Búsqueda directa para un clic en "Búsquedas recientes": la
+   * patente ya se conoce completa, así que no pasa por los efectos
+   * con debounce de abajo (esos existen para tecleo letra por letra).
+   * Va directo a buscar — local primero, y si no hay nada ahí y el
+   * plan lo permite, a la caché en BD de GetAPI (buscarPorPatente ya
+   * resuelve desde ahí sin re-consultar la API externa).
+   */
+  async function buscarYa(patente: string) {
+    resueltaAMano.current = patente;
+    setConsulta(patente);
+    setResultados([]);
+    setExterno(null);
+    setErrorExterno(null);
+    setBuscoAlgo(false);
+
+    const propios = await buscarVehiculos(patente);
+    setResultados(propios);
+    setBuscoAlgo(true);
+
+    const patenteLimpia = patente.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (propios.length > 0) {
+      if (patenteLimpia.length >= 5) {
+        guardarBusquedaPatente(patente).then(() =>
+          busquedasRecientes().then(setRecientes)
+        );
+      }
+      return;
+    }
+
+    if (!tieneImpresion) return;
+
+    setBuscandoExterno(true);
+    const res = await buscarPorPatente(patente);
+    setBuscandoExterno(false);
+    if (res.ok) {
+      setExterno(res.datos);
+      guardarBusquedaPatente(patente).then(() =>
+        busquedasRecientes().then(setRecientes)
+      );
+    } else if (res.error && res.error !== "No se encontró esa patente.") {
+      setErrorExterno(res.error);
+    }
+  }
 
   /** Registro en un clic con lo que ya trajo GetAPI — sin pasar por
    * el formulario. El propietario queda vacío: eso no existe en
@@ -96,28 +141,27 @@ export function Buscador({
     // "no programar la consulta" (el estado vacío se deriva más abajo
     // directo de `consulta`, sin duplicarlo en resultados/buscoAlgo).
     if (!q) return;
+    // buscarYa() ya resolvió esta misma consulta a mano — no repetirla.
+    if (resueltaAMano.current === q) return;
 
-    const espera = setTimeout(
-      () => {
-        empezarBusqueda(async () => {
-          const propios = await buscarVehiculos(q);
-          setResultados(propios);
-          setBuscoAlgo(true);
-          setExterno(null);
-          // Solo se guarda como "búsqueda de patente" si la consulta
-          // luce como una patente (no cualquier término que haya
-          // matcheado por marca, modelo o nombre del dueño).
-          const patenteLimpia = q.toUpperCase().replace(/[^A-Z0-9]/g, "");
-          if (propios.length > 0 && patenteLimpia.length >= 5) {
-            guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
-          }
-        });
-      },
-      q === busquedaInmediata ? 0 : 250
-    );
+    const espera = setTimeout(() => {
+      empezarBusqueda(async () => {
+        const propios = await buscarVehiculos(q);
+        setResultados(propios);
+        setBuscoAlgo(true);
+        setExterno(null);
+        // Solo se guarda como "búsqueda de patente" si la consulta
+        // luce como una patente (no cualquier término que haya
+        // matcheado por marca, modelo o nombre del dueño).
+        const patenteLimpia = q.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (propios.length > 0 && patenteLimpia.length >= 5) {
+          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
+        }
+      });
+    }, 250);
 
     return () => clearTimeout(espera);
-  }, [consulta, busquedaInmediata]);
+  }, [consulta]);
 
   // Registro externo (GetAPI): debounce mucho más largo a propósito
   // — la key de prueba solo permite 3 consultas por minuto, y con
@@ -129,36 +173,28 @@ export function Buscador({
     const q = consulta.trim();
     if (!q || !tieneImpresion || buscando || resultados.length > 0) return;
     if (!buscoAlgo) return;
+    // buscarYa() ya resolvió esta misma consulta a mano — no repetirla.
+    if (resueltaAMano.current === q) return;
 
-    const espera = setTimeout(
-      () => {
-        setBuscandoExterno(true);
-        setErrorExterno(null);
-        buscarPorPatente(q).then((res) => {
-          setBuscandoExterno(false);
-          if (res.ok) {
-            setExterno(res.datos);
-            guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
-          } else if (res.error && res.error !== "No se encontró esa patente.") {
-            // "No encontrada" cae al mensaje normal de siempre — solo
-            // se avisa aparte cuando algo salió mal de verdad (límite
-            // de consultas, sin conexión, etc.).
-            setErrorExterno(res.error);
-          }
-        });
-      },
-      q === busquedaInmediata ? 0 : 1200
-    );
+    const espera = setTimeout(() => {
+      setBuscandoExterno(true);
+      setErrorExterno(null);
+      buscarPorPatente(q).then((res) => {
+        setBuscandoExterno(false);
+        if (res.ok) {
+          setExterno(res.datos);
+          guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
+        } else if (res.error && res.error !== "No se encontró esa patente.") {
+          // "No encontrada" cae al mensaje normal de siempre — solo
+          // se avisa aparte cuando algo salió mal de verdad (límite
+          // de consultas, sin conexión, etc.).
+          setErrorExterno(res.error);
+        }
+      });
+    }, 1200);
 
     return () => clearTimeout(espera);
-  }, [
-    consulta,
-    tieneImpresion,
-    buscando,
-    buscoAlgo,
-    resultados.length,
-    busquedaInmediata,
-  ]);
+  }, [consulta, tieneImpresion, buscando, buscoAlgo, resultados.length]);
 
   return (
     <>
@@ -178,7 +214,10 @@ export function Buscador({
         </svg>
         <input
           value={consulta}
-          onChange={(e) => setConsulta(e.target.value)}
+          onChange={(e) => {
+            resueltaAMano.current = null;
+            setConsulta(e.target.value);
+          }}
           placeholder="Escribe la patente"
           autoFocus
           autoCapitalize="characters"
@@ -361,10 +400,7 @@ export function Buscador({
               <button
                 key={patente}
                 type="button"
-                onClick={() => {
-                  setBusquedaInmediata(patente);
-                  setConsulta(patente);
-                }}
+                onClick={() => buscarYa(patente)}
                 className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-primary/40"
               >
                 {patente}
