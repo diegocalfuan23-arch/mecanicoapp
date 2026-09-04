@@ -201,13 +201,13 @@ function Enlaces({
               href={s.href}
               onClick={alNavegar}
               aria-current={activo ? "page" : undefined}
-              className={`flex items-center gap-4 rounded-lg px-4 py-2 text-[15px] transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] transition-colors ${
                 activo
                   ? "bg-foreground/10 font-medium text-foreground"
                   : "text-muted-foreground hover:bg-card hover:text-foreground"
               }`}
             >
-              <svg viewBox="0 0 20 20" className="size-5 shrink-0" aria-hidden>
+              <svg viewBox="0 0 20 20" className="size-4 shrink-0" aria-hidden>
                 {s.icono}
               </svg>
               {s.texto}
@@ -230,7 +230,7 @@ export function Sidebar({
   vePagos: boolean;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-border lg:block">
+    <aside className="hidden w-52 shrink-0 border-r border-border lg:block">
       <div className="sticky top-0 p-4">
         <Enlaces
           tieneInventario={tieneInventario}
