@@ -39,7 +39,6 @@ export function Buscador({
   const [buscoAlgo, setBuscoAlgo] = useState(false);
   const [externo, setExterno] = useState<DatosExternos | null>(null);
   const [buscandoExterno, setBuscandoExterno] = useState(false);
-  const [errorExterno, setErrorExterno] = useState<string | null>(null);
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
   const [recientes, setRecientes] = useState<string[]>([]);
@@ -67,7 +66,6 @@ export function Buscador({
     setConsulta(patente);
     setResultados([]);
     setExterno(null);
-    setErrorExterno(null);
     setBuscoAlgo(false);
 
     const propios = await buscarVehiculos(patente);
@@ -94,8 +92,6 @@ export function Buscador({
       guardarBusquedaPatente(patente).then(() =>
         busquedasRecientes().then(setRecientes)
       );
-    } else if (res.error && res.error !== "No se encontró esa patente.") {
-      setErrorExterno(res.error);
     }
   }
 
@@ -178,17 +174,16 @@ export function Buscador({
 
     const espera = setTimeout(() => {
       setBuscandoExterno(true);
-      setErrorExterno(null);
       buscarPorPatente(q).then((res) => {
         setBuscandoExterno(false);
+        // Sea "no encontrada" o un error real (límite de consultas,
+        // sin conexión, etc.), la UI no distingue: siempre cae al
+        // mismo mensaje neutro de "no coincide, regístralo" — no
+        // tiene sentido exponerle al mecánico un error técnico que
+        // no puede resolver.
         if (res.ok) {
           setExterno(res.datos);
           guardarBusquedaPatente(q).then(() => busquedasRecientes().then(setRecientes));
-        } else if (res.error && res.error !== "No se encontró esa patente.") {
-          // "No encontrada" cae al mensaje normal de siempre — solo
-          // se avisa aparte cuando algo salió mal de verdad (límite
-          // de consultas, sin conexión, etc.).
-          setErrorExterno(res.error);
         }
       });
     }, 1200);
@@ -231,7 +226,6 @@ export function Buscador({
               setConsulta("");
               setResultados([]);
               setExterno(null);
-              setErrorExterno(null);
               setBuscoAlgo(false);
             }}
             aria-label="Limpiar búsqueda"
@@ -252,12 +246,6 @@ export function Buscador({
 
       {(buscando || buscandoExterno) && (
         <p className="mt-6 text-muted-foreground">Buscando…</p>
-      )}
-
-      {!buscandoExterno && errorExterno && (
-        <p className="mt-6 text-[13px] text-destructive" role="alert">
-          {errorExterno}
-        </p>
       )}
 
       {/* Sin coincidencia local, pero sí en el registro externo (Plan
