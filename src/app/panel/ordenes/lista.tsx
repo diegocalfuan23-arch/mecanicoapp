@@ -320,7 +320,7 @@ export function ListaOrdenes({
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por patente, vehículo…"
-                className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-48"
+                className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-64"
               />
               {busqueda && (
                 <button
@@ -379,7 +379,7 @@ export function ListaOrdenes({
               lo confiable: el "w-full" interno llena ESE contenedor,
               en vez de intentar sobrescribir su propia clase. */}
           <div
-            className={`w-[4.5rem] shrink-0 ${busquedaAbierta ? "hidden sm:block" : ""}`}
+            className={`w-24 shrink-0 ${busquedaAbierta ? "hidden sm:block" : ""}`}
           >
             <Selector
               value={String(porPagina)}
