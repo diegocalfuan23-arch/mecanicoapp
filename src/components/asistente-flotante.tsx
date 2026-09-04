@@ -13,12 +13,14 @@ const AsistenteContexto = createContext<{
 /**
  * El Asistente ya no vive en su propia página (/panel/asistente) —
  * pedido real: que sea accesible desde cualquier pantalla del panel.
- * El botón vive en el header y el panel se despliega bajo él a todo
- * el ancho (mismo patrón que Bujía, referencia que trajo Diego). Van
- * en componentes separados porque el botón vive dentro de <header> y
- * el panel se posiciona relativo a ese mismo <header> (no al layout
- * completo) — comparten estado por contexto en vez de pasarse props
- * entre hermanos que no se tocan directamente en el árbol.
+ * El botón vive en el header; el panel se despliega debajo de él,
+ * angosto y anclado a la esquina superior derecha en escritorio (se
+ * ve el resto de la pantalla detrás), a todo el ancho en pantallas
+ * chicas — mismo patrón responsive que Bujía, referencia que trajo
+ * Diego. Van en componentes separados porque el botón vive dentro de
+ * <header> y el panel se monta en otro contenedor (ver layout.tsx) —
+ * comparten estado por contexto en vez de pasarse props entre
+ * hermanos que no se tocan directamente en el árbol.
  */
 export function ProveedorAsistente({
   children,
@@ -76,13 +78,18 @@ export function PanelAsistente({
   const { abierto, alternar } = useAsistente();
   if (!abierto) return null;
 
-  // absolute inset-0 dentro del MISMO contenedor que ya envuelve a
-  // Sidebar + <main> (ver layout.tsx: ese div tiene relative,
-  // flex-1, min-h-0) — cubre exactamente el espacio bajo el header,
-  // sin taparlo, y sin adivinar ninguna altura en píxeles: hereda el
-  // cálculo que ya hace ese flex-1 para <main> hoy.
+  // Vive dentro del MISMO contenedor que ya envuelve a Sidebar +
+  // <main> (ver layout.tsx: ese div tiene relative, flex-1,
+  // min-h-0) — así el panel siempre queda debajo del header, sin
+  // taparlo, y sin adivinar ninguna altura en píxeles: hereda el
+  // cálculo que ese flex-1 ya hace para <main> hoy.
+  //
+  // Responsive a propósito, como en la referencia (Bujía): en
+  // escritorio es un panel angosto anclado arriba a la derecha (se ve
+  // el sidebar y el contenido de atrás); en pantallas angostas no hay
+  // espacio para eso, así que cubre todo el ancho.
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-background">
+    <div className="absolute inset-0 z-30 flex flex-col bg-background lg:inset-auto lg:top-0 lg:right-0 lg:h-[min(600px,calc(100%-2rem))] lg:w-105 lg:rounded-xl lg:border lg:border-border lg:shadow-2xl">
       <ChatAsistente conversaciones={conversaciones} onCerrar={alternar} />
     </div>
   );
