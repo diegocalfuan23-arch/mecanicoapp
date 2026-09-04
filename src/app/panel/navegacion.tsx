@@ -232,7 +232,13 @@ export function Sidebar({
 }) {
   return (
     <aside className="hidden w-52 shrink-0 border-r border-border lg:block">
-      <div className="sticky top-0 p-4">
+      <div className="sticky top-0 flex h-dvh flex-col p-4">
+        <Link
+          href="/panel"
+          className="mb-4 shrink-0 truncate px-3 text-[15px] font-semibold tracking-tight"
+        >
+          Mecanico<span className="text-acento">App</span>
+        </Link>
         <Enlaces
           tieneInventario={tieneInventario}
           tieneServicios={tieneServicios}
