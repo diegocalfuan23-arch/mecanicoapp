@@ -221,8 +221,33 @@ export function Buscador({
           placeholder="Escribe la patente"
           autoFocus
           autoCapitalize="characters"
-          className="w-full rounded-xl border border-border bg-card py-4 pr-4 pl-12 text-lg outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          className="w-full rounded-xl border border-border bg-card py-4 pr-11 pl-12 text-lg outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
         />
+        {!!consulta && (
+          <button
+            type="button"
+            onClick={() => {
+              resueltaAMano.current = null;
+              setConsulta("");
+              setResultados([]);
+              setExterno(null);
+              setErrorExterno(null);
+              setBuscoAlgo(false);
+            }}
+            aria-label="Limpiar búsqueda"
+            className="absolute top-1/2 right-3 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+          >
+            <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+              <path
+                d="M5 5l10 10M15 5L5 15"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
       {(buscando || buscandoExterno) && (
