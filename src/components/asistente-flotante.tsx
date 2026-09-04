@@ -73,18 +73,21 @@ export function PanelAsistente({
 }: {
   conversaciones: Conversacion[];
 }) {
-  const { abierto } = useAsistente();
+  const { abierto, alternar } = useAsistente();
   if (!abierto) return null;
 
-  // absolute + top-full: se posiciona pegado bajo el propio <header>
-  // (que es el positioning context más cercano) sin necesitar calcular
-  // su alto en píxeles — si el header cambia de tamaño, esto lo sigue
-  // automáticamente. Altura FIJA (no max-h): el chat interno reparte
-  // ese espacio con flex-1 — un max-h solo pondría un techo, sin darle
-  // al hijo un alto resuelto del que tomar su porción.
+  // fixed inset-0: cubre TODO el viewport, sin depender de ningún
+  // cálculo de offset o containing block de un padre — un absolute
+  // anclado al header (o incluso al layout raíz) siempre terminaba
+  // dejando un resto de la pantalla de atrás asomando, porque su alto
+  // dependía de medir el header a mano. El propio ChatAsistente ya
+  // tiene su título "Asistente" en su header interno, así que tapar
+  // también el header de MecánicoApp mientras está abierto no pierde
+  // contexto — es lo mismo que hacía la página dedicada de antes,
+  // solo que ahora se abre encima en vez de navegar.
   return (
-    <div className="absolute inset-x-0 top-full z-30 flex h-[min(600px,80dvh)] flex-col border-t border-border bg-background shadow-lg">
-      <ChatAsistente conversaciones={conversaciones} />
+    <div className="fixed inset-0 z-30 flex flex-col bg-background">
+      <ChatAsistente conversaciones={conversaciones} onCerrar={alternar} />
     </div>
   );
 }

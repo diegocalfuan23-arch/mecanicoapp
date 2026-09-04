@@ -74,8 +74,12 @@ function ListaConversaciones({
  */
 export function ChatAsistente({
   conversaciones: inicial,
+  onCerrar,
 }: {
   conversaciones: Conversacion[];
+  /** Si viene, se ve un botón "×" en el header — el panel flotante lo
+   * usa para cerrarse; la página dedicada de antes no lo necesitaba. */
+  onCerrar?: () => void;
 }) {
   const [conversaciones, setConversaciones] = useState(inicial);
   const [activa, setActiva] = useState<string | null>(null);
@@ -228,35 +232,53 @@ export function ChatAsistente({
           </button>
         </div>
 
-        <span className="text-[14px] font-medium">Asistente</span>
+        <span className="pointer-events-none absolute inset-x-0 text-center text-[14px] font-medium">
+          Asistente
+        </span>
 
-        <button
-          onClick={() => {
-            setVozActiva(!vozActiva);
-            if (vozActiva) audioRef.current?.pause();
-          }}
-          aria-label={vozActiva ? "Apagar voz" : "Activar voz"}
-          aria-pressed={vozActiva}
-          className={`rounded-lg p-2 transition-colors hover:bg-background ${
-            vozActiva ? "text-foreground" : "text-muted-foreground"
-          }`}
-        >
-          <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
-            <path
-              d="M4 8v4h3l4 3V5L7 8H4z"
-              fill="currentColor"
-            />
-            {vozActiva && (
-              <path
-                d="M14 7a4 4 0 010 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-              />
-            )}
-          </svg>
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              setVozActiva(!vozActiva);
+              if (vozActiva) audioRef.current?.pause();
+            }}
+            aria-label={vozActiva ? "Apagar voz" : "Activar voz"}
+            aria-pressed={vozActiva}
+            className={`rounded-lg p-2 transition-colors hover:bg-background ${
+              vozActiva ? "text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
+              <path d="M4 8v4h3l4 3V5L7 8H4z" fill="currentColor" />
+              {vozActiva && (
+                <path
+                  d="M14 7a4 4 0 010 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              )}
+            </svg>
+          </button>
+
+          {onCerrar && (
+            <button
+              onClick={onCerrar}
+              aria-label="Cerrar asistente"
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+            >
+              <svg viewBox="0 0 20 20" className="size-4.5" aria-hidden>
+                <path
+                  d="M6 6l8 8M14 6l-8 8"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {historialAbierto && (
           <>
