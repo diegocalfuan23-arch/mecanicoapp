@@ -2,9 +2,16 @@
 
 import { headers } from "next/headers";
 import { randomUUID } from "crypto";
-import { eq, and, or, ne, ilike, desc, sql } from "drizzle-orm";
+import { eq, and, or, ne, ilike, desc, sql, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { vehiculo, cliente, trabajo, user, busquedaPatente } from "@/db/schema";
+import {
+  vehiculo,
+  cliente,
+  trabajo,
+  user,
+  busquedaPatente,
+  vehiculoExterno,
+} from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
 import { auth } from "@/lib/auth";
 
@@ -215,28 +222,71 @@ export async function guardarBusquedaPatente(patente: string) {
   });
 }
 
+export type BusquedaReciente = {
+  patente: string;
+  marca: string | null;
+  modelo: string | null;
+};
+
 /**
- * Últimas patentes que este mecánico buscó, sin repetir. Deduplica en
- * el propio SQL (agrupando por patente, ordenando por la búsqueda más
- * reciente de cada una) — hacerlo después de traer un LIMIT de filas
- * crudas perdía patentes reales: si una misma patente se buscaba
- * varias veces en el día, esas repeticiones agotaban el límite antes
- * de llegar a patentes distintas más antiguas.
+ * Últimas patentes que este mecánico buscó, sin repetir, con marca y
+ * modelo si se conocen (del propio taller o de la caché de GetAPI) —
+ * para que el chip diga algo más que el código de la patente.
+ *
+ * Deduplica en el propio SQL (agrupando por patente, ordenando por la
+ * búsqueda más reciente de cada una) — hacerlo después de traer un
+ * LIMIT de filas crudas perdía patentes reales: si una misma patente
+ * se buscaba varias veces en el día, esas repeticiones agotaban el
+ * límite antes de llegar a patentes distintas más antiguas.
  */
-export async function busquedasRecientes(): Promise<string[]> {
+export async function busquedasRecientes(): Promise<BusquedaReciente[]> {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) return [];
 
-  const filas = await db
-    .select({
-      patente: busquedaPatente.patente,
-      ultima: sql<Date>`max(${busquedaPatente.buscadoEn})`,
-    })
+  const tallerId = await tallerActual();
+
+  const recientes = await db
+    .select({ patente: busquedaPatente.patente })
     .from(busquedaPatente)
     .where(eq(busquedaPatente.userId, sesion.user.id))
     .groupBy(busquedaPatente.patente)
     .orderBy(desc(sql`max(${busquedaPatente.buscadoEn})`))
     .limit(6);
 
-  return filas.map((f) => f.patente);
+  if (recientes.length === 0) return [];
+
+  // Marca/modelo: primero el vehículo propio del taller si existe,
+  // si no la caché de GetAPI — el mismo orden de prioridad que usa
+  // la búsqueda en vivo.
+  const patentes = recientes.map((r) => r.patente);
+
+  const propios = await db
+    .select({
+      patente: vehiculo.patente,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+    })
+    .from(vehiculo)
+    .where(
+      and(eq(vehiculo.tallerId, tallerId), inArray(vehiculo.patente, patentes))
+    );
+
+  const externos = await db
+    .select({
+      patente: vehiculoExterno.patente,
+      marca: vehiculoExterno.marca,
+      modelo: vehiculoExterno.modelo,
+    })
+    .from(vehiculoExterno)
+    .where(inArray(vehiculoExterno.patente, patentes));
+
+  const porPatente = new Map<string, { marca: string | null; modelo: string | null }>();
+  for (const e of externos) porPatente.set(e.patente, e);
+  for (const p of propios) porPatente.set(p.patente, p);
+
+  return recientes.map((r) => ({
+    patente: r.patente,
+    marca: porPatente.get(r.patente)?.marca ?? null,
+    modelo: porPatente.get(r.patente)?.modelo ?? null,
+  }));
 }

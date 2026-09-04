@@ -8,6 +8,7 @@ import {
   guardarBusquedaPatente,
   busquedasRecientes,
   type ResultadoBusqueda,
+  type BusquedaReciente,
 } from "./acciones";
 import { buscarPorPatente, guardarVehiculo } from "@/app/panel/vehiculos/acciones";
 
@@ -41,7 +42,7 @@ export function Buscador({
   const [buscandoExterno, setBuscandoExterno] = useState(false);
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
-  const [recientes, setRecientes] = useState<string[]>([]);
+  const [recientes, setRecientes] = useState<BusquedaReciente[]>([]);
   // Marca que `consulta` ya fue resuelta a mano por buscarYa(), para
   // que los efectos de debounce de abajo no la vuelvan a buscar por
   // su cuenta cuando setConsulta() los dispare igual. Es un ref (no
@@ -404,19 +405,26 @@ export function Buscador({
       )}
 
       {!consulta.trim() && recientes.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-8 text-center">
           <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">
             Búsquedas recientes
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {recientes.map((patente) => (
+          <div className="mt-3 grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3">
+            {recientes.map((r) => (
               <button
-                key={patente}
+                key={r.patente}
                 type="button"
-                onClick={() => buscarYa(patente)}
-                className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-primary/40"
+                onClick={() => buscarYa(r.patente)}
+                className="flex aspect-square w-full max-w-28 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-3 text-center transition-colors hover:border-primary/40"
               >
-                {patente}
+                <span className="font-mono text-[14px] font-medium">
+                  {r.patente}
+                </span>
+                {(r.marca || r.modelo) && (
+                  <span className="line-clamp-2 text-[11px] text-muted-foreground">
+                    {[r.marca, r.modelo].filter(Boolean).join(" ")}
+                  </span>
+                )}
               </button>
             ))}
           </div>
