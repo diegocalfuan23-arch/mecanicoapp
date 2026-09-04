@@ -516,3 +516,61 @@ export const busquedaPatente = pgTable(
   },
   (t) => [index("busqueda_patente_user_idx").on(t.userId, t.buscadoEn)]
 );
+
+/**
+ * Cotización antes de que el auto esté físicamente en el taller —
+ * Plan Serviteca. A propósito NO tiene vehiculoId/propietarioId
+ * obligatorio: alguien puede llamar a preguntar precio sin haber
+ * traído el auto todavía, así que se anota solo lo que se sepa (la
+ * patente sí es obligatoria, es la llave con la que se busca todo acá).
+ * Al aprobarse se genera un `trabajo` real — ver aprobarPresupuesto()
+ * en presupuestos/acciones.ts — y trabajoId queda para no perder el
+ * vínculo ni poder aprobarlo dos veces.
+ */
+export const presupuesto = pgTable(
+  "presupuesto",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    numero: integer("numero").notNull(),
+
+    patente: text("patente").notNull(),
+    clienteNombre: text("cliente_nombre"),
+    clienteTelefono: text("cliente_telefono"),
+
+    sintoma: text("sintoma"),
+    diagnostico: text("diagnostico"),
+
+    // pendiente · aprobado · rechazado
+    estado: text("estado").notNull().default("pendiente"),
+    // Solo si se aprobó: el trabajo real que se generó a partir de esto.
+    trabajoId: text("trabajo_id").references(() => trabajo.id, {
+      onDelete: "set null",
+    }),
+
+    fecha: timestamp("fecha").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("presupuesto_taller_idx").on(t.tallerId, t.fecha),
+    index("presupuesto_estado_idx").on(t.tallerId, t.estado),
+  ]
+);
+
+/** Cada línea cotizada dentro de un presupuesto — mismo patrón que parteUsada. */
+export const itemPresupuesto = pgTable(
+  "item_presupuesto",
+  {
+    id: text("id").primaryKey(),
+    presupuestoId: text("presupuesto_id")
+      .notNull()
+      .references(() => presupuesto.id, { onDelete: "cascade" }),
+    nombre: text("nombre").notNull(),
+    cantidad: integer("cantidad").notNull().default(1),
+    precioUnitario: integer("precio_unitario").notNull().default(0),
+  },
+  (t) => [index("item_presupuesto_presupuesto_idx").on(t.presupuestoId)]
+);

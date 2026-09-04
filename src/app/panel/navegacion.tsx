@@ -46,6 +46,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/presupuestos",
+    texto: "Presupuestos",
+    icono: (
+      <path
+        d="M5 3.5h10a1 1 0 011 1v11a1 1 0 01-1 1H5a1 1 0 01-1-1v-11a1 1 0 011-1zM7 7.5h6M7 10h6M7 12.5h3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/ordenes",
     texto: "Órdenes",
     icono: (
@@ -172,6 +186,7 @@ function Enlaces({
   const secciones = SECCIONES.filter((s) => {
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneServicios;
+    if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
     return true;
   });
