@@ -215,25 +215,28 @@ export async function guardarBusquedaPatente(patente: string) {
   });
 }
 
-/** Últimas patentes que este mecánico buscó, sin repetir. */
+/**
+ * Últimas patentes que este mecánico buscó, sin repetir. Deduplica en
+ * el propio SQL (agrupando por patente, ordenando por la búsqueda más
+ * reciente de cada una) — hacerlo después de traer un LIMIT de filas
+ * crudas perdía patentes reales: si una misma patente se buscaba
+ * varias veces en el día, esas repeticiones agotaban el límite antes
+ * de llegar a patentes distintas más antiguas.
+ */
 export async function busquedasRecientes(): Promise<string[]> {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) return [];
 
   const filas = await db
-    .select({ patente: busquedaPatente.patente })
+    .select({
+      patente: busquedaPatente.patente,
+      ultima: sql<Date>`max(${busquedaPatente.buscadoEn})`,
+    })
     .from(busquedaPatente)
     .where(eq(busquedaPatente.userId, sesion.user.id))
-    .orderBy(desc(busquedaPatente.buscadoEn))
-    .limit(20);
+    .groupBy(busquedaPatente.patente)
+    .orderBy(desc(sql`max(${busquedaPatente.buscadoEn})`))
+    .limit(6);
 
-  const vistas = new Set<string>();
-  const unicas: string[] = [];
-  for (const { patente } of filas) {
-    if (vistas.has(patente)) continue;
-    vistas.add(patente);
-    unicas.push(patente);
-    if (unicas.length === 6) break;
-  }
-  return unicas;
+  return filas.map((f) => f.patente);
 }
