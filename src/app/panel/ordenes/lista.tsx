@@ -307,51 +307,62 @@ export function ListaOrdenes({
         </div>
 
         <div
-          className={`flex min-w-0 items-center gap-2 ${busquedaAbierta ? "flex-1" : ""}`}
+          className={`flex min-w-0 items-center gap-2 ${busquedaAbierta ? "flex-1" : ""} sm:flex-none`}
         >
-          {busquedaAbierta ? (
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 sm:flex-none">
-              <HugeiconsIcon
-                icon={Search01Icon}
-                className="size-4 shrink-0 text-muted-foreground"
-              />
-              <input
-                autoFocus
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por patente, vehículo…"
-                className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-64"
-              />
-              {busqueda && (
-                <button
-                  type="button"
-                  aria-label="Limpiar búsqueda"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setBusqueda("")}
-                  className="shrink-0 text-muted-foreground hover:text-foreground"
-                >
-                  ✕
-                </button>
-              )}
+          {/* En escritorio el buscador está siempre abierto, como un
+              campo normal — el modo "ícono que se expande" es solo
+              para móvil, donde el espacio compite con Abiertas/Todas/
+              Filtros. Por eso este <label> se renderiza siempre, pero
+              en móvil queda oculto salvo que busquedaAbierta sea true;
+              desde sm: se muestra sin condición. */}
+          <label
+            className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 sm:flex-none ${busquedaAbierta ? "flex" : "hidden sm:flex"}`}
+          >
+            <HugeiconsIcon
+              icon={Search01Icon}
+              className="size-4 shrink-0 text-muted-foreground"
+            />
+            <input
+              autoFocus={busquedaAbierta}
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por patente, vehículo…"
+              className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground/60 sm:w-64"
+            />
+            {busqueda && (
               <button
                 type="button"
-                aria-label="Cerrar búsqueda"
+                aria-label="Limpiar búsqueda"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setBusqueda("");
-                  setBusquedaAbierta(false);
-                }}
-                className="shrink-0 text-muted-foreground hover:text-foreground sm:hidden"
+                onClick={() => setBusqueda("")}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
               >
                 ✕
               </button>
-            </label>
-          ) : (
+            )}
+            <button
+              type="button"
+              aria-label="Cerrar búsqueda"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setBusqueda("");
+                setBusquedaAbierta(false);
+              }}
+              className="shrink-0 text-muted-foreground hover:text-foreground sm:hidden"
+            >
+              ✕
+            </button>
+          </label>
+
+          {/* Botón-lupa: solo aparece en móvil cuando el buscador está
+              cerrado — en escritorio el campo ya está siempre visible
+              arriba, este botón nunca se muestra desde sm:. */}
+          {!busquedaAbierta && (
             <button
               type="button"
               onClick={() => setBusquedaAbierta(true)}
               aria-label="Buscar"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border transition-colors hover:bg-card"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border transition-colors hover:bg-card sm:hidden"
             >
               <HugeiconsIcon icon={Search01Icon} className="size-4" />
             </button>
