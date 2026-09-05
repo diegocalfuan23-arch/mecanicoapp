@@ -69,7 +69,7 @@ export function DetalleDiagnostico({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <span className="font-mono text-xl font-medium">
           {diagnostico.patente}

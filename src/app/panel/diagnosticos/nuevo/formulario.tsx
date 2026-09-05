@@ -60,7 +60,7 @@ export function NuevoDiagnostico({ tecnicos }: { tecnicos: Tecnico[] }) {
   }
 
   return (
-    <form onSubmit={enviar} className="mx-auto flex max-w-2xl flex-col gap-6">
+    <form onSubmit={enviar} className="flex flex-col gap-6">
       <div>
         <label className="mb-2 block text-[13px] font-medium">Patente</label>
         <input

@@ -43,7 +43,7 @@ export function NuevoPresupuesto() {
   }
 
   return (
-    <form onSubmit={enviar} className="mx-auto flex max-w-2xl flex-col gap-5">
+    <form onSubmit={enviar} className="flex flex-col gap-5">
       <div>
         <label className="mb-2 block text-[13px] font-medium">Patente</label>
         <input
