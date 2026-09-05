@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -158,19 +158,19 @@ export function FormularioVehiculo({
    * que el mecánico todavía no escribió, para no pisarle algo que ya
    * corrigió a mano.
    */
-  async function buscarPatente() {
+  async function buscarPatente(patente: string) {
     setErrorBusqueda(null);
-    if (!form.values.patente.trim()) {
-      setErrorBusqueda("Escribe la patente primero.");
-      return;
-    }
-
     setBuscando(true);
-    const res = await buscarPorPatente(form.values.patente);
+    const res = await buscarPorPatente(patente);
     setBuscando(false);
 
     if (!res.ok) {
-      setErrorBusqueda(res.error ?? "No se pudo buscar la patente.");
+      // "No encontrada" no es un error real, solo no hay nada que
+      // autocompletar — mostrarlo como error confundiría al mecánico
+      // que recién empezó a escribir una patente nueva.
+      if (res.error && res.error !== "No se encontró esa patente.") {
+        setErrorBusqueda(res.error);
+      }
       return;
     }
 
@@ -180,6 +180,26 @@ export function FormularioVehiculo({
       form.setFieldValue(campo, valor);
     }
   }
+
+  // Búsqueda automática al escribir la patente — sin botón. Espera a
+  // que el mecánico deje de teclear (mismo criterio que Historial) en
+  // vez de disparar una consulta por letra.
+  const yaBuscada = useRef<string | null>(null);
+  useEffect(() => {
+    if (!tieneImpresion || editando) return;
+
+    const patente = form.values.patente.trim().toUpperCase();
+    if (patente.length < 4) return;
+    if (yaBuscada.current === patente) return;
+
+    const espera = setTimeout(() => {
+      yaBuscada.current = patente;
+      buscarPatente(patente);
+    }, 1200);
+
+    return () => clearTimeout(espera);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.values.patente, tieneImpresion, editando]);
 
   /**
    * En modo autoguardar no hay botón "Guardar": cada onBlur dispara el
@@ -263,20 +283,15 @@ export function FormularioVehiculo({
           El vehículo
         </h3>
 
-        {tieneImpresion && !editando && (
+        {tieneImpresion && !editando && (buscando || errorBusqueda) && (
           <div className="mt-4">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={buscarPatente}
-              disabled={buscando}
-            >
-              {buscando ? "Buscando…" : "Buscar por patente"}
-            </Button>
-            {errorBusqueda && (
-              <p className="mt-2 text-[13px] text-destructive">
-                {errorBusqueda}
+            {buscando && (
+              <p className="text-[13px] text-muted-foreground">
+                Buscando datos de la patente…
               </p>
+            )}
+            {!buscando && errorBusqueda && (
+              <p className="text-[13px] text-destructive">{errorBusqueda}</p>
             )}
           </div>
         )}
