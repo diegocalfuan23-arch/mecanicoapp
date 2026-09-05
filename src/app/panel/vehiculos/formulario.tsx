@@ -187,6 +187,10 @@ export function FormularioVehiculo({
   const yaBuscada = useRef<string | null>(null);
   useEffect(() => {
     if (!tieneImpresion || editando) return;
+    // Ya se autocompletó (marca es el campo más confiable de que la
+    // búsqueda anterior sí trajo datos) — no repetir la consulta ni
+    // arriesgar un error de red pisando datos que ya están bien.
+    if (form.values.marca) return;
 
     const patente = form.values.patente.trim().toUpperCase();
     if (patente.length < 4) return;
@@ -199,7 +203,7 @@ export function FormularioVehiculo({
 
     return () => clearTimeout(espera);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.values.patente, tieneImpresion, editando]);
+  }, [form.values.patente, form.values.marca, tieneImpresion, editando]);
 
   /**
    * En modo autoguardar no hay botón "Guardar": cada onBlur dispara el
