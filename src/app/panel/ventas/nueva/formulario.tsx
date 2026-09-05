@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { crearVenta, type ItemCarrito } from "./acciones";
+import { crearVenta, type ItemCarrito } from "../acciones";
 import { pesos, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ const METODOS_PAGO = [
   { valor: "otro", texto: "Otro" },
 ];
 
-export function Carrito({ inventario }: { inventario: Repuesto[] }) {
+export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
   const router = useRouter();
   const [busquedaCatalogo, setBusquedaCatalogo] = useState("");
   const [items, setItems] = useState<ItemCarrito[]>([]);
