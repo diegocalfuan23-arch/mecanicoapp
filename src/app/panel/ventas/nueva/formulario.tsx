@@ -28,6 +28,7 @@ const METODOS_PAGO = [
 
 export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
   const router = useRouter();
+  const [pestana, setPestana] = useState<"repuestos" | "libre">("repuestos");
   const [busquedaCatalogo, setBusquedaCatalogo] = useState("");
   const [items, setItems] = useState<ItemCarrito[]>([]);
 
@@ -141,77 +142,124 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
       <div>
         <h2 className="text-lg font-medium">Catálogo</h2>
         <p className="mt-1 text-[13px] text-muted-foreground">
-          Toca un repuesto para agregarlo al carrito, o usa Ítem libre.
+          Toca un ítem del inventario para agregarlo al carrito, o usa Ítem
+          libre.
         </p>
 
-        <input
-          value={busquedaCatalogo}
-          onChange={(e) => setBusquedaCatalogo(e.target.value)}
-          placeholder="Buscar por nombre, código o marca…"
-          className={`${campo} mt-4`}
-        />
-
-        <ul className="mt-3 flex max-h-96 flex-col gap-1 overflow-y-auto">
-          {catalogoFiltrado.length === 0 && (
-            <li className="rounded-lg border border-dashed border-border py-8 text-center text-[13px] text-muted-foreground">
-              {inventario.length === 0
-                ? "No hay ítems que coincidan. Crea repuestos en Inventario."
-                : "Nada coincide con esa búsqueda."}
-            </li>
-          )}
-          {catalogoFiltrado.map((r) => (
-            <li key={r.id}>
-              <button
-                type="button"
-                onClick={() => agregarRepuesto(r)}
-                disabled={r.stock <= 0}
-                className="flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 disabled:opacity-40"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-medium">{r.nombre}</p>
-                  <p className="text-[12px] text-muted-foreground">
-                    {r.marca ? `${r.marca} · ` : ""}
-                    {r.stock <= 0 ? "Sin stock" : `${r.stock} en stock`}
-                  </p>
-                </div>
-                <span className="shrink-0 text-[14px] font-medium tabular-nums">
-                  {pesos(r.precio)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-6 rounded-xl border border-border bg-card p-4">
-          <p className="text-[13px] font-medium">Ítem libre</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            Algo que no está en inventario: nombre y precio.
-          </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              value={libreNombre}
-              onChange={(e) => setLibreNombre(e.target.value)}
-              placeholder="Ej. revisión rápida de frenos"
-              className={campo}
-            />
-            <input
-              value={miles(librePrecio)}
-              onChange={(e) => setLibrePrecio(soloDigitos(e.target.value))}
-              placeholder="15.000"
-              inputMode="numeric"
-              className={`${campo} sm:w-36`}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={agregarLibre}
-              disabled={!libreNombre.trim()}
-              className="shrink-0"
-            >
-              Agregar
-            </Button>
-          </div>
+        <div className="mt-4 flex rounded-lg border border-border p-1">
+          <button
+            type="button"
+            onClick={() => setPestana("repuestos")}
+            className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
+              pestana === "repuestos"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Repuestos / productos
+          </button>
+          <button
+            type="button"
+            onClick={() => setPestana("libre")}
+            className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
+              pestana === "libre"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Ítem libre
+          </button>
         </div>
+
+        {pestana === "repuestos" ? (
+          <>
+            <div className="relative mt-4">
+              <svg
+                viewBox="0 0 20 20"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              >
+                <path
+                  d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <input
+                value={busquedaCatalogo}
+                onChange={(e) => setBusquedaCatalogo(e.target.value)}
+                placeholder="Buscar por nombre, código o marca…"
+                className={`${campo} pl-9`}
+              />
+            </div>
+
+            <ul className="mt-3 flex max-h-96 flex-col gap-1 overflow-y-auto">
+              {catalogoFiltrado.length === 0 && (
+                <li className="rounded-lg border border-dashed border-border py-8 text-center text-[13px] text-muted-foreground">
+                  {inventario.length === 0
+                    ? "No hay ítems que coincidan. Crea repuestos en Inventario."
+                    : "Nada coincide con esa búsqueda."}
+                </li>
+              )}
+              {catalogoFiltrado.map((r) => (
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    onClick={() => agregarRepuesto(r)}
+                    disabled={r.stock <= 0}
+                    className="flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 disabled:opacity-40"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[14px] font-medium">
+                        {r.nombre}
+                      </p>
+                      <p className="text-[12px] text-muted-foreground">
+                        {r.marca ? `${r.marca} · ` : ""}
+                        {r.stock <= 0 ? "Sin stock" : `${r.stock} en stock`}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[14px] font-medium tabular-nums">
+                      {pesos(r.precio)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div className="mt-4 rounded-xl border border-border bg-card p-4">
+            <p className="text-[13px] text-muted-foreground">
+              Algo que no está en inventario: nombre y precio.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                value={libreNombre}
+                onChange={(e) => setLibreNombre(e.target.value)}
+                placeholder="Ej. revisión rápida de frenos"
+                autoFocus
+                className={campo}
+              />
+              <input
+                value={miles(librePrecio)}
+                onChange={(e) => setLibrePrecio(soloDigitos(e.target.value))}
+                placeholder="15.000"
+                inputMode="numeric"
+                className={`${campo} sm:w-36`}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={agregarLibre}
+                disabled={!libreNombre.trim()}
+                className="shrink-0"
+              >
+                Agregar
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Carrito */}
