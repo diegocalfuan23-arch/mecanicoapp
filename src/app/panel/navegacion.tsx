@@ -74,6 +74,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/ventas",
+    texto: "Ventas POS",
+    icono: (
+      <path
+        d="M4 5.5h1.5l1.4 8.4a1.5 1.5 0 001.5 1.3h6.4a1.5 1.5 0 001.5-1.2l1-5.3H6.3M8 17a1 1 0 100-2 1 1 0 000 2zM13.5 17a1 1 0 100-2 1 1 0 000 2z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/vehiculos",
     texto: "Vehículos",
     icono: (
@@ -187,6 +201,7 @@ function Enlaces({
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneServicios;
     if (s.href === "/panel/diagnosticos") return tieneServicios;
+    if (s.href === "/panel/ventas") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
     return true;

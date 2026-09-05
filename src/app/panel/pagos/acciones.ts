@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, ne, sql, desc, gte } from "drizzle-orm";
 import { db } from "@/db";
-import { trabajo, vehiculo, cliente, abono } from "@/db/schema";
+import { trabajo, vehiculo, cliente, abono, venta } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
 
 /** Trabajos con saldo pendiente: los fiados y los abonados a medias. */
@@ -73,13 +73,18 @@ export async function listarCobros() {
     .limit(100);
 }
 
-/** Cuánto entró en el mes corriente. */
+/**
+ * Cuánto entró en el mes corriente — Órdenes (abono) + Ventas POS
+ * (venta pagada) sumados aparte, no en la misma tabla: una venta de
+ * mostrador no es un abono a una Orden de trabajo, no tiene por qué
+ * forzarse esa relación solo para que cuente acá.
+ */
 export async function cobradoDelMes() {
   const tallerId = await tallerActual();
   const ahora = new Date();
   const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
 
-  const [fila] = await db
+  const [deOrdenes] = await db
     .select({
       monto: sql<number>`coalesce(sum(${abono.monto}), 0)`.mapWith(Number),
       cuantos: sql<number>`count(*)`.mapWith(Number),
@@ -88,7 +93,24 @@ export async function cobradoDelMes() {
     .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
     .where(and(eq(trabajo.tallerId, tallerId), gte(abono.fecha, inicio)));
 
-  return fila;
+  const [deVentas] = await db
+    .select({
+      monto: sql<number>`coalesce(sum(${venta.total}), 0)`.mapWith(Number),
+      cuantos: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(venta)
+    .where(
+      and(
+        eq(venta.tallerId, tallerId),
+        eq(venta.estado, "pagada"),
+        gte(venta.fecha, inicio)
+      )
+    );
+
+  return {
+    monto: deOrdenes.monto + deVentas.monto,
+    cuantos: deOrdenes.cuantos + deVentas.cuantos,
+  };
 }
 
 export async function registrarAbono(trabajoId: string, monto: number) {

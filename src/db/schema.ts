@@ -639,3 +639,71 @@ export const pasoDiagnostico = pgTable(
   },
   (t) => [index("paso_diagnostico_diagnostico_idx").on(t.diagnosticoId)]
 );
+
+/**
+ * Venta de mostrador — Plan Serviteca. Distinta de una Orden de
+ * trabajo: es para vender un repuesto o un ítem suelto sin abrir todo
+ * el flujo de diagnóstico/reparación. Cliente y vehículo son sueltos
+ * y opcionales, mismo criterio que diagnostico/presupuesto — pero acá
+ * casi siempre irán vacíos (alguien de mostrador, no necesariamente
+ * un cliente del taller).
+ *
+ * No usa la tabla `abono` (que exige un trabajoId de Orden) — el
+ * dinero de esto se suma aparte en el resumen de Pagos, no se mezcla
+ * en la misma tabla que los cobros de Órdenes.
+ */
+export const venta = pgTable(
+  "venta",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    numero: integer("numero").notNull(),
+
+    clienteNombre: text("cliente_nombre"),
+    clienteTelefono: text("cliente_telefono"),
+    patente: text("patente"),
+
+    // pagada · cotizacion
+    estado: text("estado").notNull().default("pagada"),
+    // efectivo · tarjeta · transferencia · otro — solo si quedó pagada.
+    metodoPago: text("metodo_pago"),
+    referenciaPago: text("referencia_pago"),
+
+    descuentoPorcentaje: integer("descuento_porcentaje").notNull().default(0),
+    conIva: boolean("con_iva").notNull().default(false),
+    total: integer("total").notNull().default(0),
+
+    notas: text("notas"),
+
+    fecha: timestamp("fecha").notNull().defaultNow(),
+  },
+  (t) => [
+    index("venta_taller_idx").on(t.tallerId, t.fecha),
+    index("venta_estado_idx").on(t.tallerId, t.estado),
+  ]
+);
+
+/**
+ * Cada línea del carrito — un repuesto real (parteId) o un ítem libre
+ * (nombre escrito a mano, parteId null). Solo las líneas con parteId
+ * descuentan stock al confirmar la venta.
+ */
+export const itemVenta = pgTable(
+  "item_venta",
+  {
+    id: text("id").primaryKey(),
+    ventaId: text("venta_id")
+      .notNull()
+      .references(() => venta.id, { onDelete: "cascade" }),
+    parteId: text("parte_id").references(() => parte.id, {
+      onDelete: "set null",
+    }),
+    nombre: text("nombre").notNull(),
+    cantidad: integer("cantidad").notNull().default(1),
+    precioUnitario: integer("precio_unitario").notNull().default(0),
+  },
+  (t) => [index("item_venta_venta_idx").on(t.ventaId)]
+);
