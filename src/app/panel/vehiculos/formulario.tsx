@@ -330,7 +330,8 @@ export function FormularioVehiculo({
 
         {tieneImpresion && vehiculo?.esEmpresa && (
           <p className="mt-4 text-[13px] text-muted-foreground">
-            {vehiculo.propietario} es empresa: {vehiculo.empresa || "sin nombre"}
+            {vehiculo.propietario} es empresa
+            {vehiculo.empresa ? ` · ${vehiculo.empresa}` : ""}
             {vehiculo.empresaRut ? ` · ${vehiculo.empresaRut}` : ""}. Se edita
             en Propietarios.
           </p>

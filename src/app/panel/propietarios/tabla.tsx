@@ -142,8 +142,33 @@ function Formulario({
 
   return (
     <form onSubmit={form.handleSubmit} noValidate className="flex flex-col gap-4">
+      {tieneImpresion && (
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            name="esEmpresa"
+            checked={form.values.esEmpresa}
+            onChange={form.handleChange}
+            className="size-4 accent-primary"
+          />
+          <span className="text-[14px]">Es empresa</span>
+        </label>
+      )}
+
+      {/* Igual que en el formulario de referencia: es empresa cambia
+          el formulario, no lo alarga — Nombre pasa a ser la razón
+          social (mismo campo, ambos identifican "quién es" en toda la
+          app) y se suma el giro, en vez de acumular ambos a la vez. */}
       <div className="grid gap-4 sm:grid-cols-2">
-        {campo("nombre", "Nombre", { placeholder: "Juan Pérez", autoFocus: true })}
+        {form.values.esEmpresa
+          ? campo("nombre", "Razón social", {
+              placeholder: "Transportes Pérez SpA",
+              autoFocus: true,
+            })
+          : campo("nombre", "Nombre", {
+              placeholder: "Juan Pérez",
+              autoFocus: true,
+            })}
         {campo("telefono", "Teléfono", {
           placeholder: "+56 9 1234 5678",
           inputMode: "tel",
@@ -152,6 +177,11 @@ function Formulario({
 
       {tieneImpresion && (
         <>
+          {form.values.esEmpresa &&
+            campo("empresa", "Giro", {
+              placeholder: "Transporte de carga",
+            })}
+
           {campo("email", "E-mail", {
             placeholder: "juan@correo.com",
             type: "email",
@@ -165,27 +195,10 @@ function Formulario({
             {campo("ciudad", "Ciudad", { placeholder: "Temuco" })}
           </div>
 
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              name="esEmpresa"
-              checked={form.values.esEmpresa}
-              onChange={form.handleChange}
-              className="size-4 accent-primary"
-            />
-            <span className="text-[14px]">Es empresa</span>
-          </label>
-
-          {form.values.esEmpresa && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {campo("empresa", "Nombre de la empresa", {
-                placeholder: "Transportes Pérez SpA",
-              })}
-              {campo("empresaRut", "RUT de la empresa", {
-                placeholder: "76.123.456-7",
-              })}
-            </div>
-          )}
+          {form.values.esEmpresa &&
+            campo("empresaRut", "RUT de la empresa", {
+              placeholder: "76.123.456-7",
+            })}
         </>
       )}
 

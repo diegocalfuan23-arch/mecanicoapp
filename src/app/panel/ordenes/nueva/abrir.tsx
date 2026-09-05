@@ -265,7 +265,7 @@ export function Abrir({
               />
               {elegido.esEmpresa && (
                 <>
-                  <DatoVehiculo etiqueta="Empresa" valor={elegido.empresa} />
+                  <DatoVehiculo etiqueta="Giro" valor={elegido.empresa} />
                   <DatoVehiculo
                     etiqueta="RUT empresa"
                     valor={elegido.empresaRut}

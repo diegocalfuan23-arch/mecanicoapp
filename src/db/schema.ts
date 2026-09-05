@@ -116,8 +116,9 @@ export const cliente = pgTable(
     comuna: text("comuna"),
     ciudad: text("ciudad"),
     // Cuando el auto es de una empresa, no de una persona natural —
-    // Plan Serviteca en adelante (cotización a nombre de la empresa,
-    // en vez de a nombre de la persona que lo trajo).
+    // Plan Serviteca en adelante. Si es empresa, `nombre` pasa a ser
+    // la razón social (mismo campo, sigue siendo "quién es" en toda
+    // la app) y este campo `empresa` guarda el giro, no el nombre.
     esEmpresa: boolean("es_empresa").notNull().default(false),
     empresa: text("empresa"),
     empresaRut: text("empresa_rut"),
