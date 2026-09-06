@@ -429,7 +429,7 @@ export function Buscador({
 
       {!consulta.trim() && (
         <p className="mt-8 text-center text-muted-foreground">
-          También puedes buscar por marca, modelo o nombre del dueño.
+          También puedes buscar por marca o modelo.
         </p>
       )}
     </>
