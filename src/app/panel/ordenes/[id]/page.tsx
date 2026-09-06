@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   obtenerOrden,
@@ -26,18 +25,10 @@ export default async function DetalleOrden({
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <Link
-          href="/panel/ordenes"
-          className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          ← Volver
-        </Link>
-        <span className="text-[13px] text-muted-foreground">
-          OT-{orden.numero} · <span className="font-mono">{orden.patente}</span>
-          {orden.marca && ` · ${orden.marca} ${orden.modelo}`}
-        </span>
-      </div>
+      <p className="mb-4 text-[13px] text-muted-foreground">
+        OT-{orden.numero} · <span className="font-mono">{orden.patente}</span>
+        {orden.marca && ` · ${orden.marca} ${orden.modelo}`}
+      </p>
 
       <EditarOrden
         orden={orden}

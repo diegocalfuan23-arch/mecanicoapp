@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
 import { listarInventario } from "../../inventario/acciones";
@@ -11,17 +10,9 @@ export default async function NuevaVentaPage() {
 
   return (
     <>
-      <div className="mb-6">
-        <Link
-          href="/panel/ventas"
-          className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          ← Volver
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold tracking-tight">
-          Nueva venta
-        </h1>
-      </div>
+      <h1 className="mb-6 text-xl font-semibold tracking-tight">
+        Nueva venta
+      </h1>
 
       <NuevaVenta inventario={inventario} />
     </>

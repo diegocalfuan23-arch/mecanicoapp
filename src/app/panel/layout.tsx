@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { tienePlan, puedeVerPagos } from "@/lib/taller";
 import { RegistrarSW } from "@/components/registrar-sw";
 import { BotonInstalar } from "@/components/boton-instalar";
+import { FlechaVolver } from "@/components/flecha-volver";
 import { ThemeProvider } from "@/components/theme-provider";
 import {
   ProveedorAsistente,
@@ -60,8 +61,9 @@ export default async function LayoutPanel({
 
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             <header className="shrink-0 border-b border-border">
-              <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
-                <div className="flex min-w-0 items-center gap-4">
+              <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+                <div className="flex min-w-0 items-center gap-2">
+                  <FlechaVolver />
                   <MenuMovil
                     tieneInventario={tieneInventario}
                     tieneServicios={tieneServicios}

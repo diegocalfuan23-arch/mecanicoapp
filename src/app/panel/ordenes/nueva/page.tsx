@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   listarVehiculosParaOrden,
   listarTecnicos,
@@ -26,13 +25,7 @@ export default async function NuevaOrden({
   return (
     <>
       <div className="mb-6">
-        <Link
-          href="/panel/ordenes"
-          className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          ← Volver a órdenes
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold tracking-tight">
+        <h1 className="text-xl font-semibold tracking-tight">
           Ingresar vehículo
         </h1>
         <p className="mt-1 text-muted-foreground">
