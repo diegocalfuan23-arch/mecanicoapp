@@ -542,12 +542,6 @@ function ListaServicios({
         </div>
       )}
 
-      <div className="flex justify-end">
-        <Button onClick={() => setAbierto(true)} className="shrink-0">
-          {esServicio ? "Nuevo servicio" : "Nueva mano de obra"}
-        </Button>
-      </div>
-
       {filtrados.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-border py-16 text-center">
           <p className="text-muted-foreground">
@@ -736,11 +730,11 @@ export function TablaInventario({
   }
 
   const encabezado = (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="relative flex-1">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative w-full sm:max-w-xs">
         <svg
           viewBox="0 0 20 20"
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground"
           aria-hidden
         >
           <circle
@@ -762,7 +756,7 @@ export function TablaInventario({
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, código o marca…"
-          className="w-full rounded-lg border border-border bg-card py-2 pr-4 pl-9 text-[14px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          className="w-full rounded-lg border border-border bg-card py-1.5 pr-3 pl-8 text-[13px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
         />
       </div>
       <Button
