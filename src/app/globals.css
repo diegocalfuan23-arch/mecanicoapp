@@ -140,22 +140,6 @@
 }
 
 /**
- * Fondo del panel: radial sutil del color de marca (--acento) centrado
- * arriba, no gris — el gris tapaba elementos sin fondo propio. Es
- * "fixed" para que no se repita ni se corte al hacer scroll dentro de
- * <main>, y se desvanece a transparent bien antes del borde para no
- * competir con tarjetas ni texto.
- */
-@utility fondo-panel {
-  background-image: radial-gradient(
-    ellipse 1200px 600px at 50% 0%,
-    color-mix(in oklch, var(--acento) 8%, transparent),
-    transparent 70%
-  );
-  background-attachment: fixed;
-}
-
-/**
  * Scrollbar del tono de la app: naranja translúcido sobre un riel de
  * vidrio. Aparece al pasar el cursor para no ensuciar la pantalla en
  * reposo, y se aplica tanto a la página como a las tablas anchas.
