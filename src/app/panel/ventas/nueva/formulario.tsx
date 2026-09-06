@@ -362,7 +362,33 @@ export function NuevaVenta({
           </p>
         </div>
 
-        <div className="mt-4">
+        <p className="mt-4 text-[12px] text-muted-foreground">
+          Cliente y vehículo son opcionales. Agrégalos solo si los
+          necesitas.
+        </p>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => (cliente ? setCliente(null) : null)}
+            disabled={!cliente}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-[13px] font-medium transition-colors hover:bg-background disabled:cursor-default disabled:opacity-40"
+          >
+            {cliente ? "Quitar cliente" : "Cliente"}
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              mostrarVehiculo ? undefined : setMostrarVehiculo(true)
+            }
+            disabled={mostrarVehiculo}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-[13px] font-medium transition-colors hover:bg-background disabled:cursor-default disabled:opacity-40"
+          >
+            {mostrarVehiculo ? "Vehículo agregado" : "+ Agregar vehículo"}
+          </button>
+        </div>
+
+        <div className="mt-3">
           <span className="mb-2 block text-[13px] font-medium">
             Cliente{estado === "cotizacion" && " (opcional)"}
           </span>
@@ -374,43 +400,31 @@ export function NuevaVenta({
           />
         </div>
 
-        <div className="mt-3">
-          {!mostrarVehiculo && (
-            <button
-              type="button"
-              onClick={() => setMostrarVehiculo(true)}
-              className="text-[13px] text-acento hover:underline"
-            >
-              + Agregar vehículo (opcional)
-            </button>
-          )}
-
-          {mostrarVehiculo && (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[13px] font-medium">Vehículo</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMostrarVehiculo(false);
-                    setPatente("");
-                  }}
-                  className="text-[12px] text-muted-foreground hover:text-destructive"
-                >
-                  Quitar
-                </button>
-              </div>
-              <input
-                value={patente}
-                onChange={(e) => setPatente(e.target.value)}
-                placeholder="Patente"
-                autoFocus
-                autoCapitalize="characters"
-                className={`${campo} font-mono uppercase`}
-              />
+        {mostrarVehiculo && (
+          <div className="mt-3 rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[13px] font-medium">Vehículo</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMostrarVehiculo(false);
+                  setPatente("");
+                }}
+                className="text-[12px] text-muted-foreground hover:text-destructive"
+              >
+                Quitar
+              </button>
             </div>
-          )}
-        </div>
+            <input
+              value={patente}
+              onChange={(e) => setPatente(e.target.value)}
+              placeholder="Patente"
+              autoFocus
+              autoCapitalize="characters"
+              className={`${campo} font-mono uppercase`}
+            />
+          </div>
+        )}
 
         {estado === "pagada" && (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
