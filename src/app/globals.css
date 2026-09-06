@@ -140,6 +140,23 @@
 }
 
 /**
+ * Fondo del panel con un degradado muy sutil — pedido real: en blanco
+ * puro plano, las tarjetas y bordes finos se perdían un poco, todo se
+ * veía "plano". No se toca --background (es un color de fondo, no
+ * acepta gradiente, y se reutiliza en botones/overlays que no deben
+ * llevar este efecto) — esto va aparte, solo en el fondo de <main>.
+ * Con foreground al 2%/0% en vez de un color fijo, se adapta solo a
+ * ambos temas sin duplicar la definición.
+ */
+@utility fondo-panel {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--foreground) 2%, transparent),
+    transparent 320px
+  );
+}
+
+/**
  * Scrollbar del tono de la app: naranja translúcido sobre un riel de
  * vidrio. Aparece al pasar el cursor para no ensuciar la pantalla en
  * reposo, y se aplica tanto a la página como a las tablas anchas.

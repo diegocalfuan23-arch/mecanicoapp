@@ -91,7 +91,7 @@ export default async function LayoutPanel({
                 con position:fixed. */}
             <div className="relative flex min-h-0 min-w-0 flex-1">
               <PanelAsistente conversaciones={conversaciones} />
-              <main className="scroll-discreto min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+              <main className="scroll-discreto fondo-panel min-w-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
                 {children}
               </main>
             </div>
