@@ -37,12 +37,15 @@ export type DatosVehiculo = {
 
 /**
  * Autocompleta datos del vehículo por patente — Plan Serviteca.
- * Usa GetAPI (getapi.cl), con key de prueba mientras se evalúa si
- * conviene un plan pago. No guarda el VEHÍCULO del taller, pero SÍ
- * cachea la respuesta en vehiculoExterno (compartida entre todos los
- * talleres) para no volver a gastar cuota de la API si la misma
- * patente se busca de nuevo — marca/modelo/VIN prácticamente nunca
- * cambian, así que el caché no vence.
+ * Orden de búsqueda, de más barato a más caro: (1) `vehiculo` — si
+ * cualquier taller ya lo registró, sus datos técnicos sirven igual;
+ * (2) `vehiculoExterno` — caché de una consulta a GetAPI anterior;
+ * (3) recién ahí se llama a GetAPI (getapi.cl), con key de prueba
+ * mientras se evalúa si conviene un plan pago. La respuesta de GetAPI
+ * se guarda en vehiculoExterno (compartida entre todos los talleres)
+ * para no volver a gastar cuota si la misma patente se busca de nuevo
+ * — marca/modelo/VIN prácticamente nunca cambian, así que el caché no
+ * vence.
  */
 export async function buscarPorPatente(patente: string) {
   // El botón solo se ve con Plan Serviteca, pero una server action es
@@ -54,6 +57,46 @@ export async function buscarPorPatente(patente: string) {
 
   const limpia = patente.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (!limpia) return { error: "Escribe una patente." };
+
+  // Marca/modelo/VIN no cambian según quién sea el dueño — si CUALQUIER
+  // taller ya registró esta patente, sus datos técnicos sirven igual y
+  // evitan gastar cuota de la API. Global (sin tallerId), igual que el
+  // índice vehiculo_patente_global_idx ya pensado para esto.
+  const [yaRegistrado] = await db
+    .select({
+      vin: vehiculo.vin,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      anio: vehiculo.anio,
+      color: vehiculo.color,
+      motor: vehiculo.motor,
+      cilindrada: vehiculo.cilindrada,
+      tipo: vehiculo.tipo,
+      kilometrajeInicial: vehiculo.kilometrajeInicial,
+    })
+    .from(vehiculo)
+    .where(eq(vehiculo.patente, limpia))
+    .limit(1);
+
+  if (yaRegistrado) {
+    return {
+      ok: true as const,
+      datos: {
+        vin: yaRegistrado.vin ?? "",
+        marca: yaRegistrado.marca ?? "",
+        modelo: yaRegistrado.modelo ?? "",
+        anio: yaRegistrado.anio ? String(yaRegistrado.anio) : "",
+        color: yaRegistrado.color ?? "",
+        motor: yaRegistrado.motor ?? "",
+        cilindrada: yaRegistrado.cilindrada ?? "",
+        tipo: yaRegistrado.tipo ?? "",
+        kilometrajeInicial:
+          yaRegistrado.kilometrajeInicial != null
+            ? String(yaRegistrado.kilometrajeInicial)
+            : "",
+      },
+    };
+  }
 
   const [enCache] = await db
     .select()
