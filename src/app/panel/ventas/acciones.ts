@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { venta, itemVenta, parte } from "@/db/schema";
+import { venta, itemVenta, parte, cliente } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 
 function id() {
@@ -18,8 +18,7 @@ export type ItemCarrito = {
 };
 
 export async function crearVenta(datos: {
-  clienteNombre?: string;
-  clienteTelefono?: string;
+  clienteId?: string;
   patente?: string;
   estado: "pagada" | "cotizacion";
   metodoPago?: string;
@@ -37,6 +36,29 @@ export async function crearVenta(datos: {
   const items = datos.items.filter((i) => i.nombre.trim());
   if (items.length === 0) {
     return { error: "Agrega al menos un ítem al carrito." };
+  }
+
+  // Una venta pagada queda registrada a nombre de alguien real, para
+  // trazabilidad y consistencia con el resto de la app — una
+  // cotización todavía no compromete a nadie, así que puede quedar
+  // sin cliente.
+  if (datos.estado === "pagada" && !datos.clienteId) {
+    return { error: "Selecciona un cliente para completar la venta." };
+  }
+
+  let clienteNombre: string | null = null;
+  let clienteTelefono: string | null = null;
+
+  if (datos.clienteId) {
+    const [c] = await db
+      .select({ nombre: cliente.nombre, telefono: cliente.telefono })
+      .from(cliente)
+      .where(and(eq(cliente.id, datos.clienteId), eq(cliente.tallerId, tallerId)))
+      .limit(1);
+
+    if (!c) return { error: "No se encontró el cliente seleccionado." };
+    clienteNombre = c.nombre;
+    clienteTelefono = c.telefono;
   }
 
   // Si hay líneas de repuesto (parteId), confirmar que hay stock antes
@@ -90,8 +112,9 @@ export async function crearVenta(datos: {
     id: ventaId,
     tallerId,
     numero: ultimo + 1,
-    clienteNombre: datos.clienteNombre?.trim() || null,
-    clienteTelefono: datos.clienteTelefono?.trim() || null,
+    clienteId: datos.clienteId || null,
+    clienteNombre,
+    clienteTelefono,
     patente: datos.patente?.trim().toUpperCase() || null,
     estado: datos.estado,
     metodoPago: datos.estado === "pagada" ? datos.metodoPago || null : null,

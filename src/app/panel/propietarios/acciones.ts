@@ -1,10 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { cliente, vehiculo, trabajo } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
+
+/**
+ * Versión liviana de listarPropietarios, sin los joins de autos/deuda —
+ * para selectores (ej. Ventas POS) que solo necesitan buscar y mostrar
+ * al cliente, no su historial completo.
+ */
+export async function listarClientesParaSelector() {
+  const tallerId = await tallerActual();
+
+  return db
+    .select({
+      id: cliente.id,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      rut: cliente.rut,
+      telefono: cliente.telefono,
+      email: cliente.email,
+    })
+    .from(cliente)
+    .where(eq(cliente.tallerId, tallerId))
+    .orderBy(asc(cliente.nombre));
+}
 
 export async function listarPropietarios() {
   const tallerId = await tallerActual();
@@ -15,9 +37,13 @@ export async function listarPropietarios() {
       id: cliente.id,
       numero: cliente.numero,
       nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      rut: cliente.rut,
+      documentoAlternativo: cliente.documentoAlternativo,
       telefono: cliente.telefono,
       email: cliente.email,
       direccion: cliente.direccion,
+      direccionDepto: cliente.direccionDepto,
       comuna: cliente.comuna,
       ciudad: cliente.ciudad,
       esEmpresa: cliente.esEmpresa,
@@ -49,9 +75,13 @@ export async function listarPropietarios() {
 
 export type DatosPropietario = {
   nombre: string;
+  apellido?: string;
+  rut?: string;
+  documentoAlternativo?: boolean;
   telefono?: string;
   email?: string;
   direccion?: string;
+  direccionDepto?: string;
   comuna?: string;
   ciudad?: string;
   esEmpresa?: boolean;
@@ -89,14 +119,20 @@ export async function guardarPropietario(datos: DatosPropietario) {
     return { error: `${nombre} ya está registrado.` };
   }
 
+  const id = crypto.randomUUID();
+
   await db.insert(cliente).values({
-    id: crypto.randomUUID(),
+    id,
     tallerId,
     numero: await siguienteNumeroCliente(tallerId),
     nombre,
+    apellido: datos.apellido?.trim() || null,
+    rut: datos.rut?.trim() || null,
+    documentoAlternativo: datos.documentoAlternativo ?? false,
     telefono: datos.telefono?.trim() || null,
     email: datos.email?.trim() || null,
     direccion: datos.direccion?.trim() || null,
+    direccionDepto: datos.direccionDepto?.trim() || null,
     comuna: datos.comuna?.trim() || null,
     ciudad: datos.ciudad?.trim() || null,
     esEmpresa: datos.esEmpresa ?? false,
@@ -108,7 +144,7 @@ export async function guardarPropietario(datos: DatosPropietario) {
   });
 
   revalidatePath("/panel/propietarios");
-  return { ok: true };
+  return { ok: true, id };
 }
 
 export async function actualizarPropietario(
@@ -140,9 +176,13 @@ export async function actualizarPropietario(
     .update(cliente)
     .set({
       nombre,
+      apellido: datos.apellido?.trim() || null,
+      rut: datos.rut?.trim() || null,
+      documentoAlternativo: datos.documentoAlternativo ?? false,
       telefono: datos.telefono?.trim() || null,
       email: datos.email?.trim() || null,
       direccion: datos.direccion?.trim() || null,
+      direccionDepto: datos.direccionDepto?.trim() || null,
       comuna: datos.comuna?.trim() || null,
       ciudad: datos.ciudad?.trim() || null,
       esEmpresa: datos.esEmpresa ?? false,

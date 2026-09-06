@@ -13,9 +13,13 @@ type Propietario = {
   id: string;
   numero: number;
   nombre: string;
+  apellido: string | null;
+  rut: string | null;
+  documentoAlternativo: boolean;
   telefono: string | null;
   email: string | null;
   direccion: string | null;
+  direccionDepto: string | null;
   comuna: string | null;
   ciudad: string | null;
   esEmpresa: boolean;
@@ -82,9 +86,13 @@ function Formulario({
   const form = useFormik({
     initialValues: {
       nombre: propietario?.nombre ?? "",
+      apellido: propietario?.apellido ?? "",
+      rut: propietario?.rut ?? "",
+      documentoAlternativo: propietario?.documentoAlternativo ?? false,
       telefono: propietario?.telefono ?? "",
       email: propietario?.email ?? "",
       direccion: propietario?.direccion ?? "",
+      direccionDepto: propietario?.direccionDepto ?? "",
       comuna: propietario?.comuna ?? "",
       ciudad: propietario?.ciudad ?? "",
       esEmpresa: propietario?.esEmpresa ?? false,
@@ -114,7 +122,10 @@ function Formulario({
     form.touched[c] ? (form.errors[c] as string | undefined) : undefined;
 
   const campo = (
-    name: Exclude<keyof typeof form.values, "esEmpresa">,
+    name: Exclude<
+      keyof typeof form.values,
+      "esEmpresa" | "documentoAlternativo"
+    >,
     etiqueta: string,
     props?: React.InputHTMLAttributes<HTMLInputElement>
   ) => (
@@ -169,11 +180,39 @@ function Formulario({
               placeholder: "Juan Pérez",
               autoFocus: true,
             })}
+        {!form.values.esEmpresa &&
+          campo("apellido", "Apellido", { placeholder: "Pérez" })}
         {campo("telefono", "Teléfono", {
           placeholder: "+56 9 1234 5678",
           inputMode: "tel",
         })}
       </div>
+
+      {!form.values.esEmpresa && (
+        <div>
+          <label className="mb-3 flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="documentoAlternativo"
+              checked={form.values.documentoAlternativo}
+              onChange={form.handleChange}
+              className="size-4 accent-primary"
+            />
+            <span className="text-[14px]">
+              Otro documento (pasaporte / DNI extranjero)
+            </span>
+          </label>
+          {campo(
+            "rut",
+            form.values.documentoAlternativo ? "Pasaporte o DNI" : "RUT",
+            {
+              placeholder: form.values.documentoAlternativo
+                ? "AB123456"
+                : "12.345.678-9",
+            }
+          )}
+        </div>
+      )}
 
       {tieneImpresion && (
         <>
@@ -187,9 +226,14 @@ function Formulario({
             type: "email",
           })}
 
-          {campo("direccion", "Dirección", {
-            placeholder: "Av. Alemania 1234",
-          })}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {campo("direccion", "Dirección", {
+              placeholder: "Av. Alemania 1234",
+            })}
+            {campo("direccionDepto", "Depto / oficina (opcional)", {
+              placeholder: "Depto 4B",
+            })}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {campo("comuna", "Comuna", { placeholder: "Temuco" })}
             {campo("ciudad", "Ciudad", { placeholder: "Temuco" })}

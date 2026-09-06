@@ -110,9 +110,20 @@ export const cliente = pgTable(
     // frecuente (Cliente #1, #2...) — Plan Serviteca en adelante.
     numero: integer("numero").notNull(),
     nombre: text("nombre").notNull(),
+    apellido: text("apellido"),
+    // RUT de la persona (o de quien firma, si es empresa) — separado
+    // de empresaRut, que es el RUT de la razón social.
+    rut: text("rut"),
+    // Si viene marcado, `rut` en realidad guarda un pasaporte o DNI
+    // extranjero, no un RUT chileno — mismo campo, cambia el formato
+    // esperado en vez de duplicar la columna.
+    documentoAlternativo: boolean("documento_alternativo")
+      .notNull()
+      .default(false),
     telefono: text("telefono"),
     email: text("email"),
     direccion: text("direccion"),
+    direccionDepto: text("direccion_depto"),
     comuna: text("comuna"),
     ciudad: text("ciudad"),
     // Cuando el auto es de una empresa, no de una persona natural —
@@ -694,6 +705,13 @@ export const venta = pgTable(
 
     numero: integer("numero").notNull(),
 
+    // Cliente real del catálogo de Propietarios — obligatorio en venta
+    // pagada (validado en crearVenta), no en cotización. clienteNombre
+    // y clienteTelefono quedan como snapshot histórico: si el cliente
+    // se edita después, la venta ya emitida no cambia retroactivamente.
+    clienteId: text("cliente_id").references(() => cliente.id, {
+      onDelete: "set null",
+    }),
     clienteNombre: text("cliente_nombre"),
     clienteTelefono: text("cliente_telefono"),
     patente: text("patente"),
@@ -715,6 +733,7 @@ export const venta = pgTable(
   (t) => [
     index("venta_taller_idx").on(t.tallerId, t.fecha),
     index("venta_estado_idx").on(t.tallerId, t.estado),
+    index("venta_cliente_idx").on(t.clienteId),
   ]
 );
 

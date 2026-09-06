@@ -6,6 +6,7 @@ import { crearVenta, type ItemCarrito } from "../acciones";
 import { pesos, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
+import { BuscadorCliente, type ClienteOpcion } from "@/components/buscador-cliente";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -26,7 +27,13 @@ const METODOS_PAGO = [
   { valor: "otro", texto: "Otro" },
 ];
 
-export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
+export function NuevaVenta({
+  inventario,
+  clientes,
+}: {
+  inventario: Repuesto[];
+  clientes: ClienteOpcion[];
+}) {
   const router = useRouter();
   const [pestana, setPestana] = useState<"repuestos" | "libre">("repuestos");
   const [busquedaCatalogo, setBusquedaCatalogo] = useState("");
@@ -36,9 +43,7 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
   const [libreNombre, setLibreNombre] = useState("");
   const [librePrecio, setLibrePrecio] = useState("");
 
-  const [clienteNombre, setClienteNombre] = useState("");
-  const [clienteTelefono, setClienteTelefono] = useState("");
-  const [mostrarCliente, setMostrarCliente] = useState(false);
+  const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
 
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
@@ -117,8 +122,7 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
     setEnviando(true);
 
     const res = await crearVenta({
-      clienteNombre,
-      clienteTelefono,
+      clienteId: cliente?.id,
       patente,
       estado,
       metodoPago: estado === "pagada" ? metodoPago : "",
@@ -358,16 +362,18 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
           </p>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-4">
-          {!mostrarCliente && (
-            <button
-              type="button"
-              onClick={() => setMostrarCliente(true)}
-              className="text-[13px] text-acento hover:underline"
-            >
-              + Agregar cliente (opcional)
-            </button>
-          )}
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Cliente{estado === "cotizacion" && " (opcional)"}
+          </span>
+          <BuscadorCliente
+            clientes={clientes}
+            seleccionado={cliente}
+            onSeleccionar={setCliente}
+          />
+        </div>
+
+        <div className="mt-3">
           {!mostrarVehiculo && (
             <button
               type="button"
@@ -377,72 +383,33 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
               + Agregar vehículo (opcional)
             </button>
           )}
+
+          {mostrarVehiculo && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[13px] font-medium">Vehículo</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMostrarVehiculo(false);
+                    setPatente("");
+                  }}
+                  className="text-[12px] text-muted-foreground hover:text-destructive"
+                >
+                  Quitar
+                </button>
+              </div>
+              <input
+                value={patente}
+                onChange={(e) => setPatente(e.target.value)}
+                placeholder="Patente"
+                autoFocus
+                autoCapitalize="characters"
+                className={`${campo} font-mono uppercase`}
+              />
+            </div>
+          )}
         </div>
-
-        {(mostrarCliente || mostrarVehiculo) && (
-          <div className="mt-3 flex flex-col gap-3">
-            {mostrarCliente && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[13px] font-medium">Cliente</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMostrarCliente(false);
-                      setClienteNombre("");
-                      setClienteTelefono("");
-                    }}
-                    className="text-[12px] text-muted-foreground hover:text-destructive"
-                  >
-                    Quitar
-                  </button>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    value={clienteNombre}
-                    onChange={(e) => setClienteNombre(e.target.value)}
-                    placeholder="Nombre del cliente"
-                    autoFocus
-                    className={campo}
-                  />
-                  <input
-                    value={clienteTelefono}
-                    onChange={(e) => setClienteTelefono(e.target.value)}
-                    placeholder="Teléfono"
-                    inputMode="tel"
-                    className={campo}
-                  />
-                </div>
-              </div>
-            )}
-
-            {mostrarVehiculo && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[13px] font-medium">Vehículo</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMostrarVehiculo(false);
-                      setPatente("");
-                    }}
-                    className="text-[12px] text-muted-foreground hover:text-destructive"
-                  >
-                    Quitar
-                  </button>
-                </div>
-                <input
-                  value={patente}
-                  onChange={(e) => setPatente(e.target.value)}
-                  placeholder="Patente"
-                  autoFocus
-                  autoCapitalize="characters"
-                  className={`${campo} font-mono uppercase`}
-                />
-              </div>
-            )}
-          </div>
-        )}
 
         {estado === "pagada" && (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -539,7 +506,11 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
         <Button
           type="button"
           onClick={completar}
-          disabled={enviando || items.length === 0}
+          disabled={
+            enviando ||
+            items.length === 0 ||
+            (estado === "pagada" && !cliente)
+          }
           className="mt-4 w-full"
         >
           {enviando
