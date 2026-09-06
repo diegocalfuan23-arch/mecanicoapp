@@ -69,15 +69,25 @@ const esquema = Yup.object({
     .required("El nombre es obligatorio"),
 });
 
-function Formulario({
+export function Formulario({
   onListo,
   propietario,
   tieneImpresion,
+  onCreado,
 }: {
   onListo: () => void;
   propietario?: Propietario;
   /** Plan Serviteca: agrega email y datos de empresa/RUT. */
   tieneImpresion: boolean;
+  /** Cuando alguien más (ej. Ventas POS) necesita saber qué se creó. */
+  onCreado?: (cliente: {
+    id: string;
+    nombre: string;
+    apellido: string | null;
+    rut: string | null;
+    telefono: string | null;
+    email: string | null;
+  }) => void;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
@@ -105,13 +115,31 @@ function Formulario({
     validationSchema: esquema,
     onSubmit: async (valores) => {
       setErrorServidor(null);
-      const res = propietario
-        ? await actualizarPropietario(propietario.id, valores)
-        : await guardarPropietario(valores);
-      if (res?.error) {
-        setErrorServidor(res.error);
-        return;
+
+      if (propietario) {
+        const res = await actualizarPropietario(propietario.id, valores);
+        if (res?.error) {
+          setErrorServidor(res.error);
+          return;
+        }
+      } else {
+        const res = await guardarPropietario(valores);
+        if (res?.error) {
+          setErrorServidor(res.error);
+          return;
+        }
+        if (res.id) {
+          onCreado?.({
+            id: res.id,
+            nombre: valores.nombre.trim(),
+            apellido: valores.apellido.trim() || null,
+            rut: valores.rut.trim() || null,
+            telefono: valores.telefono.trim() || null,
+            email: valores.email.trim() || null,
+          });
+        }
       }
+
       form.resetForm();
       onListo();
       router.refresh();

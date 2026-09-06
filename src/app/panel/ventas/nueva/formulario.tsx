@@ -370,6 +370,7 @@ export function NuevaVenta({
             clientes={clientes}
             seleccionado={cliente}
             onSeleccionar={setCliente}
+            tieneImpresion
           />
         </div>
 
