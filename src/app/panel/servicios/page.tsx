@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
-import { tienePlan } from "@/lib/taller";
+import { tienePlan, puedeVerInventario } from "@/lib/taller";
 import { listarServicios } from "./acciones";
 import { listarInventario } from "../inventario/acciones";
 import { TablaServicios } from "./tabla";
 
 export default async function Servicios() {
-  // Plan Serviteca — si alguien entra directo por URL sin el plan, no
-  // basta con ocultar el link del sidebar.
+  // Plan Serviteca, y solo dueño/jefe de taller — si alguien entra
+  // directo por URL sin el plan o el rol, no basta con ocultar el
+  // link del sidebar.
   if (!(await tienePlan("impresionOrden"))) redirect("/panel");
+  if (!(await puedeVerInventario())) redirect("/panel");
 
   const [servicios, inventario] = await Promise.all([
     listarServicios(),

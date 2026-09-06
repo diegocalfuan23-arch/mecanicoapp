@@ -58,16 +58,55 @@ export const miembroTaller = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" })
       .unique(),
-    // ayudante — único rol por ahora, sin permisos diferenciados.
-    rol: text("rol").notNull().default("ayudante"),
-    // Si el ayudante ve Pagos y los precios de costo/venta del
-    // inventario — pedido real (Carserv): el dueño decide, ayudante
-    // por ayudante, quién ve esa info y quién no. true por defecto:
-    // no le saca acceso a nadie de golpe al desplegar esto.
+    // jefe_taller · mecanico — el dueño no tiene fila acá (ver arriba),
+    // así que solo estos dos valores existen en la práctica. jefe_taller
+    // administra el Equipo (invita/quita mecánicos) y ve todo lo demás;
+    // mecanico solo opera el día a día (Órdenes, Vehículos, etc.), sin
+    // Pagos/Equipo/Inventario/Servicios por defecto.
+    rol: text("rol").notNull().default("mecanico"),
+    // Override manual sobre el default del rol — pedido real (Carserv):
+    // el dueño decide, persona por persona, quién ve Pagos y los
+    // precios de costo/venta del inventario, sin tener que ascenderla
+    // de rol solo por eso. true por defecto: no le saca acceso a nadie
+    // de golpe al desplegar esto.
     vePagos: boolean("ve_pagos").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("miembro_taller_taller_idx").on(t.tallerId)]
+);
+
+/**
+ * Invitación a unirse al Equipo de un taller — reemplaza al flujo
+ * anterior donde el dueño/jefe definía la contraseña del mecánico a
+ * mano. El invitado recibe un link con `token`, crea su propia cuenta
+ * y contraseña, y queda vinculado al taller con el rol ya decidido de
+ * antemano. `usadaEn` null = todavía pendiente; una invitación usada
+ * o vencida no vuelve a servir (se valida al abrir el link).
+ */
+export const invitacionTaller = pgTable(
+  "invitacion_taller",
+  {
+    id: text("id").primaryKey(),
+    token: text("token").notNull().unique(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Quién generó la invitación — el dueño o un jefe_taller — para
+    // saber a nombre de quién auditar el alta si hace falta después.
+    invitadoPorId: text("invitado_por_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    nombre: text("nombre").notNull(),
+    rol: text("rol").notNull().default("mecanico"),
+    expiraEn: timestamp("expira_en").notNull(),
+    usadaEn: timestamp("usada_en"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("invitacion_taller_taller_idx").on(t.tallerId),
+    index("invitacion_taller_token_idx").on(t.token),
+  ]
 );
 
 export const account = pgTable("account", {

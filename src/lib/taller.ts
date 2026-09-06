@@ -75,22 +75,65 @@ export async function tienePlan(
   return FUNCIONES_POR_PLAN[plan][funcion];
 }
 
+export const ROLES = ["dueno", "jefe_taller", "mecanico"] as const;
+export type Rol = (typeof ROLES)[number];
+
+/**
+ * El rol de la sesión actual dentro de SU taller. "dueno" es implícito
+ * (sin fila en miembroTaller, ver tallerActual()) y siempre tiene el
+ * control total — un jefe_taller no puede tocar a otro jefe_taller ni
+ * al dueño, solo gestiona mecánicos.
+ */
+export async function rolActual(): Promise<Rol> {
+  const sesion = await auth.api.getSession({ headers: await headers() });
+  if (!sesion) return "mecanico";
+
+  const [miembro] = await db
+    .select({ rol: miembroTaller.rol })
+    .from(miembroTaller)
+    .where(eq(miembroTaller.userId, sesion.user.id))
+    .limit(1);
+
+  if (!miembro) return "dueno";
+  return miembro.rol === "jefe_taller" ? "jefe_taller" : "mecanico";
+}
+
 /**
  * Si el usuario de la sesión actual puede ver Pagos y los precios de
- * costo/venta del inventario — pedido real (Carserv): el dueño del
- * taller decide, ayudante por ayudante, quién ve esa información.
- * El dueño siempre puede: solo un ayudante puede tener esto apagado.
+ * costo/venta del inventario. Dueño y jefe_taller siempre pueden; un
+ * mecánico depende de vePagos — override manual pedido real (Carserv):
+ * el dueño decide, persona por persona, sin tener que ascenderla de
+ * rol solo para darle acceso a Pagos.
  */
 export async function puedeVerPagos() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) return false;
 
   const [miembro] = await db
-    .select({ vePagos: miembroTaller.vePagos })
+    .select({ rol: miembroTaller.rol, vePagos: miembroTaller.vePagos })
     .from(miembroTaller)
     .where(eq(miembroTaller.userId, sesion.user.id))
     .limit(1);
 
   // Sin fila en miembroTaller: es el dueño, ve todo.
-  return miembro?.vePagos ?? true;
+  if (!miembro) return true;
+  if (miembro.rol === "jefe_taller") return true;
+  return miembro.vePagos;
+}
+
+/**
+ * Equipo (invitar/quitar gente, cambiar roles) — solo dueño y
+ * jefe_taller. Un jefe_taller que entra a Equipo solo puede gestionar
+ * mecánicos, nunca a otro jefe_taller ni al dueño (se valida en las
+ * acciones de equipo/acciones.ts, no acá).
+ */
+export async function puedeVerEquipo() {
+  const rol = await rolActual();
+  return rol === "dueno" || rol === "jefe_taller";
+}
+
+/** Inventario y Servicios: solo dueño y jefe_taller ven costos/catálogo. */
+export async function puedeVerInventario() {
+  const rol = await rolActual();
+  return rol === "dueno" || rol === "jefe_taller";
 }

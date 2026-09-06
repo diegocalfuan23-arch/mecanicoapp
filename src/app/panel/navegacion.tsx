@@ -189,21 +189,27 @@ function Enlaces({
   alNavegar,
   tieneInventario,
   tieneServicios,
+  tieneCatalogoServicios,
   vePagos,
+  veEquipo,
 }: {
   alNavegar?: () => void;
   tieneInventario: boolean;
   tieneServicios: boolean;
+  /** El ítem "Servicios" (catálogo de checklist) es gestión, no operación. */
+  tieneCatalogoServicios: boolean;
   vePagos: boolean;
+  veEquipo: boolean;
 }) {
   const ruta = usePathname();
   const secciones = SECCIONES.filter((s) => {
     if (s.href === "/panel/inventario") return tieneInventario;
-    if (s.href === "/panel/servicios") return tieneServicios;
+    if (s.href === "/panel/servicios") return tieneCatalogoServicios;
     if (s.href === "/panel/diagnosticos") return tieneServicios;
     if (s.href === "/panel/ventas") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
+    if (s.href === "/panel/equipo") return veEquipo;
     return true;
   });
 
@@ -239,11 +245,15 @@ function Enlaces({
 export function Sidebar({
   tieneInventario,
   tieneServicios,
+  tieneCatalogoServicios,
   vePagos,
+  veEquipo,
 }: {
   tieneInventario: boolean;
   tieneServicios: boolean;
+  tieneCatalogoServicios: boolean;
   vePagos: boolean;
+  veEquipo: boolean;
 }) {
   return (
     <aside className="hidden w-52 shrink-0 border-r border-border lg:block">
@@ -257,7 +267,9 @@ export function Sidebar({
         <Enlaces
           tieneInventario={tieneInventario}
           tieneServicios={tieneServicios}
+          tieneCatalogoServicios={tieneCatalogoServicios}
           vePagos={vePagos}
+          veEquipo={veEquipo}
         />
       </div>
     </aside>
@@ -268,11 +280,15 @@ export function Sidebar({
 export function MenuMovil({
   tieneInventario,
   tieneServicios,
+  tieneCatalogoServicios,
   vePagos,
+  veEquipo,
 }: {
   tieneInventario: boolean;
   tieneServicios: boolean;
+  tieneCatalogoServicios: boolean;
   vePagos: boolean;
+  veEquipo: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
 
@@ -308,7 +324,9 @@ export function MenuMovil({
               alNavegar={() => setAbierto(false)}
               tieneInventario={tieneInventario}
               tieneServicios={tieneServicios}
+              tieneCatalogoServicios={tieneCatalogoServicios}
               vePagos={vePagos}
+              veEquipo={veEquipo}
             />
           </div>
         </div>

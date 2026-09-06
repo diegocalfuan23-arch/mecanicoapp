@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { tienePlan, puedeVerPagos } from "@/lib/taller";
+import { tienePlan, puedeVerPagos, puedeVerEquipo, puedeVerInventario } from "@/lib/taller";
 import { RegistrarSW } from "@/components/registrar-sw";
 import { BotonInstalar } from "@/components/boton-instalar";
 import { FlechaVolver } from "@/components/flecha-volver";
@@ -25,10 +25,20 @@ export default async function LayoutPanel({
 
   // Inventario y Servicios son del Plan Serviteca — Tío Lalo/Pipe no
   // los ven ni los necesitan, y no hay que dejarles el ítem sin uso
-  // en el sidebar.
-  const tieneInventario = await tienePlan("inventario");
-  const tieneServicios = await tienePlan("impresionOrden");
-  const vePagos = await puedeVerPagos();
+  // en el sidebar. Además, un mecánico no ve Inventario ni Servicios
+  // aunque el taller sí tenga el plan — eso es gestión, no operación
+  // del día a día.
+  const [planInventario, planServicios, vePagos, veEquipo, rolVeInventario] =
+    await Promise.all([
+      tienePlan("inventario"),
+      tienePlan("impresionOrden"),
+      puedeVerPagos(),
+      puedeVerEquipo(),
+      puedeVerInventario(),
+    ]);
+  const tieneInventario = planInventario && rolVeInventario;
+  const tieneServicios = planServicios;
+  const tieneCatalogoServicios = planServicios && rolVeInventario;
   const conversaciones = await listarConversaciones();
 
   return (
@@ -56,7 +66,9 @@ export default async function LayoutPanel({
           <Sidebar
             tieneInventario={tieneInventario}
             tieneServicios={tieneServicios}
+            tieneCatalogoServicios={tieneCatalogoServicios}
             vePagos={vePagos}
+            veEquipo={veEquipo}
           />
 
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
@@ -67,7 +79,9 @@ export default async function LayoutPanel({
                   <MenuMovil
                     tieneInventario={tieneInventario}
                     tieneServicios={tieneServicios}
+                    tieneCatalogoServicios={tieneCatalogoServicios}
                     vePagos={vePagos}
+                    veEquipo={veEquipo}
                   />
                   <Link
                     href="/panel"

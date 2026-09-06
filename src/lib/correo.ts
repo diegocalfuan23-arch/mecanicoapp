@@ -71,3 +71,61 @@ tu contraseña sigue siendo la misma.`,
     throw new Error("No se pudo enviar el correo.");
   }
 }
+
+export async function enviarInvitacionEquipo({
+  para,
+  nombre,
+  taller,
+  url,
+}: {
+  para: string;
+  nombre: string;
+  /** Nombre del taller que invita, para que el correo no llegue "de la nada". */
+  taller: string;
+  url: string;
+}) {
+  if (!resend) {
+    console.warn(
+      `[correo] Sin RESEND_API_KEY. Invitación para ${para}:\n${url}`
+    );
+    return;
+  }
+
+  const { error } = await resend.emails.send({
+    from: REMITENTE,
+    to: para,
+    subject: `${taller} te invitó a MecanicoApp`,
+    text: `Hola ${nombre},
+
+${taller} te invitó a unirte a su taller en MecanicoApp. Para crear tu cuenta entra acá:
+${url}
+
+El enlace sirve por 7 días. Si no esperabas esta invitación, ignora el correo.`,
+    html: `
+      <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <p style="font-size: 18px; font-weight: 600; margin: 0 0 24px;">
+          Mecanico<span style="color: #c2410c;">App</span>
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
+          Hola ${nombre},
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+          <strong>${taller}</strong> te invitó a unirte a su taller en MecanicoApp.
+        </p>
+        <a href="${url}"
+           style="display: inline-block; background: #c2410c; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
+          Crear mi cuenta
+        </a>
+        <p style="font-size: 14px; line-height: 1.6; color: #666; margin: 24px 0 0;">
+          El enlace sirve por 7 días. Si no esperabas esta invitación,
+          ignora el correo.
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error("[correo] No se pudo enviar la invitación:", error);
+    throw new Error("No se pudo enviar el correo.");
+  }
+}
