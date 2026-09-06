@@ -43,9 +43,11 @@ const campoBase =
 function Formulario({
   insumo,
   onListo,
+  enModal = false,
 }: {
   insumo?: Insumo;
   onListo: () => void;
+  enModal?: boolean;
 }) {
   const router = useRouter();
   const editando = !!insumo;
@@ -105,19 +107,23 @@ function Formulario({
     }
   }
 
-  return (
-    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-      <h2 className="text-lg font-medium">
-        {editando ? `Editar ${insumo.nombre}` : "Nuevo insumo"}
-      </h2>
-      <p className="mt-1 text-[14px] text-muted-foreground">
-        Aceite, líquido de frenos, discos de corte — lo que se compra por
-        adelantado, no un repuesto puntual de un auto.
-      </p>
+  const contenido = (
+    <>
+      {!enModal && (
+        <>
+          <h2 className="text-lg font-medium">
+            {editando ? `Editar ${insumo.nombre}` : "Nuevo insumo"}
+          </h2>
+          <p className="mt-1 text-[14px] text-muted-foreground">
+            Aceite, líquido de frenos, discos de corte — lo que se compra por
+            adelantado, no un repuesto puntual de un auto.
+          </p>
+        </>
+      )}
 
       <form
         onSubmit={editando ? (e) => e.preventDefault() : enviar}
-        className="mt-6 flex flex-col gap-4"
+        className={enModal ? "flex flex-col gap-4" : "mt-6 flex flex-col gap-4"}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
@@ -227,12 +233,22 @@ function Formulario({
             <Button type="submit" disabled={enviando}>
               {enviando ? "Guardando…" : "Registrar insumo"}
             </Button>
-            <Button variant="outline" type="button" onClick={onListo}>
-              Cancelar
-            </Button>
+            {!enModal && (
+              <Button variant="outline" type="button" onClick={onListo}>
+                Cancelar
+              </Button>
+            )}
           </div>
         )}
       </form>
+    </>
+  );
+
+  if (enModal) return contenido;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+      {contenido}
     </div>
   );
 }
@@ -241,10 +257,12 @@ function FormularioServicio({
   tipo,
   item,
   onListo,
+  enModal = false,
 }: {
   tipo: TipoItemServicio;
   item?: Servicio;
   onListo: () => void;
+  enModal?: boolean;
 }) {
   const router = useRouter();
   const editando = !!item;
@@ -317,24 +335,28 @@ function FormularioServicio({
     }
   }
 
-  return (
-    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-      <h2 className="text-lg font-medium">
-        {editando
-          ? `Editar ${item.nombre}`
-          : esServicio
-            ? "Nuevo servicio"
-            : "Nueva mano de obra"}
-      </h2>
-      <p className="mt-1 text-[14px] text-muted-foreground">
-        {esServicio
-          ? "Se cobra a precio fijo — cambio de aceite, alineación, diagnóstico."
-          : "Se cobra por tarifa y horas — desarme, instalación, reparación."}
-      </p>
+  const contenido = (
+    <>
+      {!enModal && (
+        <>
+          <h2 className="text-lg font-medium">
+            {editando
+              ? `Editar ${item.nombre}`
+              : esServicio
+                ? "Nuevo servicio"
+                : "Nueva mano de obra"}
+          </h2>
+          <p className="mt-1 text-[14px] text-muted-foreground">
+            {esServicio
+              ? "Se cobra a precio fijo — cambio de aceite, alineación, diagnóstico."
+              : "Se cobra por tarifa y horas — desarme, instalación, reparación."}
+          </p>
+        </>
+      )}
 
       <form
         onSubmit={editando ? (e) => e.preventDefault() : enviar}
-        className="mt-6 flex flex-col gap-4"
+        className={enModal ? "flex flex-col gap-4" : "mt-6 flex flex-col gap-4"}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
@@ -456,12 +478,22 @@ function FormularioServicio({
             <Button type="submit" disabled={enviando}>
               {enviando ? "Guardando…" : "Registrar"}
             </Button>
-            <Button variant="outline" type="button" onClick={onListo}>
-              Cancelar
-            </Button>
+            {!enModal && (
+              <Button variant="outline" type="button" onClick={onListo}>
+                Cancelar
+              </Button>
+            )}
           </div>
         )}
       </form>
+    </>
+  );
+
+  if (enModal) return contenido;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+      {contenido}
     </div>
   );
 }
@@ -469,13 +501,15 @@ function FormularioServicio({
 function ListaServicios({
   tipo,
   servicios,
+  onEditar,
+  onNuevo,
 }: {
   tipo: TipoItemServicio;
   servicios: Servicio[];
+  onEditar: (servicio: Servicio) => void;
+  onNuevo: () => void;
 }) {
   const router = useRouter();
-  const [abierto, setAbierto] = useState(false);
-  const [editando, setEditando] = useState<Servicio | null>(null);
   const [confirmando, setConfirmando] = useState<Servicio | null>(null);
   const [borrando, setBorrando] = useState(false);
 
@@ -489,20 +523,6 @@ function ListaServicios({
     setBorrando(false);
     setConfirmando(null);
     router.refresh();
-  }
-
-  if (abierto || editando) {
-    return (
-      <FormularioServicio
-        key={editando?.id ?? "nuevo"}
-        tipo={tipo}
-        item={editando ?? undefined}
-        onListo={() => {
-          setAbierto(false);
-          setEditando(null);
-        }}
-      />
-    );
   }
 
   return (
@@ -550,7 +570,7 @@ function ListaServicios({
               : "Todavía no registraste mano de obra."}
           </p>
           <button
-            onClick={() => setAbierto(true)}
+            onClick={onNuevo}
             className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             Registrar el primero
@@ -562,7 +582,7 @@ function ListaServicios({
             {filtrados.map((s) => (
               <li
                 key={s.id}
-                onClick={() => setEditando(s)}
+                onClick={() => onEditar(s)}
                 className="flex min-w-0 cursor-pointer flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 sm:p-6"
               >
                 <p className="truncate font-medium">{s.nombre}</p>
@@ -618,7 +638,7 @@ function ListaServicios({
                 {filtrados.map((s) => (
                   <tr
                     key={s.id}
-                    onClick={() => setEditando(s)}
+                    onClick={() => onEditar(s)}
                     className="cursor-pointer border-b border-border last:border-0 hover:bg-card/50"
                   >
                     <td className="px-4 py-4 font-medium whitespace-nowrap">
@@ -688,6 +708,9 @@ export function TablaInventario({
   >("todos");
   const [busqueda, setBusqueda] = useState("");
   const [abierto, setAbierto] = useState(false);
+  const [tipoNuevo, setTipoNuevo] = useState<
+    "repuesto" | "servicio" | "mano_obra"
+  >("repuesto");
   const [editando, setEditando] = useState<Insumo | null>(null);
   const [editandoServicio, setEditandoServicio] = useState<Servicio | null>(
     null
@@ -729,6 +752,79 @@ export function TablaInventario({
     setEditandoServicio(null);
   }
 
+  // Editando ya trae su tipo fijo desde la fila — solo al crear se
+  // eligen las 3 pestañas dentro del propio modal (como Bujía).
+  const tipoModal: "repuesto" | "servicio" | "mano_obra" = editandoServicio
+    ? (editandoServicio.tipo as "servicio" | "mano_obra")
+    : editando
+      ? "repuesto"
+      : tipoNuevo;
+
+  const modalNuevoItem = (abierto || editando || editandoServicio) && (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={cerrarFormularios}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-lg font-medium">
+            {editando || editandoServicio ? "Editar ítem" : "Nuevo ítem de inventario"}
+          </h2>
+          <button
+            aria-label="Cerrar"
+            onClick={cerrarFormularios}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-4 flex gap-1 rounded-lg border border-border p-1">
+          {(["repuesto", "servicio", "mano_obra"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              disabled={!!editando || !!editandoServicio}
+              onClick={() => setTipoNuevo(t)}
+              className={`flex-1 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                tipoModal === t
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {ETIQUETA_TIPO[t]}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6">
+          {tipoModal === "repuesto" ? (
+            <Formulario
+              key={editando?.id ?? "nuevo"}
+              insumo={editando ?? undefined}
+              onListo={cerrarFormularios}
+              enModal
+            />
+          ) : (
+            <FormularioServicio
+              key={editandoServicio?.id ?? "nuevo"}
+              tipo={tipoModal}
+              item={editandoServicio ?? undefined}
+              onListo={cerrarFormularios}
+              enModal
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const encabezado = (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="relative w-full sm:max-w-xs">
@@ -762,6 +858,7 @@ export function TablaInventario({
       <Button
         onClick={() => {
           cerrarFormularios();
+          setTipoNuevo(pestana === "todos" ? "repuesto" : pestana);
           setAbierto(true);
         }}
         className="shrink-0"
@@ -793,49 +890,21 @@ export function TablaInventario({
     </div>
   );
 
-  // El formulario que corresponde según qué se esté creando/editando —
-  // en "Todos" no se sabe de antemano qué tipo es hasta que se hace
-  // click en una fila, o se elige desde "Nuevo ítem" (por defecto abre
-  // Repuesto, el caso más común).
-  if (abierto || editando || editandoServicio) {
-    if (editandoServicio || (abierto && pestana !== "repuesto" && pestana !== "todos")) {
-      const tipoForm =
-        editandoServicio?.tipo === "mano_obra" || pestana === "mano_obra"
-          ? "mano_obra"
-          : "servicio";
-      return (
-        <>
-          {encabezado}
-          {tabs}
-          <FormularioServicio
-            key={editandoServicio?.id ?? "nuevo"}
-            tipo={tipoForm}
-            item={editandoServicio ?? undefined}
-            onListo={cerrarFormularios}
-          />
-        </>
-      );
-    }
-
-    return (
-      <>
-        {encabezado}
-        {tabs}
-        <Formulario
-          key={editando?.id ?? "nuevo"}
-          insumo={editando ?? undefined}
-          onListo={cerrarFormularios}
-        />
-      </>
-    );
-  }
-
   if (pestana === "servicio" || pestana === "mano_obra") {
     return (
       <>
         {encabezado}
         {tabs}
-        <ListaServicios tipo={pestana} servicios={serviciosFiltrados} />
+        {modalNuevoItem}
+        <ListaServicios
+          tipo={pestana}
+          servicios={serviciosFiltrados}
+          onEditar={(s) => setEditandoServicio(s)}
+          onNuevo={() => {
+            setTipoNuevo(pestana);
+            setAbierto(true);
+          }}
+        />
       </>
     );
   }
@@ -865,6 +934,7 @@ export function TablaInventario({
       <>
         {encabezado}
         {tabs}
+        {modalNuevoItem}
         {confirmando && (
           <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
             <button
@@ -972,6 +1042,7 @@ export function TablaInventario({
     <>
       {encabezado}
       {tabs}
+      {modalNuevoItem}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
           <button
@@ -1016,7 +1087,10 @@ export function TablaInventario({
           </p>
           {!q && (
             <button
-              onClick={() => setAbierto(true)}
+              onClick={() => {
+                setTipoNuevo("repuesto");
+                setAbierto(true);
+              }}
               className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Registrar el primero
