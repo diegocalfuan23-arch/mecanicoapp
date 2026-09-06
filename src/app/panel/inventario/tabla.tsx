@@ -667,6 +667,20 @@ function ListaServicios({
   );
 }
 
+const ETIQUETA_TIPO: Record<"repuesto" | "servicio" | "mano_obra", string> = {
+  repuesto: "Repuesto/producto",
+  servicio: "Servicio",
+  mano_obra: "Mano de obra",
+};
+
+function BadgeTipo({ tipo }: { tipo: "repuesto" | "servicio" | "mano_obra" }) {
+  return (
+    <span className="inline-flex shrink-0 items-center rounded-full bg-primary/10 px-2.5 py-1 text-[12px] font-medium whitespace-nowrap text-primary">
+      {ETIQUETA_TIPO[tipo]}
+    </span>
+  );
+}
+
 export function TablaInventario({
   insumos,
   servicios,
@@ -675,11 +689,15 @@ export function TablaInventario({
   servicios: Servicio[];
 }) {
   const router = useRouter();
-  const [pestana, setPestana] = useState<"repuesto" | "servicio" | "mano_obra">(
-    "repuesto"
-  );
+  const [pestana, setPestana] = useState<
+    "todos" | "repuesto" | "servicio" | "mano_obra"
+  >("todos");
+  const [busqueda, setBusqueda] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [editando, setEditando] = useState<Insumo | null>(null);
+  const [editandoServicio, setEditandoServicio] = useState<Servicio | null>(
+    null
+  );
   const [confirmando, setConfirmando] = useState<Insumo | null>(null);
   const [borrando, setBorrando] = useState(false);
 
@@ -693,23 +711,83 @@ export function TablaInventario({
   }
 
   const pestanas: { id: typeof pestana; etiqueta: string }[] = [
-    { id: "repuesto", etiqueta: "Repuesto/producto" },
+    { id: "todos", etiqueta: "Todos" },
+    { id: "repuesto", etiqueta: "Repuesto / producto" },
     { id: "servicio", etiqueta: "Servicio" },
     { id: "mano_obra", etiqueta: "Mano de obra" },
   ];
 
+  const q = busqueda.trim().toLowerCase();
+  const insumosFiltrados = insumos.filter(
+    (i) =>
+      !q ||
+      i.nombre.toLowerCase().includes(q) ||
+      i.codigo?.toLowerCase().includes(q) ||
+      i.marca?.toLowerCase().includes(q)
+  );
+  const serviciosFiltrados = servicios.filter(
+    (s) => !q || s.nombre.toLowerCase().includes(q)
+  );
+
+  function cerrarFormularios() {
+    setAbierto(false);
+    setEditando(null);
+    setEditandoServicio(null);
+  }
+
+  const encabezado = (
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="relative flex-1">
+        <svg
+          viewBox="0 0 20 20"
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        >
+          <circle
+            cx="9"
+            cy="9"
+            r="6.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="M17 17l-4-4"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+        <input
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por nombre, código o marca…"
+          className="w-full rounded-lg border border-border bg-card py-2 pr-4 pl-9 text-[14px] outline-none placeholder:text-muted-foreground/60 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+        />
+      </div>
+      <Button
+        onClick={() => {
+          cerrarFormularios();
+          setAbierto(true);
+        }}
+        className="shrink-0"
+      >
+        Nuevo ítem
+      </Button>
+    </div>
+  );
+
   const tabs = (
-    <div className="mb-6 flex rounded-lg border border-border p-1">
+    <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-lg border border-border p-1 sm:w-fit">
       {pestanas.map((p) => (
         <button
           key={p.id}
           type="button"
           onClick={() => {
             setPestana(p.id);
-            setAbierto(false);
-            setEditando(null);
+            cerrarFormularios();
           }}
-          className={`flex-1 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
+          className={`shrink-0 rounded-md px-3 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
             pestana === p.id
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
@@ -721,33 +799,184 @@ export function TablaInventario({
     </div>
   );
 
-  if (pestana === "servicio" || pestana === "mano_obra") {
-    return (
-      <>
-        {tabs}
-        <ListaServicios tipo={pestana} servicios={servicios} />
-      </>
-    );
-  }
+  // El formulario que corresponde según qué se esté creando/editando —
+  // en "Todos" no se sabe de antemano qué tipo es hasta que se hace
+  // click en una fila, o se elige desde "Nuevo ítem" (por defecto abre
+  // Repuesto, el caso más común).
+  if (abierto || editando || editandoServicio) {
+    if (editandoServicio || (abierto && pestana !== "repuesto" && pestana !== "todos")) {
+      const tipoForm =
+        editandoServicio?.tipo === "mano_obra" || pestana === "mano_obra"
+          ? "mano_obra"
+          : "servicio";
+      return (
+        <>
+          {encabezado}
+          {tabs}
+          <FormularioServicio
+            key={editandoServicio?.id ?? "nuevo"}
+            tipo={tipoForm}
+            item={editandoServicio ?? undefined}
+            onListo={cerrarFormularios}
+          />
+        </>
+      );
+    }
 
-  if (abierto || editando) {
     return (
       <>
+        {encabezado}
         {tabs}
         <Formulario
           key={editando?.id ?? "nuevo"}
           insumo={editando ?? undefined}
-          onListo={() => {
-            setAbierto(false);
-            setEditando(null);
-          }}
+          onListo={cerrarFormularios}
         />
+      </>
+    );
+  }
+
+  if (pestana === "servicio" || pestana === "mano_obra") {
+    return (
+      <>
+        {encabezado}
+        {tabs}
+        <ListaServicios tipo={pestana} servicios={serviciosFiltrados} />
+      </>
+    );
+  }
+
+  const filasTodos =
+    pestana === "todos"
+      ? [
+          ...insumosFiltrados.map((i) => ({
+            id: i.id,
+            tipo: "repuesto" as const,
+            nombre: i.nombre,
+            precio: i.precio,
+            insumo: i,
+          })),
+          ...serviciosFiltrados.map((s) => ({
+            id: s.id,
+            tipo: s.tipo as "servicio" | "mano_obra",
+            nombre: s.nombre,
+            precio: s.tipo === "servicio" ? (s.precio ?? 0) : (s.tarifaHora ?? 0),
+            servicio: s,
+          })),
+        ].sort((a, b) => a.nombre.localeCompare(b.nombre))
+      : [];
+
+  if (pestana === "todos") {
+    return (
+      <>
+        {encabezado}
+        {tabs}
+        {confirmando && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+            <button
+              aria-label="Cancelar"
+              onClick={() => setConfirmando(null)}
+              className="absolute inset-0 bg-black/60"
+            />
+            <div
+              role="dialog"
+              aria-modal
+              className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6"
+            >
+              <h2 className="text-lg font-medium">
+                ¿Eliminar {confirmando.nombre}?
+              </h2>
+              <p className="mt-2 text-[15px] text-muted-foreground">
+                Las órdenes que ya lo usaron mantienen su registro, solo se
+                borra del inventario.
+              </p>
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                <button
+                  onClick={borrar}
+                  disabled={borrando}
+                  className="rounded-lg bg-destructive px-6 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {borrando ? "Borrando…" : "Sí, eliminar"}
+                </button>
+                <Button variant="outline" onClick={() => setConfirmando(null)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {filasTodos.length === 0 ? (
+          <div className="mt-8 rounded-xl border border-dashed border-border py-16 text-center">
+            <p className="text-muted-foreground">
+              {q
+                ? "Nada coincide con esa búsqueda."
+                : "Todavía no registraste nada en el inventario."}
+            </p>
+          </div>
+        ) : (
+          <div className="scroll-discreto overflow-x-auto rounded-xl border border-border">
+            <table className="w-full border-collapse text-[14px]">
+              <thead>
+                <tr className="border-b border-border bg-card">
+                  {["Nombre", "Tipo", "Precio", "Acciones"].map((c) => (
+                    <th
+                      key={c}
+                      className="px-4 py-3 text-left font-medium whitespace-nowrap text-muted-foreground"
+                    >
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filasTodos.map((f) => (
+                  <tr
+                    key={f.id}
+                    onClick={() =>
+                      f.tipo === "repuesto"
+                        ? setEditando(f.insumo!)
+                        : setEditandoServicio(f.servicio!)
+                    }
+                    className="cursor-pointer border-b border-border last:border-0 hover:bg-card/50"
+                  >
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">
+                      {f.nombre}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <BadgeTipo tipo={f.tipo} />
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                      {pesos(f.precio)}
+                    </td>
+                    <td
+                      className="px-4 py-3 whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() =>
+                          f.tipo === "repuesto"
+                            ? setConfirmando(f.insumo!)
+                            : undefined
+                        }
+                        className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                      >
+                        {f.tipo === "repuesto" ? "Eliminar" : "Editar para eliminar"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </>
     );
   }
 
   return (
     <>
+      {encabezado}
       {tabs}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
@@ -784,30 +1013,28 @@ export function TablaInventario({
         </div>
       )}
 
-      <div className="flex justify-end">
-        <Button onClick={() => setAbierto(true)} className="shrink-0">
-          Nuevo insumo
-        </Button>
-      </div>
-
-      {insumos.length === 0 ? (
+      {insumosFiltrados.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-border py-16 text-center">
           <p className="text-muted-foreground">
-            Todavía no registraste ningún insumo.
+            {q
+              ? "Nada coincide con esa búsqueda."
+              : "Todavía no registraste ningún insumo."}
           </p>
-          <button
-            onClick={() => setAbierto(true)}
-            className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
-          >
-            Registrar el primero
-          </button>
+          {!q && (
+            <button
+              onClick={() => setAbierto(true)}
+              className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              Registrar el primero
+            </button>
+          )}
         </div>
       ) : (
         <>
           {/* En el teléfono, cada insumo es una tarjeta — la tabla de
               escritorio obligaría a arrastrar de lado. */}
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:hidden">
-            {insumos.map((i) => {
+          <ul className="grid gap-4 sm:grid-cols-2 lg:hidden">
+            {insumosFiltrados.map((i) => {
               const bajo = i.stock <= i.stockMinimo && i.stockMinimo > 0;
               return (
                 <li
@@ -849,7 +1076,7 @@ export function TablaInventario({
             })}
           </ul>
 
-          <div className="scroll-discreto mt-6 hidden overflow-x-auto rounded-xl border border-border lg:block">
+          <div className="scroll-discreto hidden overflow-x-auto rounded-xl border border-border lg:block">
             <table className="w-full border-collapse text-[14px]">
               <thead>
                 <tr className="border-b border-border bg-card">
@@ -866,7 +1093,7 @@ export function TablaInventario({
                 </tr>
               </thead>
               <tbody>
-                {insumos.map((i) => {
+                {insumosFiltrados.map((i) => {
                   const bajo = i.stock <= i.stockMinimo && i.stockMinimo > 0;
                   return (
                     <tr
