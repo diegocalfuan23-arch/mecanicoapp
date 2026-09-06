@@ -346,6 +346,38 @@ export const parte = pgTable(
 );
 
 /**
+ * Catálogo de servicio y mano de obra — Plan Serviteca. Separado de
+ * `parte` porque no tienen stock (no se agotan): un servicio se cobra
+ * a precio fijo, la mano de obra se cobra por tarifa × horas. Por eso
+ * las columnas de precio/tiempo son distintas según `tipo`, y quedan
+ * en null las que no aplican — no es lo mismo que `servicioTaller`
+ * (ese es el checklist que se marca al cerrar una orden, sin precio).
+ */
+export const itemServicio = pgTable(
+  "item_servicio",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    tipo: text("tipo").notNull(), // servicio · mano_obra
+    nombre: text("nombre").notNull(),
+    descripcion: text("descripcion"),
+    costo: integer("costo").notNull().default(0),
+    precio: integer("precio"), // solo tipo "servicio"
+    duracionMinutos: integer("duracion_minutos"), // solo tipo "servicio"
+    tarifaHora: integer("tarifa_hora"), // solo tipo "mano_obra"
+    horasPorDefecto: integer("horas_por_defecto"), // solo tipo "mano_obra"
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("item_servicio_taller_idx").on(t.tallerId),
+    index("item_servicio_tipo_idx").on(t.tallerId, t.tipo),
+  ]
+);
+
+/**
  * Catálogo de servicios propio de cada taller — Plan Serviteca. Antes
  * era una lista fija en código (lib/servicios-catalogo.ts), igual
  * para todos los talleres; ahora cada dueño arma la suya, agrupada

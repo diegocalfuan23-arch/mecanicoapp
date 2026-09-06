@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
-import { listarInventario } from "./acciones";
+import { listarInventario, listarServicios } from "./acciones";
 import { TablaInventario } from "./tabla";
 
 export default async function Inventario() {
@@ -8,7 +8,10 @@ export default async function Inventario() {
   // basta con ocultar el link del sidebar.
   if (!(await tienePlan("inventario"))) redirect("/panel");
 
-  const insumos = await listarInventario();
+  const [insumos, servicios] = await Promise.all([
+    listarInventario(),
+    listarServicios(),
+  ]);
   const bajos = insumos.filter(
     (i) => i.stock <= i.stockMinimo && i.stockMinimo > 0
   ).length;
@@ -26,7 +29,7 @@ export default async function Inventario() {
         </p>
       </div>
 
-      <TablaInventario insumos={insumos} />
+      <TablaInventario insumos={insumos} servicios={servicios} />
     </>
   );
 }
