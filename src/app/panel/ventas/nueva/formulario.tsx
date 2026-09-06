@@ -38,8 +38,10 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
 
   const [clienteNombre, setClienteNombre] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
-  const [patente, setPatente] = useState("");
   const [mostrarCliente, setMostrarCliente] = useState(false);
+
+  const [patente, setPatente] = useState("");
+  const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
 
   const [estado, setEstado] = useState<"pagada" | "cotizacion">("pagada");
   const [metodoPago, setMetodoPago] = useState("");
@@ -356,42 +358,91 @@ export function NuevaVenta({ inventario }: { inventario: Repuesto[] }) {
           </p>
         </div>
 
-        <div className="mt-4">
-          {!mostrarCliente ? (
+        <div className="mt-4 flex flex-wrap gap-4">
+          {!mostrarCliente && (
             <button
               type="button"
               onClick={() => setMostrarCliente(true)}
               className="text-[13px] text-acento hover:underline"
             >
-              + Agregar cliente o vehículo (opcional)
+              + Agregar cliente (opcional)
             </button>
-          ) : (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  value={clienteNombre}
-                  onChange={(e) => setClienteNombre(e.target.value)}
-                  placeholder="Nombre del cliente"
-                  className={campo}
-                />
-                <input
-                  value={clienteTelefono}
-                  onChange={(e) => setClienteTelefono(e.target.value)}
-                  placeholder="Teléfono"
-                  inputMode="tel"
-                  className={campo}
-                />
-              </div>
-              <input
-                value={patente}
-                onChange={(e) => setPatente(e.target.value)}
-                placeholder="Patente (opcional)"
-                autoCapitalize="characters"
-                className={`${campo} mt-3 font-mono uppercase`}
-              />
-            </div>
+          )}
+          {!mostrarVehiculo && (
+            <button
+              type="button"
+              onClick={() => setMostrarVehiculo(true)}
+              className="text-[13px] text-acento hover:underline"
+            >
+              + Agregar vehículo (opcional)
+            </button>
           )}
         </div>
+
+        {(mostrarCliente || mostrarVehiculo) && (
+          <div className="mt-3 flex flex-col gap-3">
+            {mostrarCliente && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[13px] font-medium">Cliente</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarCliente(false);
+                      setClienteNombre("");
+                      setClienteTelefono("");
+                    }}
+                    className="text-[12px] text-muted-foreground hover:text-destructive"
+                  >
+                    Quitar
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    value={clienteNombre}
+                    onChange={(e) => setClienteNombre(e.target.value)}
+                    placeholder="Nombre del cliente"
+                    autoFocus
+                    className={campo}
+                  />
+                  <input
+                    value={clienteTelefono}
+                    onChange={(e) => setClienteTelefono(e.target.value)}
+                    placeholder="Teléfono"
+                    inputMode="tel"
+                    className={campo}
+                  />
+                </div>
+              </div>
+            )}
+
+            {mostrarVehiculo && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[13px] font-medium">Vehículo</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarVehiculo(false);
+                      setPatente("");
+                    }}
+                    className="text-[12px] text-muted-foreground hover:text-destructive"
+                  >
+                    Quitar
+                  </button>
+                </div>
+                <input
+                  value={patente}
+                  onChange={(e) => setPatente(e.target.value)}
+                  placeholder="Patente"
+                  autoFocus
+                  autoCapitalize="characters"
+                  className={`${campo} font-mono uppercase`}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {estado === "pagada" && (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
