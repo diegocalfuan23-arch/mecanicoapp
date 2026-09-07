@@ -700,11 +700,7 @@ export function NuevaVenta({
         <Button
           type="button"
           onClick={completar}
-          disabled={
-            enviando ||
-            items.length === 0 ||
-            ((estado === "pagada" || estado === "pendiente") && !cliente)
-          }
+          disabled={enviando || items.length === 0}
           className="mt-4 w-full"
         >
           {enviando

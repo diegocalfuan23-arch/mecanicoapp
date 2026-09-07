@@ -40,14 +40,10 @@ export async function crearVenta(datos: {
     return { error: "Agrega al menos un ítem al carrito." };
   }
 
-  // Pagada y pendiente ya entregan algo real (por eso descuentan
-  // stock) y quedan a nombre de alguien real, para trazabilidad — una
-  // cotización todavía no compromete a nadie, así que puede quedar
-  // sin cliente.
+  // Pagada y pendiente ya entregan algo real, por eso descuentan
+  // stock — el cliente queda a criterio del mecánico, opcional en
+  // cualquier estado (ej. venta de mostrador sin registrar a nadie).
   const yaEntregada = datos.estado === "pagada" || datos.estado === "pendiente";
-  if (yaEntregada && !datos.clienteId) {
-    return { error: "Selecciona un cliente para completar la venta." };
-  }
 
   let clienteNombre: string | null = null;
   let clienteTelefono: string | null = null;
