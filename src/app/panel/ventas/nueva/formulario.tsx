@@ -50,6 +50,7 @@ export function NuevaVenta({
   const [librePrecio, setLibrePrecio] = useState("");
 
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
+  const [mostrarCliente, setMostrarCliente] = useState(false);
 
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
@@ -364,9 +365,16 @@ export function NuevaVenta({
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => (cliente ? setCliente(null) : undefined)}
+            onClick={() => {
+              if (mostrarCliente || cliente) {
+                setMostrarCliente(false);
+                setCliente(null);
+              } else {
+                setMostrarCliente(true);
+              }
+            }}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
-              cliente
+              mostrarCliente || cliente
                 ? "border border-border hover:bg-background"
                 : "bg-primary text-primary-foreground hover:opacity-90"
             }`}
@@ -380,7 +388,7 @@ export function NuevaVenta({
                 strokeLinecap="round"
               />
             </svg>
-            {cliente ? "Quitar cliente" : "Agregar cliente"}
+            {mostrarCliente || cliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
           <button
             type="button"
@@ -410,18 +418,6 @@ export function NuevaVenta({
             </svg>
             {mostrarVehiculo ? "Quitar vehículo" : "Agregar vehículo"}
           </button>
-        </div>
-
-        <div className="mt-3">
-          <span className="mb-2 block text-[13px] font-medium">
-            Cliente{estado !== "cotizacion" ? "" : " (opcional)"}
-          </span>
-          <BuscadorCliente
-            clientes={clientes}
-            seleccionado={cliente}
-            onSeleccionar={setCliente}
-            tieneImpresion
-          />
         </div>
 
         {mostrarVehiculo && (
@@ -464,6 +460,20 @@ export function NuevaVenta({
                 className={campo}
               />
             </div>
+          </div>
+        )}
+
+        {(mostrarCliente || cliente) && (
+          <div className="mt-3">
+            <span className="mb-2 block text-[13px] font-medium">
+              Cliente{estado === "cotizacion" && " (opcional)"}
+            </span>
+            <BuscadorCliente
+              clientes={clientes}
+              seleccionado={cliente}
+              onSeleccionar={setCliente}
+              tieneImpresion
+            />
           </div>
         )}
 
