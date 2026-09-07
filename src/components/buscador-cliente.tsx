@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Formulario } from "@/app/panel/propietarios/tabla";
-import { Button } from "@/components/ui/button";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -35,6 +34,8 @@ export function BuscadorCliente({
   tieneImpresion,
   abrirCreacion,
   onCreacionAbierta,
+  abrirBusqueda,
+  onBusquedaAbierta,
 }: {
   clientes: ClienteOpcion[];
   seleccionado: ClienteOpcion | null;
@@ -45,20 +46,30 @@ export function BuscadorCliente({
   abrirCreacion?: boolean;
   /** Avisa al padre que ya se hizo cargo de la señal de abrirCreacion. */
   onCreacionAbierta?: () => void;
+  /** El padre pide abrir la búsqueda (ej. "o buscar uno existente"). */
+  abrirBusqueda?: boolean;
+  /** Avisa al padre que ya se hizo cargo de la señal de abrirBusqueda. */
+  onBusquedaAbierta?: () => void;
 }) {
   const [busqueda, setBusqueda] = useState("");
-  const [buscando, setBuscando] = useState(false);
+  const [buscandoLocal, setBuscandoLocal] = useState(false);
   const [creandoLocal, setCreandoLocal] = useState(false);
 
-  // El padre puede pedir abrir el modal directo (ej. al pulsar
-  // "Agregar cliente" arriba del carrito); una vez mostrado, se avisa
-  // para que baje la señal y no se vuelva a abrir solo. El propio
-  // componente también puede abrirlo desde el botón interno.
+  // El padre puede pedir abrir el modal/búsqueda directo (ej. al
+  // pulsar "Agregar cliente" o "o buscar uno existente" arriba del
+  // carrito); una vez mostrado, se avisa para que baje la señal y no
+  // se vuelva a abrir solo.
   const creando = abrirCreacion || creandoLocal;
+  const buscando = abrirBusqueda || buscandoLocal;
 
   function cerrarCreacion() {
     setCreandoLocal(false);
     if (abrirCreacion) onCreacionAbierta?.();
+  }
+
+  function cerrarBusqueda() {
+    setBuscandoLocal(false);
+    if (abrirBusqueda) onBusquedaAbierta?.();
   }
 
   const q = busqueda.trim().toLowerCase();
@@ -97,9 +108,13 @@ export function BuscadorCliente({
     );
   }
 
+  // Sin cliente y nada abierto: no hay nada que mostrar acá — "Agregar
+  // cliente" (arriba, en el padre) es el único disparador visible.
+  if (!buscando && !creando) return null;
+
   return (
     <>
-      {buscando ? (
+      {buscando && (
         <>
           <div className="relative">
             <svg
@@ -153,23 +168,10 @@ export function BuscadorCliente({
 
           <button
             type="button"
-            onClick={() => setBuscando(false)}
+            onClick={cerrarBusqueda}
             className="mt-2 text-[13px] text-muted-foreground hover:underline"
           >
             Cancelar búsqueda
-          </button>
-        </>
-      ) : (
-        <>
-          <Button type="button" onClick={() => setCreandoLocal(true)}>
-            + Registrar cliente
-          </Button>
-          <button
-            type="button"
-            onClick={() => setBuscando(true)}
-            className="ml-3 text-[13px] text-muted-foreground hover:underline"
-          >
-            o buscar uno existente
           </button>
         </>
       )}

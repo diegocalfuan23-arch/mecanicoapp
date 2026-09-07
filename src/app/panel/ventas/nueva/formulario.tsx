@@ -51,6 +51,7 @@ export function NuevaVenta({
 
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
   const [pedirCreacionCliente, setPedirCreacionCliente] = useState(false);
+  const [pedirBusquedaCliente, setPedirBusquedaCliente] = useState(false);
 
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
@@ -389,6 +390,15 @@ export function NuevaVenta({
             </svg>
             {cliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
+          {!cliente && (
+            <button
+              type="button"
+              onClick={() => setPedirBusquedaCliente(true)}
+              className="text-[13px] text-muted-foreground hover:underline"
+            >
+              o buscar uno existente
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -463,9 +473,11 @@ export function NuevaVenta({
         )}
 
         <div className="mt-3">
-          <span className="mb-2 block text-[13px] font-medium">
-            Cliente{estado === "cotizacion" && " (opcional)"}
-          </span>
+          {cliente && (
+            <span className="mb-2 block text-[13px] font-medium">
+              Cliente
+            </span>
+          )}
           <BuscadorCliente
             clientes={clientes}
             seleccionado={cliente}
@@ -473,6 +485,8 @@ export function NuevaVenta({
             tieneImpresion
             abrirCreacion={pedirCreacionCliente}
             onCreacionAbierta={() => setPedirCreacionCliente(false)}
+            abrirBusqueda={pedirBusquedaCliente}
+            onBusquedaAbierta={() => setPedirBusquedaCliente(false)}
           />
         </div>
 
