@@ -364,21 +364,51 @@ export function NuevaVenta({
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => (cliente ? setCliente(null) : null)}
-            disabled={!cliente}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-[13px] font-medium transition-colors hover:bg-background disabled:cursor-default disabled:opacity-40"
+            onClick={() => (cliente ? setCliente(null) : undefined)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
+              cliente
+                ? "border border-border hover:bg-background"
+                : "bg-primary text-primary-foreground hover:opacity-90"
+            }`}
           >
-            {cliente ? "Quitar cliente" : "Cliente"}
+            <svg viewBox="0 0 20 20" className="size-4 shrink-0" aria-hidden>
+              <path
+                d="M10 10a3 3 0 100-6 3 3 0 000 6zM4 16.5c0-2.5 2.7-4 6-4s6 1.5 6 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            {cliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
           <button
             type="button"
-            onClick={() =>
-              mostrarVehiculo ? undefined : setMostrarVehiculo(true)
-            }
-            disabled={mostrarVehiculo}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-[13px] font-medium transition-colors hover:bg-background disabled:cursor-default disabled:opacity-40"
+            onClick={() => {
+              if (mostrarVehiculo) {
+                setMostrarVehiculo(false);
+                setPatente("");
+              } else {
+                setMostrarVehiculo(true);
+              }
+            }}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
+              mostrarVehiculo
+                ? "border border-border hover:bg-background"
+                : "bg-primary text-primary-foreground hover:opacity-90"
+            }`}
           >
-            {mostrarVehiculo ? "Vehículo agregado" : "+ Agregar vehículo"}
+            <svg viewBox="0 0 20 20" className="size-4 shrink-0" aria-hidden>
+              <path
+                d="M3 12.5h14M4.5 12.5l1.2-4.2A2 2 0 017.6 7h4.8a2 2 0 011.9 1.3l1.2 4.2M4 12.5V15a1 1 0 001 1h1a1 1 0 001-1v-.5M13 14.5v.5a1 1 0 001 1h1a1 1 0 001-1v-2.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {mostrarVehiculo ? "Quitar vehículo" : "Agregar vehículo"}
           </button>
         </div>
 
@@ -396,19 +426,9 @@ export function NuevaVenta({
 
         {mostrarVehiculo && (
           <div className="mt-3 rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-[13px] font-medium">Vehículo</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setMostrarVehiculo(false);
-                  setPatente("");
-                }}
-                className="text-[12px] text-muted-foreground hover:text-destructive"
-              >
-                Quitar
-              </button>
-            </div>
+            <span className="mb-3 block text-[13px] font-medium">
+              Vehículo
+            </span>
             <input
               value={patente}
               onChange={(e) => setPatente(e.target.value)}
