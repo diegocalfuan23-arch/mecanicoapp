@@ -804,3 +804,56 @@ export const itemVenta = pgTable(
   },
   (t) => [index("item_venta_venta_idx").on(t.ventaId)]
 );
+
+/**
+ * Caja — Plan Serviteca. Movimiento manual de dinero que no viene de
+ * un abono de Orden ni de una venta POS pagada (esos dos ya se leen
+ * directo desde `abono`/`venta`, igual que en Pagos): un gasto, un
+ * retiro, un ingreso suelto que el mecánico anota a mano.
+ */
+export const movimientoCaja = pgTable(
+  "movimiento_caja",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    tipo: text("tipo").notNull(), // ingreso · egreso
+    monto: integer("monto").notNull(),
+    descripcion: text("descripcion").notNull(),
+    referencia: text("referencia"),
+    fecha: timestamp("fecha").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("movimiento_caja_taller_idx").on(t.tallerId, t.fecha),
+  ]
+);
+
+/**
+ * Un cierre de caja fija el disponible de ese día — el día siguiente
+ * arranca con ese monto como "disponible anterior", en vez de
+ * recalcular desde el principio de los tiempos cada vez. Un día sin
+ * cierre no bloquea nada: el disponible anterior simplemente busca el
+ * cierre más reciente y suma lo que pasó después.
+ */
+export const cierreCaja = pgTable(
+  "cierre_caja",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // Fecha calendario del día que se cierra (sin hora) — un solo
+    // cierre por taller por día.
+    fecha: timestamp("fecha").notNull(),
+    disponible: integer("disponible").notNull(),
+    cerradoPorId: text("cerrado_por_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("cierre_caja_taller_idx").on(t.tallerId, t.fecha),
+  ]
+);

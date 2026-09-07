@@ -171,6 +171,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/caja",
+    texto: "Caja",
+    icono: (
+      <path
+        d="M4 5.5h12a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1v-7a1 1 0 011-1zM10 8a2 2 0 100 4 2 2 0 000-4zM4 8v-.5M16 8v-.5M4 12v.5M16 12v.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/cuenta",
     texto: "Mi cuenta",
     icono: (
@@ -209,6 +223,7 @@ function Enlaces({
     if (s.href === "/panel/ventas") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
+    if (s.href === "/panel/caja") return vePagos;
     if (s.href === "/panel/equipo") return veEquipo;
     return true;
   });

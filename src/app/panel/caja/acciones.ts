@@ -1,0 +1,354 @@
+"use server";
+
+import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { eq, and, sql, gte, lt, desc } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  abono,
+  trabajo,
+  venta,
+  movimientoCaja,
+  cierreCaja,
+} from "@/db/schema";
+import { tallerActual, tienePlan } from "@/lib/taller";
+import { auth } from "@/lib/auth";
+
+function inicioDia(fecha: Date) {
+  const d = new Date(fecha);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function finDia(fecha: Date) {
+  const d = new Date(fecha);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+/**
+ * Cuánto entró en Órdenes (abono) + Ventas POS (venta pagada) el día
+ * dado — mismo criterio que cobradoDelMes en Pagos, solo que acotado
+ * a un día en vez de al mes.
+ */
+async function ingresosAutomaticosDelDia(tallerId: string, fecha: Date) {
+  const desde = inicioDia(fecha);
+  const hasta = finDia(fecha);
+
+  const [deOrdenes] = await db
+    .select({
+      monto: sql<number>`coalesce(sum(${abono.monto}), 0)`.mapWith(Number),
+    })
+    .from(abono)
+    .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+    .where(
+      and(
+        eq(trabajo.tallerId, tallerId),
+        gte(abono.fecha, desde),
+        lt(abono.fecha, hasta)
+      )
+    );
+
+  const [deVentas] = await db
+    .select({
+      monto: sql<number>`coalesce(sum(${venta.total}), 0)`.mapWith(Number),
+    })
+    .from(venta)
+    .where(
+      and(
+        eq(venta.tallerId, tallerId),
+        eq(venta.estado, "pagada"),
+        gte(venta.fecha, desde),
+        lt(venta.fecha, hasta)
+      )
+    );
+
+  return deOrdenes.monto + deVentas.monto;
+}
+
+/**
+ * Suma neta (ingresos - egresos) de movimientos manuales de caja en
+ * un rango — se usa tanto para el día actual como para el disponible
+ * anterior (todo lo que pasó antes de hoy, desde el último cierre).
+ */
+async function netoMovimientosManuales(
+  tallerId: string,
+  desde: Date,
+  hasta: Date
+) {
+  const [fila] = await db
+    .select({
+      neto: sql<number>`coalesce(sum(
+        case when ${movimientoCaja.tipo} = 'ingreso'
+        then ${movimientoCaja.monto} else -${movimientoCaja.monto} end
+      ), 0)`.mapWith(Number),
+    })
+    .from(movimientoCaja)
+    .where(
+      and(
+        eq(movimientoCaja.tallerId, tallerId),
+        gte(movimientoCaja.fecha, desde),
+        lt(movimientoCaja.fecha, hasta)
+      )
+    );
+  return fila.neto;
+}
+
+/**
+ * El disponible anterior no recalcula desde el principio de los
+ * tiempos: busca el cierre más reciente ANTES del día pedido y suma
+ * lo que entró/salió desde ese cierre hasta el día pedido. Sin ningún
+ * cierre previo, arranca desde cero.
+ */
+async function disponibleAnterior(tallerId: string, fecha: Date) {
+  const desdeDia = inicioDia(fecha);
+
+  const [ultimoCierre] = await db
+    .select({ fecha: cierreCaja.fecha, disponible: cierreCaja.disponible })
+    .from(cierreCaja)
+    .where(and(eq(cierreCaja.tallerId, tallerId), lt(cierreCaja.fecha, desdeDia)))
+    .orderBy(desc(cierreCaja.fecha))
+    .limit(1);
+
+  const desde = ultimoCierre ? new Date(ultimoCierre.fecha) : new Date(0);
+  const base = ultimoCierre?.disponible ?? 0;
+
+  // Todo lo que entró/salió entre el último cierre (exclusive) y el
+  // inicio del día pedido, sin volver a contar el propio día de cierre.
+  const desdeSiguiente = ultimoCierre
+    ? new Date(new Date(ultimoCierre.fecha).getTime() + 24 * 60 * 60 * 1000)
+    : desde;
+
+  let acumulado = base;
+  const cursor = new Date(desdeSiguiente);
+  while (cursor < desdeDia) {
+    const finCursor = finDia(cursor);
+    acumulado += await ingresosAutomaticosDelDia(tallerId, cursor);
+    acumulado += await netoMovimientosManuales(
+      tallerId,
+      inicioDia(cursor),
+      finCursor
+    );
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return acumulado;
+}
+
+export async function resumenDia(fechaIso: string) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+  const fecha = new Date(fechaIso);
+
+  const [ingresosAuto, netoManual, anterior] = await Promise.all([
+    ingresosAutomaticosDelDia(tallerId, fecha),
+    netoMovimientosManuales(tallerId, inicioDia(fecha), finDia(fecha)),
+    disponibleAnterior(tallerId, fecha),
+  ]);
+
+  const ingresosManuales = netoManual > 0 ? netoManual : 0;
+  const egresosManuales = netoManual < 0 ? -netoManual : 0;
+  const totalIngresos = ingresosAuto + ingresosManuales;
+  const totalEgresos = egresosManuales;
+
+  const [cierre] = await db
+    .select({ id: cierreCaja.id })
+    .from(cierreCaja)
+    .where(
+      and(
+        eq(cierreCaja.tallerId, tallerId),
+        gte(cierreCaja.fecha, inicioDia(fecha)),
+        lt(cierreCaja.fecha, finDia(fecha))
+      )
+    )
+    .limit(1);
+
+  return {
+    ok: true as const,
+    disponibleAnterior: anterior,
+    totalIngresos,
+    totalEgresos,
+    disponibleDelDia: anterior + totalIngresos - totalEgresos,
+    cerrado: !!cierre,
+  };
+}
+
+export type MovimientoDia = {
+  id: string;
+  tipo: "ingreso" | "egreso";
+  monto: number;
+  descripcion: string;
+  referencia: string | null;
+  origen: "orden" | "venta" | "manual";
+  fecha: Date;
+};
+
+export async function listarMovimientosDia(fechaIso: string) {
+  if (!(await tienePlan("impresionOrden"))) return [];
+
+  const tallerId = await tallerActual();
+  const fecha = new Date(fechaIso);
+  const desde = inicioDia(fecha);
+  const hasta = finDia(fecha);
+
+  const deOrdenes = await db
+    .select({
+      id: abono.id,
+      monto: abono.monto,
+      descripcion: trabajo.descripcion,
+      fecha: abono.fecha,
+    })
+    .from(abono)
+    .innerJoin(trabajo, eq(abono.trabajoId, trabajo.id))
+    .where(
+      and(
+        eq(trabajo.tallerId, tallerId),
+        gte(abono.fecha, desde),
+        lt(abono.fecha, hasta)
+      )
+    );
+
+  const deVentas = await db
+    .select({
+      id: venta.id,
+      monto: venta.total,
+      numero: venta.numero,
+      fecha: venta.fecha,
+    })
+    .from(venta)
+    .where(
+      and(
+        eq(venta.tallerId, tallerId),
+        eq(venta.estado, "pagada"),
+        gte(venta.fecha, desde),
+        lt(venta.fecha, hasta)
+      )
+    );
+
+  const manuales = await db
+    .select({
+      id: movimientoCaja.id,
+      tipo: movimientoCaja.tipo,
+      monto: movimientoCaja.monto,
+      descripcion: movimientoCaja.descripcion,
+      referencia: movimientoCaja.referencia,
+      fecha: movimientoCaja.fecha,
+    })
+    .from(movimientoCaja)
+    .where(
+      and(
+        eq(movimientoCaja.tallerId, tallerId),
+        gte(movimientoCaja.fecha, desde),
+        lt(movimientoCaja.fecha, hasta)
+      )
+    );
+
+  const items: MovimientoDia[] = [
+    ...deOrdenes.map((a) => ({
+      id: a.id,
+      tipo: "ingreso" as const,
+      monto: a.monto,
+      descripcion: a.descripcion || "Abono de orden",
+      referencia: null,
+      origen: "orden" as const,
+      fecha: a.fecha,
+    })),
+    ...deVentas.map((v) => ({
+      id: v.id,
+      tipo: "ingreso" as const,
+      monto: v.monto,
+      descripcion: `Venta V-${v.numero}`,
+      referencia: null,
+      origen: "venta" as const,
+      fecha: v.fecha,
+    })),
+    ...manuales.map((m) => ({
+      id: m.id,
+      tipo: m.tipo as "ingreso" | "egreso",
+      monto: m.monto,
+      descripcion: m.descripcion,
+      referencia: m.referencia,
+      origen: "manual" as const,
+      fecha: m.fecha,
+    })),
+  ];
+
+  return items.sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+}
+
+export async function registrarMovimiento(datos: {
+  tipo: "ingreso" | "egreso";
+  monto: number;
+  descripcion: string;
+  referencia?: string;
+}) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+
+  if (!datos.descripcion.trim()) {
+    return { error: "Escribe una descripción." };
+  }
+  if (!datos.monto || datos.monto <= 0) {
+    return { error: "El monto debe ser mayor a cero." };
+  }
+
+  await db.insert(movimientoCaja).values({
+    id: crypto.randomUUID(),
+    tallerId,
+    tipo: datos.tipo,
+    monto: Math.round(datos.monto),
+    descripcion: datos.descripcion.trim(),
+    referencia: datos.referencia?.trim() || null,
+  });
+
+  revalidatePath("/panel/caja");
+  return { ok: true };
+}
+
+export async function cerrarCaja(fechaIso: string) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+  const sesion = await auth.api.getSession({ headers: await headers() });
+  if (!sesion) return { error: "Sin sesión." };
+
+  const fecha = new Date(fechaIso);
+  const desde = inicioDia(fecha);
+  const hasta = finDia(fecha);
+
+  const [yaExiste] = await db
+    .select({ id: cierreCaja.id })
+    .from(cierreCaja)
+    .where(
+      and(
+        eq(cierreCaja.tallerId, tallerId),
+        gte(cierreCaja.fecha, desde),
+        lt(cierreCaja.fecha, hasta)
+      )
+    )
+    .limit(1);
+
+  if (yaExiste) return { error: "Ese día ya tiene la caja cerrada." };
+
+  const resumen = await resumenDia(fechaIso);
+  if (!resumen.ok) return { error: resumen.error };
+
+  await db.insert(cierreCaja).values({
+    id: crypto.randomUUID(),
+    tallerId,
+    fecha: desde,
+    disponible: resumen.disponibleDelDia,
+    cerradoPorId: sesion.user.id,
+  });
+
+  revalidatePath("/panel/caja");
+  return { ok: true };
+}
