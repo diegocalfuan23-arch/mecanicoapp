@@ -857,3 +857,91 @@ export const cierreCaja = pgTable(
     index("cierre_caja_taller_idx").on(t.tallerId, t.fecha),
   ]
 );
+
+/**
+ * Inspección pre-compra — Plan Serviteca. A diferencia de Diagnóstico
+ * (patente/cliente sueltos), acá cliente y vehículo son reales del
+ * catálogo (BuscadorCliente/BuscadorVehiculo), porque el resultado es
+ * un informe formal que alguien va a leer para decidir si compra el
+ * auto — necesita quedar bien identificado, no solo un apunte interno.
+ */
+export const inspeccion = pgTable(
+  "inspeccion",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    numero: integer("numero").notNull(),
+
+    clienteId: text("cliente_id").references(() => cliente.id, {
+      onDelete: "set null",
+    }),
+    vehiculoId: text("vehiculo_id").references(() => vehiculo.id, {
+      onDelete: "set null",
+    }),
+
+    // Datos complementarios del vehículo — no todos viven en la ficha
+    // de Vehículos (esos son fijos del auto; estos son del día de la
+    // inspección, ej. la transmisión puede no estar cargada en la
+    // ficha general).
+    combustible: text("combustible"),
+    kilometraje: integer("kilometraje"),
+    transmision: text("transmision"),
+    traccion: text("traccion"),
+
+    // Documentos del vehículo — vigencia, no archivos.
+    permisoCirculacion: text("permiso_circulacion"),
+    revisionTecnica: text("revision_tecnica"),
+    seguroObligatorio: text("seguro_obligatorio"),
+
+    otrosEquipamientos: text("otros_equipamientos"),
+
+    fotos: text("fotos").array().notNull().default([]),
+    videos: text("videos").array().notNull().default([]),
+    documentos: text("documentos").array().notNull().default([]),
+
+    observaciones: text("observaciones"),
+    conclusiones: text("conclusiones"),
+
+    // Quien hizo la inspección en terreno — puede no ser el mecánico
+    // logueado (ej. un tasador externo), por eso es texto libre y no
+    // tecnicoId.
+    contactoNombre: text("contacto_nombre"),
+    contactoDireccion: text("contacto_direccion"),
+    fechaInspeccion: timestamp("fecha_inspeccion"),
+
+    fecha: timestamp("fecha").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("inspeccion_taller_idx").on(t.tallerId, t.fecha),
+    index("inspeccion_cliente_idx").on(t.clienteId),
+    index("inspeccion_vehiculo_idx").on(t.vehiculoId),
+  ]
+);
+
+/**
+ * Cada ítem del checklist (Equipamiento/accesorios + Detalle de
+ * inspección) — clave-valor en vez de una columna por ítem, para
+ * poder agregar o quitar preguntas sin migrar el schema. `clave` es
+ * el identificador estable del ítem (ej. "vidrios_electricos"),
+ * `seccion` agrupa la UI (ej. "Motor"), `valor` es la respuesta.
+ */
+export const itemInspeccion = pgTable(
+  "item_inspeccion",
+  {
+    id: text("id").primaryKey(),
+    inspeccionId: text("inspeccion_id")
+      .notNull()
+      .references(() => inspeccion.id, { onDelete: "cascade" }),
+    seccion: text("seccion").notNull(),
+    clave: text("clave").notNull(),
+    // Sí · No · N/A (Equipamiento) — Buena · Regular · Mala · N/A (Detalle)
+    valor: text("valor").notNull(),
+  },
+  (t) => [
+    index("item_inspeccion_inspeccion_idx").on(t.inspeccionId),
+  ]
+);

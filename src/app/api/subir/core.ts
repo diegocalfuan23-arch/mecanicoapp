@@ -72,6 +72,43 @@ export const rutasSubida = {
     .onUploadComplete(async ({ file }) => {
       return { url: file.ufsUrl };
     }),
+
+  /** Evidencia de una inspección pre-compra — Plan Serviteca. */
+  fotoInspeccion: f({
+    image: { maxFileSize: "8MB", maxFileCount: 50 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
+
+  videoInspeccion: f({
+    video: { maxFileSize: "128MB", maxFileCount: 3 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
+
+  documentoInspeccion: f({
+    pdf: { maxFileSize: "8MB", maxFileCount: 3 },
+  })
+    .middleware(async ({ req }) => {
+      const sesion = await auth.api.getSession({ headers: req.headers });
+      if (!sesion) throw new UploadThingError("Sin sesión.");
+      return { tallerId: sesion.user.id };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type RutasSubida = typeof rutasSubida;

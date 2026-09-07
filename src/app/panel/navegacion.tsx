@@ -46,6 +46,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/inspecciones",
+    texto: "Inspecciones",
+    icono: (
+      <path
+        d="M4 6.5a2 2 0 012-2h8a2 2 0 012 2v9.5l-3-2-3 2-3-2-3 2v-9.5zM7 7.5h6M7 10h6M7 12.5h3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/presupuestos",
     texto: "Presupuestos",
     icono: (
@@ -220,6 +234,7 @@ function Enlaces({
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneCatalogoServicios;
     if (s.href === "/panel/diagnosticos") return tieneServicios;
+    if (s.href === "/panel/inspecciones") return tieneServicios;
     if (s.href === "/panel/ventas") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
