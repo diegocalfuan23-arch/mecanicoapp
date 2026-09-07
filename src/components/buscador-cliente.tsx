@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Formulario } from "@/app/panel/propietarios/tabla";
+import { Button } from "@/components/ui/button";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -22,55 +23,24 @@ function nombreCompleto(c: ClienteOpcion) {
 /**
  * Buscador + crear cliente al vuelo — usado donde una venta u orden
  * necesita quedar asociada a un cliente real de Propietarios, no a
- * texto suelto. "Agregar cliente" (afuera, en el padre) abre directo
- * el modal de registro con el formulario completo de Propietarios —
- * buscar uno ya existente queda como opción secundaria, detrás de un
- * link, para el caso de un cliente que vuelve.
+ * texto suelto. Buscador y "+ Nuevo cliente" van siempre juntos; el
+ * botón abre el formulario completo de Propietarios en un modal, así
+ * el cliente queda con sus datos completos desde el primer registro.
  */
 export function BuscadorCliente({
   clientes,
   seleccionado,
   onSeleccionar,
   tieneImpresion,
-  abrirCreacion,
-  onCreacionAbierta,
-  abrirBusqueda,
-  onBusquedaAbierta,
 }: {
   clientes: ClienteOpcion[];
   seleccionado: ClienteOpcion | null;
   onSeleccionar: (cliente: ClienteOpcion | null) => void;
   /** Plan Serviteca: el formulario completo agrega email, dirección, empresa/RUT. */
   tieneImpresion: boolean;
-  /** El padre pide abrir el modal de creación (ej. al pulsar "Agregar cliente"). */
-  abrirCreacion?: boolean;
-  /** Avisa al padre que ya se hizo cargo de la señal de abrirCreacion. */
-  onCreacionAbierta?: () => void;
-  /** El padre pide abrir la búsqueda (ej. "o buscar uno existente"). */
-  abrirBusqueda?: boolean;
-  /** Avisa al padre que ya se hizo cargo de la señal de abrirBusqueda. */
-  onBusquedaAbierta?: () => void;
 }) {
   const [busqueda, setBusqueda] = useState("");
-  const [buscandoLocal, setBuscandoLocal] = useState(false);
-  const [creandoLocal, setCreandoLocal] = useState(false);
-
-  // El padre puede pedir abrir el modal/búsqueda directo (ej. al
-  // pulsar "Agregar cliente" o "o buscar uno existente" arriba del
-  // carrito); una vez mostrado, se avisa para que baje la señal y no
-  // se vuelva a abrir solo.
-  const creando = abrirCreacion || creandoLocal;
-  const buscando = abrirBusqueda || buscandoLocal;
-
-  function cerrarCreacion() {
-    setCreandoLocal(false);
-    if (abrirCreacion) onCreacionAbierta?.();
-  }
-
-  function cerrarBusqueda() {
-    setBuscandoLocal(false);
-    if (abrirBusqueda) onBusquedaAbierta?.();
-  }
+  const [creando, setCreando] = useState(false);
 
   const q = busqueda.trim().toLowerCase();
   const filtrados = q
@@ -108,79 +78,68 @@ export function BuscadorCliente({
     );
   }
 
-  // Sin cliente y nada abierto: no hay nada que mostrar acá — "Agregar
-  // cliente" (arriba, en el padre) es el único disparador visible.
-  if (!buscando && !creando) return null;
-
   return (
     <>
-      {buscando && (
-        <>
-          <div className="relative">
-            <svg
-              viewBox="0 0 20 20"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            >
-              <path
-                d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <input
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar cliente por nombre, RUT o teléfono…"
-              autoFocus
-              className={`${campo} pl-9`}
-            />
-          </div>
-
-          <ul className="mt-2 flex max-h-48 flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-card p-1">
-            {filtrados.length === 0 && (
-              <li className="py-4 text-center text-[13px] text-muted-foreground">
-                {q ? "Nadie coincide con esa búsqueda." : "Escribe para buscar."}
-              </li>
-            )}
-            {q &&
-              filtrados.slice(0, 20).map((c) => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSeleccionar(c)}
-                    className="flex w-full flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-background"
-                  >
-                    <span className="text-[14px] font-medium">
-                      {nombreCompleto(c)}
-                    </span>
-                    {(c.rut || c.telefono) && (
-                      <span className="text-[12px] text-muted-foreground">
-                        {[c.rut, c.telefono].filter(Boolean).join(" · ")}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-          </ul>
-
-          <button
-            type="button"
-            onClick={cerrarBusqueda}
-            className="mt-2 text-[13px] text-muted-foreground hover:underline"
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <svg
+            viewBox="0 0 20 20"
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
           >
-            Cancelar búsqueda
-          </button>
-        </>
+            <path
+              d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+          <input
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar cliente…"
+            className={`${campo} pl-9`}
+          />
+        </div>
+        <Button type="button" onClick={() => setCreando(true)} className="shrink-0">
+          + Nuevo cliente
+        </Button>
+      </div>
+
+      {busqueda.trim() && (
+        <ul className="mt-2 flex max-h-48 flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-card p-1">
+          {filtrados.length === 0 && (
+            <li className="py-4 text-center text-[13px] text-muted-foreground">
+              Nadie coincide con esa búsqueda.
+            </li>
+          )}
+          {filtrados.slice(0, 20).map((c) => (
+            <li key={c.id}>
+              <button
+                type="button"
+                onClick={() => onSeleccionar(c)}
+                className="flex w-full flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-background"
+              >
+                <span className="text-[14px] font-medium">
+                  {nombreCompleto(c)}
+                </span>
+                {(c.rut || c.telefono) && (
+                  <span className="text-[12px] text-muted-foreground">
+                    {[c.rut, c.telefono].filter(Boolean).join(" · ")}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {creando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
           <button
             aria-label="Cancelar"
-            onClick={cerrarCreacion}
+            onClick={() => setCreando(false)}
             className="absolute inset-0 bg-black/60"
           />
           <div
@@ -192,7 +151,7 @@ export function BuscadorCliente({
             <div className="mt-6">
               <Formulario
                 tieneImpresion={tieneImpresion}
-                onListo={cerrarCreacion}
+                onListo={() => setCreando(false)}
                 onCreado={onSeleccionar}
               />
             </div>

@@ -50,8 +50,7 @@ export function NuevaVenta({
   const [librePrecio, setLibrePrecio] = useState("");
 
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
-  const [pedirCreacionCliente, setPedirCreacionCliente] = useState(false);
-  const [pedirBusquedaCliente, setPedirBusquedaCliente] = useState(false);
+  const [mostrarCliente, setMostrarCliente] = useState(false);
 
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
@@ -367,14 +366,11 @@ export function NuevaVenta({
           <button
             type="button"
             onClick={() => {
-              if (cliente) {
-                setCliente(null);
-              } else {
-                setPedirCreacionCliente(true);
-              }
+              setMostrarCliente((v) => !v);
+              if (mostrarCliente) setCliente(null);
             }}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
-              cliente
+              mostrarCliente
                 ? "border border-border hover:bg-background"
                 : "bg-primary text-primary-foreground hover:opacity-90"
             }`}
@@ -388,17 +384,13 @@ export function NuevaVenta({
                 strokeLinecap="round"
               />
             </svg>
-            {cliente ? "Quitar cliente" : "Agregar cliente"}
+            {mostrarCliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
           <button
             type="button"
             onClick={() => {
-              if (mostrarVehiculo) {
-                setMostrarVehiculo(false);
-                setPatente("");
-              } else {
-                setMostrarVehiculo(true);
-              }
+              setMostrarVehiculo((v) => !v);
+              if (mostrarVehiculo) setPatente("");
             }}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
               mostrarVehiculo
@@ -420,29 +412,35 @@ export function NuevaVenta({
           </button>
         </div>
 
-        {!cliente && (
-          <button
-            type="button"
-            onClick={() => setPedirBusquedaCliente(true)}
-            className="mt-2 text-[13px] text-muted-foreground hover:underline"
-          >
-            o buscar un cliente existente
-          </button>
-        )}
-
-        {mostrarVehiculo && (
-          <div className="mt-3 rounded-xl border border-border bg-card p-4">
-            <span className="mb-3 block text-[13px] font-medium">
-              Vehículo
-            </span>
-            <input
-              value={patente}
-              onChange={(e) => setPatente(e.target.value)}
-              placeholder="Patente"
-              autoFocus
-              autoCapitalize="characters"
-              className={`${campo} font-mono uppercase`}
-            />
+        {(mostrarCliente || mostrarVehiculo) && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {mostrarCliente && (
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Cliente
+                </span>
+                <BuscadorCliente
+                  clientes={clientes}
+                  seleccionado={cliente}
+                  onSeleccionar={setCliente}
+                  tieneImpresion
+                />
+              </div>
+            )}
+            {mostrarVehiculo && (
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Vehículo
+                </span>
+                <input
+                  value={patente}
+                  onChange={(e) => setPatente(e.target.value)}
+                  placeholder="Patente"
+                  autoCapitalize="characters"
+                  className={`${campo} font-mono uppercase`}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -472,24 +470,6 @@ export function NuevaVenta({
             </div>
           </div>
         )}
-
-        <div className="mt-3">
-          {cliente && (
-            <span className="mb-2 block text-[13px] font-medium">
-              Cliente
-            </span>
-          )}
-          <BuscadorCliente
-            clientes={clientes}
-            seleccionado={cliente}
-            onSeleccionar={setCliente}
-            tieneImpresion
-            abrirCreacion={pedirCreacionCliente}
-            onCreacionAbierta={() => setPedirCreacionCliente(false)}
-            abrirBusqueda={pedirBusquedaCliente}
-            onBusquedaAbierta={() => setPedirBusquedaCliente(false)}
-          />
-        </div>
 
         <div className="mt-4">
           <label className="mb-2 block text-[13px] font-medium">
