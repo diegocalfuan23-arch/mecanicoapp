@@ -12,6 +12,28 @@ function id() {
   return crypto.randomUUID();
 }
 
+/**
+ * Versión liviana de listarVehiculos, sin el join con cliente — para
+ * selectores (ej. Ventas POS) que solo necesitan buscar y mostrar el
+ * vehículo, no la ficha completa del propietario.
+ */
+export async function listarVehiculosParaSelector() {
+  const tallerId = await tallerActual();
+
+  return db
+    .select({
+      id: vehiculo.id,
+      patente: vehiculo.patente,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      anio: vehiculo.anio,
+      color: vehiculo.color,
+    })
+    .from(vehiculo)
+    .where(eq(vehiculo.tallerId, tallerId))
+    .orderBy(vehiculo.patente);
+}
+
 export type DatosVehiculo = {
   patente: string;
   vin?: string;

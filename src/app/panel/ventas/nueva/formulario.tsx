@@ -7,7 +7,7 @@ import { pesos, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
 import { BuscadorCliente, type ClienteOpcion } from "@/components/buscador-cliente";
-import { BuscadorVehiculo } from "@/components/buscador-vehiculo";
+import { BuscadorVehiculo, type VehiculoOpcion } from "@/components/buscador-vehiculo";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -37,9 +37,11 @@ const ESTADOS_VENTA = [
 export function NuevaVenta({
   inventario,
   clientes,
+  vehiculos,
 }: {
   inventario: Repuesto[];
   clientes: ClienteOpcion[];
+  vehiculos: VehiculoOpcion[];
 }) {
   const router = useRouter();
   const [pestana, setPestana] = useState<"repuestos" | "libre">("repuestos");
@@ -53,7 +55,7 @@ export function NuevaVenta({
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
   const [mostrarCliente, setMostrarCliente] = useState(false);
 
-  const [patente, setPatente] = useState("");
+  const [vehiculo, setVehiculo] = useState<VehiculoOpcion | null>(null);
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
 
   const [estado, setEstado] = useState<"pagada" | "pendiente" | "cotizacion">(
@@ -133,7 +135,7 @@ export function NuevaVenta({
 
     const res = await crearVenta({
       clienteId: cliente?.id,
-      patente,
+      patente: vehiculo?.patente,
       estado,
       metodoPago: estado === "pagada" ? metodoPago : "",
       referenciaPago: estado === "pagada" ? referenciaPago : "",
@@ -391,7 +393,7 @@ export function NuevaVenta({
             type="button"
             onClick={() => {
               setMostrarVehiculo((v) => !v);
-              if (mostrarVehiculo) setPatente("");
+              if (mostrarVehiculo) setVehiculo(null);
             }}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
               mostrarVehiculo
@@ -434,8 +436,9 @@ export function NuevaVenta({
                   Vehículo
                 </span>
                 <BuscadorVehiculo
-                  patente={patente}
-                  onPatenteChange={setPatente}
+                  vehiculos={vehiculos}
+                  seleccionado={vehiculo}
+                  onSeleccionar={setVehiculo}
                   tieneImpresion
                 />
               </div>

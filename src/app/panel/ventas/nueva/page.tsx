@@ -2,14 +2,16 @@ import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
 import { listarInventario } from "../../inventario/acciones";
 import { listarClientesParaSelector } from "../../propietarios/acciones";
+import { listarVehiculosParaSelector } from "../../vehiculos/acciones";
 import { NuevaVenta } from "./formulario";
 
 export default async function NuevaVentaPage() {
   if (!(await tienePlan("impresionOrden"))) redirect("/panel");
 
-  const [inventario, clientes] = await Promise.all([
+  const [inventario, clientes, vehiculos] = await Promise.all([
     listarInventario(),
     listarClientesParaSelector(),
+    listarVehiculosParaSelector(),
   ]);
 
   return (
@@ -18,7 +20,7 @@ export default async function NuevaVentaPage() {
         Nueva venta
       </h1>
 
-      <NuevaVenta inventario={inventario} clientes={clientes} />
+      <NuevaVenta inventario={inventario} clientes={clientes} vehiculos={vehiculos} />
     </>
   );
 }
