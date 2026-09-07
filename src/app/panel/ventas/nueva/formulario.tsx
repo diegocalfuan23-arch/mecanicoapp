@@ -8,6 +8,7 @@ import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
 import { BuscadorCliente, type ClienteOpcion } from "@/components/buscador-cliente";
 import { BuscadorVehiculo, type VehiculoOpcion } from "@/components/buscador-vehiculo";
+import { ModalNuevoItemInventario } from "@/components/modal-nuevo-item-inventario";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -74,6 +75,8 @@ export function NuevaVenta({
   // Ítem libre
   const [libreNombre, setLibreNombre] = useState("");
   const [librePrecio, setLibrePrecio] = useState("");
+
+  const [creandoItem, setCreandoItem] = useState(false);
 
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
   const [mostrarCliente, setMostrarCliente] = useState(false);
@@ -244,30 +247,40 @@ export function NuevaVenta({
         </div>
 
         {(pestana === "repuestos" || pestana === "servicios") && (
-          <div className="relative mt-4">
-            <svg
-              viewBox="0 0 20 20"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            >
-              <path
-                d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
+          <div className="mt-4 flex gap-2">
+            <div className="relative flex-1">
+              <svg
+                viewBox="0 0 20 20"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              >
+                <path
+                  d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <input
+                value={busquedaCatalogo}
+                onChange={(e) => setBusquedaCatalogo(e.target.value)}
+                placeholder={
+                  pestana === "repuestos"
+                    ? "Buscar por nombre, código o marca…"
+                    : "Buscar por nombre…"
+                }
+                className={`${campo} pl-9`}
               />
-            </svg>
-            <input
-              value={busquedaCatalogo}
-              onChange={(e) => setBusquedaCatalogo(e.target.value)}
-              placeholder={
-                pestana === "repuestos"
-                  ? "Buscar por nombre, código o marca…"
-                  : "Buscar por nombre…"
-              }
-              className={`${campo} pl-9`}
-            />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCreandoItem(true)}
+              className="shrink-0"
+            >
+              + Nuevo ítem
+            </Button>
           </div>
         )}
 
@@ -654,6 +667,16 @@ export function NuevaVenta({
                 : "Guardar cotización"}
         </Button>
       </div>
+
+      {creandoItem && (
+        <ModalNuevoItemInventario
+          tipoInicial={pestana === "servicios" ? "servicio" : "repuesto"}
+          onCerrar={() => {
+            setCreandoItem(false);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

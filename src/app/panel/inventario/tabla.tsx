@@ -40,7 +40,7 @@ type Servicio = {
 const campoBase =
   "w-full rounded-lg border border-border bg-card px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
-function Formulario({
+export function Formulario({
   insumo,
   onListo,
   enModal = false,
@@ -253,7 +253,7 @@ function Formulario({
   );
 }
 
-function FormularioServicio({
+export function FormularioServicio({
   tipo,
   item,
   onListo,
