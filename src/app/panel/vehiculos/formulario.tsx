@@ -84,6 +84,8 @@ export function FormularioVehiculo({
   autoguardar = false,
   tieneImpresion = false,
   patenteInicial,
+  soloVehiculo = false,
+  onCreado,
 }: {
   onListo: () => void;
   /** Si viene, el formulario edita esa ficha en vez de crear una nueva. */
@@ -94,6 +96,12 @@ export function FormularioVehiculo({
   tieneImpresion?: boolean;
   /** Al llegar desde "Historial por patente" sin encontrar el auto. */
   patenteInicial?: string;
+  /** Oculta "El dueño" y "Copropietario" — usado donde el cliente ya
+   * se registra aparte (ej. dentro del carrito de Ventas POS), para
+   * no pedir el mismo dato dos veces. */
+  soloVehiculo?: boolean;
+  /** Cuando alguien más (ej. Ventas POS) necesita saber qué patente quedó. */
+  onCreado?: (patente: string) => void;
 }) {
   const router = useRouter();
   const [errorServidor, setErrorServidor] = useState<string | null>(null);
@@ -144,6 +152,7 @@ export function FormularioVehiculo({
         return;
       }
 
+      if (!vehiculo) onCreado?.(valores.patente.trim().toUpperCase());
       form.resetForm();
       onListo();
       router.refresh();
@@ -335,43 +344,47 @@ export function FormularioVehiculo({
         </div>
       </div>
 
-      <div>
-        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
-          El dueño
-        </h3>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {campo("propietarioNombre", "Nombre", { placeholder: "Juan Pérez" })}
-          {campo("propietarioTelefono", "Teléfono", {
-            placeholder: "+56 9 1234 5678",
-            inputMode: "tel",
-          })}
-        </div>
+      {!soloVehiculo && (
+        <>
+          <div>
+            <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+              El dueño
+            </h3>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {campo("propietarioNombre", "Nombre", { placeholder: "Juan Pérez" })}
+              {campo("propietarioTelefono", "Teléfono", {
+                placeholder: "+56 9 1234 5678",
+                inputMode: "tel",
+              })}
+            </div>
 
-        {tieneImpresion && vehiculo?.esEmpresa && (
-          <p className="mt-4 text-[13px] text-muted-foreground">
-            {vehiculo.propietario} es empresa
-            {vehiculo.empresa ? ` · ${vehiculo.empresa}` : ""}
-            {vehiculo.empresaRut ? ` · ${vehiculo.empresaRut}` : ""}. Se edita
-            en Propietarios.
-          </p>
-        )}
-      </div>
+            {tieneImpresion && vehiculo?.esEmpresa && (
+              <p className="mt-4 text-[13px] text-muted-foreground">
+                {vehiculo.propietario} es empresa
+                {vehiculo.empresa ? ` · ${vehiculo.empresa}` : ""}
+                {vehiculo.empresaRut ? ` · ${vehiculo.empresaRut}` : ""}. Se
+                edita en Propietarios.
+              </p>
+            )}
+          </div>
 
-      <div>
-        <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
-          Copropietario
-        </h3>
-        <p className="mt-1 text-[13px] text-muted-foreground">
-          Quien acompaña o puede retirar el auto.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {campo("copropietario", "Nombre", { placeholder: "María Pérez" })}
-          {campo("copropietarioTelefono", "Teléfono", {
-            placeholder: "+56 9 8765 4321",
-            inputMode: "tel",
-          })}
-        </div>
-      </div>
+          <div>
+            <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+              Copropietario
+            </h3>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Quien acompaña o puede retirar el auto.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {campo("copropietario", "Nombre", { placeholder: "María Pérez" })}
+              {campo("copropietarioTelefono", "Teléfono", {
+                placeholder: "+56 9 8765 4321",
+                inputMode: "tel",
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       <label className="flex items-center gap-4 rounded-lg border border-border bg-background px-4 py-4">
         <input

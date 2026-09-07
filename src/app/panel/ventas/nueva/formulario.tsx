@@ -7,6 +7,7 @@ import { pesos, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
 import { BuscadorCliente, type ClienteOpcion } from "@/components/buscador-cliente";
+import { BuscadorVehiculo } from "@/components/buscador-vehiculo";
 
 const campo =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
@@ -432,12 +433,10 @@ export function NuevaVenta({
                 <span className="mb-2 block text-[13px] font-medium">
                   Vehículo
                 </span>
-                <input
-                  value={patente}
-                  onChange={(e) => setPatente(e.target.value)}
-                  placeholder="Patente"
-                  autoCapitalize="characters"
-                  className={`${campo} font-mono uppercase`}
+                <BuscadorVehiculo
+                  patente={patente}
+                  onPatenteChange={setPatente}
+                  tieneImpresion
                 />
               </div>
             )}
