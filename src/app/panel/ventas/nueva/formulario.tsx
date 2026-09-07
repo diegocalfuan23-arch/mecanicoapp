@@ -50,7 +50,7 @@ export function NuevaVenta({
   const [librePrecio, setLibrePrecio] = useState("");
 
   const [cliente, setCliente] = useState<ClienteOpcion | null>(null);
-  const [mostrarCliente, setMostrarCliente] = useState(false);
+  const [pedirCreacionCliente, setPedirCreacionCliente] = useState(false);
 
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
@@ -366,15 +366,14 @@ export function NuevaVenta({
           <button
             type="button"
             onClick={() => {
-              if (mostrarCliente || cliente) {
-                setMostrarCliente(false);
+              if (cliente) {
                 setCliente(null);
               } else {
-                setMostrarCliente(true);
+                setPedirCreacionCliente(true);
               }
             }}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors ${
-              mostrarCliente || cliente
+              cliente
                 ? "border border-border hover:bg-background"
                 : "bg-primary text-primary-foreground hover:opacity-90"
             }`}
@@ -388,7 +387,7 @@ export function NuevaVenta({
                 strokeLinecap="round"
               />
             </svg>
-            {mostrarCliente || cliente ? "Quitar cliente" : "Agregar cliente"}
+            {cliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
           <button
             type="button"
@@ -463,19 +462,19 @@ export function NuevaVenta({
           </div>
         )}
 
-        {(mostrarCliente || cliente) && (
-          <div className="mt-3">
-            <span className="mb-2 block text-[13px] font-medium">
-              Cliente{estado === "cotizacion" && " (opcional)"}
-            </span>
-            <BuscadorCliente
-              clientes={clientes}
-              seleccionado={cliente}
-              onSeleccionar={setCliente}
-              tieneImpresion
-            />
-          </div>
-        )}
+        <div className="mt-3">
+          <span className="mb-2 block text-[13px] font-medium">
+            Cliente{estado === "cotizacion" && " (opcional)"}
+          </span>
+          <BuscadorCliente
+            clientes={clientes}
+            seleccionado={cliente}
+            onSeleccionar={setCliente}
+            tieneImpresion
+            abrirCreacion={pedirCreacionCliente}
+            onCreacionAbierta={() => setPedirCreacionCliente(false)}
+          />
+        </div>
 
         <div className="mt-4">
           <label className="mb-2 block text-[13px] font-medium">
