@@ -390,15 +390,6 @@ export function NuevaVenta({
             </svg>
             {cliente ? "Quitar cliente" : "Agregar cliente"}
           </button>
-          {!cliente && (
-            <button
-              type="button"
-              onClick={() => setPedirBusquedaCliente(true)}
-              className="text-[13px] text-muted-foreground hover:underline"
-            >
-              o buscar uno existente
-            </button>
-          )}
           <button
             type="button"
             onClick={() => {
@@ -428,6 +419,16 @@ export function NuevaVenta({
             {mostrarVehiculo ? "Quitar vehículo" : "Agregar vehículo"}
           </button>
         </div>
+
+        {!cliente && (
+          <button
+            type="button"
+            onClick={() => setPedirBusquedaCliente(true)}
+            className="mt-2 text-[13px] text-muted-foreground hover:underline"
+          >
+            o buscar un cliente existente
+          </button>
+        )}
 
         {mostrarVehiculo && (
           <div className="mt-3 rounded-xl border border-border bg-card p-4">
