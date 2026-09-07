@@ -150,6 +150,7 @@ export function BuscadorVehiculo({
             <h2 className="text-lg font-medium">Nuevo vehículo</h2>
             <div className="mt-6">
               <FormularioVehiculo
+                key={busqueda}
                 tieneImpresion={tieneImpresion}
                 soloVehiculo
                 patenteInicial={busqueda}
