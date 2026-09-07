@@ -136,7 +136,7 @@ export async function fichaVehiculo(vehiculoId: string) {
       color: vehiculo.color,
       tipo: vehiculo.tipo,
       motor: vehiculo.motor,
-      ejes: vehiculo.ejes,
+      configuracionMotor: vehiculo.configuracionMotor,
       procedencia: vehiculo.procedencia,
       kilometrajeInicial: vehiculo.kilometrajeInicial,
       copropietario: vehiculo.copropietario,

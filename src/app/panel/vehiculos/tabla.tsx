@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 
 type Vehiculo = VehiculoEditable;
 
-// VIN y ejes existen en la ficha del vehículo, pero en la tabla solo
-// ocupaban ancho: no son datos que se miren de un vistazo.
+// VIN existe en la ficha del vehículo, pero en la tabla solo
+// ocupaba ancho: no es un dato que se mire de un vistazo.
 const COLUMNAS = [
   "Patente",
   "Tipo",

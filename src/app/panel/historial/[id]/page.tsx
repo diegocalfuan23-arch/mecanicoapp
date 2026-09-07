@@ -26,8 +26,8 @@ export default async function FichaVehiculo({
   const especificaciones = [
     ["Tipo", datos.tipo],
     ["Motor", datos.motor],
+    ["Config. motor", datos.configuracionMotor],
     ["Color", datos.color],
-    ["Ejes", datos.ejes],
     ["Procedencia", datos.procedencia],
     ["VIN", datos.vin],
   ].filter(([, valor]) => valor);

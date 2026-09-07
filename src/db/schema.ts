@@ -210,6 +210,9 @@ export const vehiculo = pgTable(
     // auto · camioneta · SUV · furgón · moto · camión · bus
     tipo: text("tipo"),
     motor: text("motor"),
+    // V6, V8, 4 en línea, etc. — distinto de `motor` (cilindrada +
+    // combustible en texto libre, ej. "2.4 diésel").
+    configuracionMotor: text("configuracion_motor"),
     // Cilindrada, ej. "1.6", "2.0" — Plan Serviteca en adelante.
     cilindrada: text("cilindrada"),
     // Patente del móvil de flota/empresa, distinta de la patente del

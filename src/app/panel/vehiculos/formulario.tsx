@@ -21,6 +21,20 @@ const PROCEDENCIAS = [
   "Otro",
 ];
 
+const CONFIGURACIONES_MOTOR = [
+  "3 en línea",
+  "4 en línea",
+  "5 en línea",
+  "6 en línea",
+  "V6",
+  "V8",
+  "V10",
+  "V12",
+  "Boxer",
+  "Rotativo",
+  "Eléctrico",
+];
+
 const esquema = Yup.object({
   patente: Yup.string()
     .trim()
@@ -37,7 +51,6 @@ const esquema = Yup.object({
     .typeError("Solo números")
     .min(1900, "Año muy antiguo")
     .max(new Date().getFullYear() + 1, "Año muy adelantado"),
-  ejes: Yup.number().typeError("Solo números").min(1).max(10),
   kilometrajeInicial: Yup.number()
     .typeError("Solo números")
     .min(0, "No puede ser negativo"),
@@ -54,9 +67,9 @@ export type VehiculoEditable = {
   color: string | null;
   tipo: string | null;
   motor: string | null;
+  configuracionMotor: string | null;
   cilindrada: string | null;
   movil: string | null;
-  ejes: number | null;
   procedencia: string | null;
   kilometrajeInicial: number | null;
   copropietario: string | null;
@@ -120,9 +133,9 @@ export function FormularioVehiculo({
       color: texto(vehiculo?.color),
       tipo: texto(vehiculo?.tipo),
       motor: texto(vehiculo?.motor),
+      configuracionMotor: texto(vehiculo?.configuracionMotor),
       cilindrada: texto(vehiculo?.cilindrada),
       movil: texto(vehiculo?.movil),
-      ejes: texto(vehiculo?.ejes),
       procedencia: texto(vehiculo?.procedencia),
       kilometrajeInicial: texto(vehiculo?.kilometrajeInicial),
       propietarioNombre: texto(vehiculo?.propietario),
@@ -325,12 +338,9 @@ export function FormularioVehiculo({
           {campo("color", "Color", { placeholder: "Plateado" })}
           {selector("tipo", "Tipo de vehículo", TIPOS)}
           {campo("motor", "Motor", { placeholder: "2.4 diésel" })}
+          {selector("configuracionMotor", "Configuración del motor", CONFIGURACIONES_MOTOR)}
           {tieneImpresion &&
             campo("cilindrada", "Cilindrada", { placeholder: "1.6" })}
-          {campo("ejes", "Cantidad de ejes", {
-            placeholder: "2",
-            inputMode: "numeric",
-          })}
           {selector("procedencia", "Procedencia", PROCEDENCIAS)}
           {campo("kilometrajeInicial", "Kilometraje", {
             conMiles: true,
