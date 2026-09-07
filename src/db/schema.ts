@@ -797,6 +797,10 @@ export const itemVenta = pgTable(
     nombre: text("nombre").notNull(),
     cantidad: integer("cantidad").notNull().default(1),
     precioUnitario: integer("precio_unitario").notNull().default(0),
+    // repuesto · servicio · mano_obra — solo en un ítem libre (sin
+    // parteId); una línea de repuesto real ya se identifica por su
+    // relación con `parte`, no necesita este campo.
+    tipo: text("tipo"),
   },
   (t) => [index("item_venta_venta_idx").on(t.ventaId)]
 );

@@ -48,6 +48,12 @@ const METODOS_PAGO = [
   { valor: "otro", texto: "Otro" },
 ];
 
+const TIPOS_ITEM_LIBRE = [
+  { valor: "repuesto", texto: "Repuesto/producto" },
+  { valor: "servicio", texto: "Servicio" },
+  { valor: "mano_obra", texto: "Mano de obra" },
+];
+
 const ESTADOS_VENTA = [
   { valor: "pagada", texto: "Venta pagada" },
   { valor: "pendiente", texto: "Pendiente" },
@@ -74,6 +80,8 @@ export function NuevaVenta({
 
   // Ítem libre
   const [libreNombre, setLibreNombre] = useState("");
+  const [libreTipo, setLibreTipo] = useState("repuesto");
+  const [libreCantidad, setLibreCantidad] = useState("1");
   const [librePrecio, setLibrePrecio] = useState("");
 
   const [creandoItem, setCreandoItem] = useState(false);
@@ -150,11 +158,14 @@ export function NuevaVenta({
       {
         parteId: null,
         nombre: libreNombre.trim(),
-        cantidad: 1,
+        cantidad: Math.max(1, Number(libreCantidad) || 1),
         precioUnitario: Number(librePrecio) || 0,
+        tipo: libreTipo,
       },
     ]);
     setLibreNombre("");
+    setLibreTipo("repuesto");
+    setLibreCantidad("1");
     setLibrePrecio("");
   }
 
@@ -359,33 +370,71 @@ export function NuevaVenta({
         {pestana === "libre" && (
           <div className="mt-4 rounded-xl border border-border bg-card p-4">
             <p className="text-[13px] text-muted-foreground">
-              Algo que no está en inventario: nombre y precio.
+              Agrega un ítem que no esté en inventario: nombre, tipo y precio.
             </p>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+
+            <div className="mt-3">
+              <span className="mb-2 block text-[13px] font-medium">
+                Descripción
+              </span>
               <input
                 value={libreNombre}
                 onChange={(e) => setLibreNombre(e.target.value)}
-                placeholder="Ej. revisión rápida de frenos"
+                placeholder="Ej. Instalación alternador"
                 autoFocus
                 className={campo}
               />
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Tipo
+                </span>
+                <Selector
+                  value={libreTipo}
+                  onChange={setLibreTipo}
+                  opciones={TIPOS_ITEM_LIBRE}
+                />
+              </div>
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">
+                  Cantidad
+                </span>
+                <input
+                  value={libreCantidad}
+                  onChange={(e) => setLibreCantidad(soloDigitos(e.target.value))}
+                  placeholder="1"
+                  inputMode="numeric"
+                  className={campo}
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <span className="mb-2 block text-[13px] font-medium">
+                Precio unitario
+              </span>
               <input
                 value={miles(librePrecio)}
                 onChange={(e) => setLibrePrecio(soloDigitos(e.target.value))}
-                placeholder="15.000"
+                placeholder="0"
                 inputMode="numeric"
-                className={`${campo} sm:w-36`}
+                className={campo}
               />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={agregarLibre}
-                disabled={!libreNombre.trim()}
-                className="shrink-0"
-              >
-                Agregar
-              </Button>
+              <p className="mt-2 text-[12px] text-muted-foreground">
+                Valor neto por defecto (sin impuesto).
+              </p>
             </div>
+
+            <Button
+              type="button"
+              onClick={agregarLibre}
+              disabled={!libreNombre.trim()}
+              className="mt-4 w-full"
+            >
+              Agregar al carrito
+            </Button>
           </div>
         )}
       </div>

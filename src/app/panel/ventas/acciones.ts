@@ -15,6 +15,8 @@ export type ItemCarrito = {
   nombre: string;
   cantidad: number;
   precioUnitario: number;
+  /** repuesto · servicio · mano_obra — solo en un ítem libre sin parteId. */
+  tipo?: string | null;
 };
 
 export async function crearVenta(datos: {
@@ -137,6 +139,7 @@ export async function crearVenta(datos: {
       nombre: i.nombre.trim(),
       cantidad: i.cantidad,
       precioUnitario: i.precioUnitario,
+      tipo: i.parteId ? null : (i.tipo ?? null),
     }))
   );
 
