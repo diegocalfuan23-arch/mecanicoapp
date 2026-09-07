@@ -27,6 +27,11 @@ const METODOS_PAGO = [
   { valor: "otro", texto: "Otro" },
 ];
 
+const ESTADOS_VENTA = [
+  { valor: "pagada", texto: "Venta pagada" },
+  { valor: "cotizacion", texto: "Cotización" },
+];
+
 export function NuevaVenta({
   inventario,
   clientes,
@@ -331,30 +336,14 @@ export function NuevaVenta({
         )}
 
         <div className="mt-6">
-          <div className="flex rounded-lg border border-border p-1">
-            <button
-              type="button"
-              onClick={() => setEstado("pagada")}
-              className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
-                estado === "pagada"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Venta pagada
-            </button>
-            <button
-              type="button"
-              onClick={() => setEstado("cotizacion")}
-              className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
-                estado === "cotizacion"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Cotización
-            </button>
-          </div>
+          <span className="mb-2 block text-[13px] font-medium">
+            Tipo de registro
+          </span>
+          <Selector
+            value={estado}
+            onChange={(v) => setEstado(v as "pagada" | "cotizacion")}
+            opciones={ESTADOS_VENTA}
+          />
           <p className="mt-2 text-[12px] text-muted-foreground">
             {estado === "pagada"
               ? "Registra el cobro y descuenta stock."
