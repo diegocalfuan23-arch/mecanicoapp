@@ -29,6 +29,7 @@ const METODOS_PAGO = [
 
 const ESTADOS_VENTA = [
   { valor: "pagada", texto: "Venta pagada" },
+  { valor: "pendiente", texto: "Pendiente" },
   { valor: "cotizacion", texto: "Cotización" },
 ];
 
@@ -53,7 +54,9 @@ export function NuevaVenta({
   const [patente, setPatente] = useState("");
   const [mostrarVehiculo, setMostrarVehiculo] = useState(false);
 
-  const [estado, setEstado] = useState<"pagada" | "cotizacion">("pagada");
+  const [estado, setEstado] = useState<"pagada" | "pendiente" | "cotizacion">(
+    "pagada"
+  );
   const [metodoPago, setMetodoPago] = useState("");
   const [referenciaPago, setReferenciaPago] = useState("");
   const [notas, setNotas] = useState("");
@@ -341,13 +344,15 @@ export function NuevaVenta({
           </span>
           <Selector
             value={estado}
-            onChange={(v) => setEstado(v as "pagada" | "cotizacion")}
+            onChange={(v) => setEstado(v as "pagada" | "pendiente" | "cotizacion")}
             opciones={ESTADOS_VENTA}
           />
           <p className="mt-2 text-[12px] text-muted-foreground">
             {estado === "pagada"
               ? "Registra el cobro y descuenta stock."
-              : "Solo guarda la cotización, no toca inventario ni caja."}
+              : estado === "pendiente"
+                ? "Venta pendiente de pago: descuenta stock y no registra caja."
+                : "Solo guarda la cotización, no toca inventario ni caja."}
           </p>
         </div>
 
@@ -379,7 +384,7 @@ export function NuevaVenta({
 
         <div className="mt-3">
           <span className="mb-2 block text-[13px] font-medium">
-            Cliente{estado === "cotizacion" && " (opcional)"}
+            Cliente{estado !== "cotizacion" ? "" : " (opcional)"}
           </span>
           <BuscadorCliente
             clientes={clientes}
@@ -513,7 +518,7 @@ export function NuevaVenta({
           disabled={
             enviando ||
             items.length === 0 ||
-            (estado === "pagada" && !cliente)
+            ((estado === "pagada" || estado === "pendiente") && !cliente)
           }
           className="mt-4 w-full"
         >
@@ -521,7 +526,9 @@ export function NuevaVenta({
             ? "Guardando…"
             : estado === "pagada"
               ? "Completar venta"
-              : "Guardar cotización"}
+              : estado === "pendiente"
+                ? "Registrar pendiente"
+                : "Guardar cotización"}
         </Button>
       </div>
     </div>

@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { pesos, fecha } from "@/lib/formato";
 import { Button } from "@/components/ui/button";
+import { Selector } from "@/components/ui/selector";
+import { marcarVentaPagada } from "./acciones";
 
 type Venta = {
   id: string;
@@ -18,11 +21,13 @@ type Venta = {
 
 const TEXTO_ESTADO: Record<string, string> = {
   pagada: "Completada",
+  pendiente: "Pendiente",
   cotizacion: "Cotización",
 };
 
 const ESTILO_ESTADO: Record<string, string> = {
   pagada: "bg-acento/15 text-acento",
+  pendiente: "bg-destructive/15 text-destructive",
   cotizacion: "bg-foreground/10 text-foreground",
 };
 
@@ -33,8 +38,102 @@ const TEXTO_METODO: Record<string, string> = {
   otro: "Otro",
 };
 
+const METODOS_PAGO = [
+  { valor: "efectivo", texto: "Efectivo" },
+  { valor: "tarjeta", texto: "Tarjeta" },
+  { valor: "transferencia", texto: "Transferencia" },
+  { valor: "otro", texto: "Otro" },
+];
+
+function ModalCobrar({
+  venta,
+  onCerrar,
+}: {
+  venta: Venta;
+  onCerrar: () => void;
+}) {
+  const router = useRouter();
+  const [metodoPago, setMetodoPago] = useState("");
+  const [referenciaPago, setReferenciaPago] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const campo =
+    "w-full rounded-lg border border-border bg-background px-3 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
+
+  async function confirmar() {
+    setError(null);
+    setEnviando(true);
+    const res = await marcarVentaPagada(venta.id, { metodoPago, referenciaPago });
+    setEnviando(false);
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    onCerrar();
+    router.refresh();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onCerrar}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="relative w-full max-w-sm rounded-xl border border-border bg-card p-6"
+      >
+        <h2 className="text-lg font-medium">Cobrar V-{venta.numero}</h2>
+        <p className="mt-1 text-[14px] text-muted-foreground">
+          {pesos(venta.total)} — el stock ya se descontó, esto solo
+          registra el cobro.
+        </p>
+
+        <div className="mt-4 flex flex-col gap-3">
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Medio de pago
+            </span>
+            <Selector
+              value={metodoPago}
+              onChange={setMetodoPago}
+              placeholder="Sin especificar"
+              opciones={METODOS_PAGO}
+            />
+          </div>
+          <input
+            value={referenciaPago}
+            onChange={(e) => setReferenciaPago(e.target.value)}
+            placeholder="N° voucher, autorización… (opcional)"
+            className={campo}
+          />
+        </div>
+
+        {error && (
+          <p className="mt-3 text-[13px] text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Button type="button" onClick={confirmar} disabled={enviando}>
+            {enviando ? "Guardando…" : "Confirmar cobro"}
+          </Button>
+          <Button variant="outline" onClick={onCerrar}>
+            Cancelar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ListaVentas({ ventas }: { ventas: Venta[] }) {
   const [busqueda, setBusqueda] = useState("");
+  const [cobrando, setCobrando] = useState<Venta | null>(null);
 
   const filtradas = busqueda.trim()
     ? ventas.filter((v) => {
@@ -49,6 +148,10 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
 
   return (
     <>
+      {cobrando && (
+        <ModalCobrar venta={cobrando} onCerrar={() => setCobrando(null)} />
+      )}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <input
           value={busqueda}
@@ -105,6 +208,16 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
                       : ""}
                   </span>
                 </div>
+                {v.estado === "pendiente" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCobrando(v)}
+                    className="mt-3 w-full"
+                  >
+                    Marcar como pagada
+                  </Button>
+                )}
               </li>
             ))}
           </ul>
@@ -113,7 +226,7 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
             <table className="w-full border-collapse text-[14px]">
               <thead>
                 <tr className="border-b border-border bg-card">
-                  {["Número", "Cliente", "Estado", "Pago", "Total", "Fecha"].map(
+                  {["Número", "Cliente", "Estado", "Pago", "Total", "Fecha", ""].map(
                     (c) => (
                       <th
                         key={c}
@@ -167,6 +280,17 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-muted-foreground">
                       {fecha(v.fecha)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {v.estado === "pendiente" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCobrando(v)}
+                        >
+                          Marcar como pagada
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}

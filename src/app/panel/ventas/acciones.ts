@@ -20,7 +20,7 @@ export type ItemCarrito = {
 export async function crearVenta(datos: {
   clienteId?: string;
   patente?: string;
-  estado: "pagada" | "cotizacion";
+  estado: "pagada" | "pendiente" | "cotizacion";
   metodoPago?: string;
   referenciaPago?: string;
   descuentoPorcentaje?: number;
@@ -38,11 +38,12 @@ export async function crearVenta(datos: {
     return { error: "Agrega al menos un ítem al carrito." };
   }
 
-  // Una venta pagada queda registrada a nombre de alguien real, para
-  // trazabilidad y consistencia con el resto de la app — una
+  // Pagada y pendiente ya entregan algo real (por eso descuentan
+  // stock) y quedan a nombre de alguien real, para trazabilidad — una
   // cotización todavía no compromete a nadie, así que puede quedar
   // sin cliente.
-  if (datos.estado === "pagada" && !datos.clienteId) {
+  const yaEntregada = datos.estado === "pagada" || datos.estado === "pendiente";
+  if (yaEntregada && !datos.clienteId) {
     return { error: "Selecciona un cliente para completar la venta." };
   }
 
@@ -78,7 +79,7 @@ export async function crearVenta(datos: {
       if (!item.parteId) continue;
       const real = stockPorId.get(item.parteId);
       if (!real) return { error: `No se encontró "${item.nombre}" en inventario.` };
-      if (datos.estado === "pagada" && real.stock < item.cantidad) {
+      if (yaEntregada && real.stock < item.cantidad) {
         return {
           error: `Sin stock suficiente de "${real.nombre}" (quedan ${real.stock}).`,
         };
@@ -117,6 +118,8 @@ export async function crearVenta(datos: {
     clienteTelefono,
     patente: datos.patente?.trim().toUpperCase() || null,
     estado: datos.estado,
+    // Solo pagada tiene medio de pago — pendiente todavía no cobró
+    // nada, aunque ya haya descontado stock.
     metodoPago: datos.estado === "pagada" ? datos.metodoPago || null : null,
     referenciaPago:
       datos.estado === "pagada" ? datos.referenciaPago?.trim() || null : null,
@@ -137,9 +140,9 @@ export async function crearVenta(datos: {
     }))
   );
 
-  // Solo una venta pagada descuenta stock — una cotización no debe
-  // tocar el inventario todavía.
-  if (datos.estado === "pagada") {
+  // Pagada y pendiente ya entregaron el repuesto, así que descuentan
+  // stock — una cotización no debe tocar el inventario todavía.
+  if (yaEntregada) {
     for (const item of items) {
       if (!item.parteId) continue;
       await db
@@ -175,4 +178,44 @@ export async function listarVentas() {
     .where(eq(venta.tallerId, tallerId))
     .orderBy(sql`${venta.fecha} desc`)
     .limit(100);
+}
+
+/**
+ * Cobra una venta que estaba pendiente — el stock ya se descontó al
+ * crearla, así que acá solo cambia el estado y registra el medio de
+ * pago; recién ahí suma a Pagos.
+ */
+export async function marcarVentaPagada(
+  ventaId: string,
+  datos: { metodoPago?: string; referenciaPago?: string }
+) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+
+  const [fila] = await db
+    .select({ estado: venta.estado })
+    .from(venta)
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)))
+    .limit(1);
+
+  if (!fila) return { error: "No se encontró esa venta." };
+  if (fila.estado !== "pendiente") {
+    return { error: "Solo una venta pendiente se puede marcar como pagada." };
+  }
+
+  await db
+    .update(venta)
+    .set({
+      estado: "pagada",
+      metodoPago: datos.metodoPago || null,
+      referenciaPago: datos.referenciaPago?.trim() || null,
+    })
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)));
+
+  revalidatePath("/panel/ventas");
+  revalidatePath("/panel/pagos");
+  return { ok: true };
 }
