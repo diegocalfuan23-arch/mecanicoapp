@@ -19,7 +19,16 @@ import {
   eliminarCita,
   type CitaMes,
   type EstadoCita,
+  type Modalidad,
 } from "./acciones";
+
+const OTRO = "__otro__";
+
+const MODALIDADES: { valor: Modalidad; texto: string }[] = [
+  { valor: "en_taller", texto: "En taller" },
+  { valor: "domicilio", texto: "Trabajo a domicilio" },
+  { valor: "retiro_vehiculo", texto: "Con retiro del vehículo" },
+];
 
 const DIAS_SEMANA = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
 const DIAS_SEMANA_LARGO = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
@@ -66,11 +75,15 @@ function ModalNuevaCita({
   fechaInicial,
   clientes,
   vehiculos,
+  equipo,
+  servicios,
   onCerrar,
 }: {
   fechaInicial: string;
   clientes: ClienteOpcion[];
   vehiculos: VehiculoOpcion[];
+  equipo: { id: string; nombre: string }[];
+  servicios: { id: string; nombre: string }[];
   onCerrar: () => void;
 }) {
   const router = useRouter();
@@ -78,11 +91,27 @@ function ModalNuevaCita({
   const [vehiculo, setVehiculo] = useState<VehiculoOpcion | null>(null);
   const [contactoNombre, setContactoNombre] = useState("");
   const [contactoTelefono, setContactoTelefono] = useState("");
-  const [motivo, setMotivo] = useState("");
   const [fechaCita, setFechaCita] = useState(fechaInicial);
   const [hora, setHora] = useState("09:00");
+  const [horaFin, setHoraFin] = useState("10:00");
+  const [servicioSel, setServicioSel] = useState("");
+  const [servicioTexto, setServicioTexto] = useState("");
+  const [mecanicoSel, setMecanicoSel] = useState("");
+  const [mecanicoTexto, setMecanicoTexto] = useState("");
+  const [modalidad, setModalidad] = useState<Modalidad>("en_taller");
+  const [titulo, setTitulo] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  const opcionesServicio = [
+    ...servicios.map((s) => ({ valor: s.id, texto: s.nombre })),
+    { valor: OTRO, texto: "Otro (escribir)" },
+  ];
+  const opcionesEquipo = [
+    ...equipo.map((m) => ({ valor: m.id, texto: m.nombre })),
+    { valor: OTRO, texto: "Otro (escribir)" },
+  ];
 
   async function guardar() {
     setError(null);
@@ -92,9 +121,16 @@ function ModalNuevaCita({
       vehiculoId: vehiculo?.id,
       contactoNombre,
       contactoTelefono,
+      titulo,
       motivo,
+      servicioId: servicioSel && servicioSel !== OTRO ? servicioSel : undefined,
+      servicioTexto: servicioSel === OTRO ? servicioTexto : undefined,
+      mecanicoId: mecanicoSel && mecanicoSel !== OTRO ? mecanicoSel : undefined,
+      mecanicoTexto: mecanicoSel === OTRO ? mecanicoTexto : undefined,
+      modalidad,
       fechaIso: fechaCita,
       hora,
+      horaFin,
     });
     setEnviando(false);
     if (res?.error) {
@@ -177,32 +213,121 @@ function ModalNuevaCita({
           />
         </div>
 
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">Fecha</span>
+          <Input
+            type="date"
+            value={fechaCita}
+            onChange={(e) => setFechaCita(e.target.value)}
+          />
+        </div>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <span className="mb-2 block text-[13px] font-medium">Fecha</span>
-            <Input
-              type="date"
-              value={fechaCita}
-              onChange={(e) => setFechaCita(e.target.value)}
-            />
-          </div>
-          <div>
-            <span className="mb-2 block text-[13px] font-medium">Hora</span>
+            <span className="mb-2 block text-[13px] font-medium">
+              Hora inicio
+            </span>
             <Input
               type="time"
               value={hora}
               onChange={(e) => setHora(e.target.value)}
             />
           </div>
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Hora fin
+            </span>
+            <Input
+              type="time"
+              value={horaFin}
+              onChange={(e) => setHoraFin(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="mt-4">
-          <span className="mb-2 block text-[13px] font-medium">Motivo</span>
+          <span className="mb-2 block text-[13px] font-medium">
+            Tipo de servicio
+          </span>
+          <Selector
+            value={servicioSel}
+            onChange={setServicioSel}
+            opciones={opcionesServicio}
+            placeholder="Seleccionar (opcional)"
+          />
+          {servicioSel === OTRO && (
+            <Input
+              className="mt-2"
+              value={servicioTexto}
+              onChange={(e) => setServicioTexto(e.target.value)}
+              placeholder="Escribe el servicio"
+            />
+          )}
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Mecánico / técnico
+          </span>
+          <Selector
+            value={mecanicoSel}
+            onChange={setMecanicoSel}
+            opciones={opcionesEquipo}
+            placeholder="Seleccionar (opcional)"
+          />
+          {mecanicoSel === OTRO && (
+            <Input
+              className="mt-2"
+              value={mecanicoTexto}
+              onChange={(e) => setMecanicoTexto(e.target.value)}
+              placeholder="Escribe el nombre"
+            />
+          )}
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Modalidad de atención
+          </span>
+          <div className="flex flex-col gap-2">
+            {MODALIDADES.map((m) => (
+              <label
+                key={m.valor}
+                className="flex items-center gap-2 text-[14px]"
+              >
+                <input
+                  type="radio"
+                  name="modalidad"
+                  checked={modalidad === m.valor}
+                  onChange={() => setModalidad(m.valor)}
+                  className="accent-primary"
+                />
+                {m.texto}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Título (opcional)
+          </span>
           <Input
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            placeholder="Ej. Revisión batería"
+          />
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">Notas</span>
+          <textarea
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             placeholder="Ej. Revisión de frenos, cambio de aceite…"
+            rows={3}
             autoFocus
+            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
         </div>
 
@@ -242,6 +367,8 @@ export function VistaAgenda({
   citasDia,
   clientes,
   vehiculos,
+  equipo,
+  servicios,
 }: {
   mes: string;
   semana: string;
@@ -251,6 +378,8 @@ export function VistaAgenda({
   citasDia: CitaMes[];
   clientes: ClienteOpcion[];
   vehiculos: VehiculoOpcion[];
+  equipo: { id: string; nombre: string }[];
+  servicios: { id: string; nombre: string }[];
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -391,6 +520,8 @@ export function VistaAgenda({
           fechaInicial={modoVista === "diaria" ? diaVistaLocal : diaSeleccionado}
           clientes={clientes}
           vehiculos={vehiculos}
+          equipo={equipo}
+          servicios={servicios}
           onCerrar={() => setCreando(false)}
         />
       )}

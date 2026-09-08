@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
-import { listarCitasDelMes, listarCitasDeSemana, listarCitasDeDia } from "./acciones";
+import {
+  listarCitasDelMes,
+  listarCitasDeSemana,
+  listarCitasDeDia,
+  listarEquipoParaCita,
+  listarServiciosParaCita,
+} from "./acciones";
 import { listarClientesParaSelector } from "../propietarios/acciones";
 import { listarVehiculosParaSelector } from "../vehiculos/acciones";
 import { VistaAgenda } from "./vista";
@@ -28,13 +34,16 @@ export default async function Agenda({
   const semanaSeleccionada = lunesDeSemana(semana || hoyISO());
   const diaSeleccionado = dia || hoyISO();
 
-  const [citasMes, citasSemana, citasDia, clientes, vehiculos] = await Promise.all([
-    listarCitasDelMes(mesSeleccionado),
-    listarCitasDeSemana(semanaSeleccionada),
-    listarCitasDeDia(diaSeleccionado),
-    listarClientesParaSelector(),
-    listarVehiculosParaSelector(),
-  ]);
+  const [citasMes, citasSemana, citasDia, clientes, vehiculos, equipo, servicios] =
+    await Promise.all([
+      listarCitasDelMes(mesSeleccionado),
+      listarCitasDeSemana(semanaSeleccionada),
+      listarCitasDeDia(diaSeleccionado),
+      listarClientesParaSelector(),
+      listarVehiculosParaSelector(),
+      listarEquipoParaCita(),
+      listarServiciosParaCita(),
+    ]);
 
   return (
     <>
@@ -51,6 +60,8 @@ export default async function Agenda({
         citasDia={citasDia}
         clientes={clientes}
         vehiculos={vehiculos}
+        equipo={equipo}
+        servicios={servicios}
       />
     </>
   );

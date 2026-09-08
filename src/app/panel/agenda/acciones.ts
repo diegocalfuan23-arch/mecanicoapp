@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, gte, lt, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { cita, cliente, vehiculo } from "@/db/schema";
+import { cita, cliente, vehiculo, itemServicio, user, miembroTaller } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 
 function id() {
@@ -17,13 +17,22 @@ export type EstadoCita =
   | "no_presento"
   | "cancelada";
 
+export type Modalidad = "en_taller" | "domicilio" | "retiro_vehiculo";
+
 export type CitaMes = {
   id: string;
   clienteNombre: string | null;
   patente: string | null;
   contactoNombre: string | null;
+  titulo: string | null;
   motivo: string;
+  servicioTexto: string | null;
+  servicioNombre: string | null;
+  mecanicoTexto: string | null;
+  mecanicoNombre: string | null;
+  modalidad: Modalidad;
   fecha: Date;
+  fechaFin: Date | null;
   estado: EstadoCita;
 };
 
@@ -38,19 +47,55 @@ async function listarCitasEntre(desde: Date, hasta: Date) {
       clienteNombre: cliente.nombre,
       patente: vehiculo.patente,
       contactoNombre: cita.contactoNombre,
+      titulo: cita.titulo,
       motivo: cita.motivo,
+      servicioTexto: cita.servicioTexto,
+      servicioNombre: itemServicio.nombre,
+      mecanicoTexto: cita.mecanicoTexto,
+      mecanicoNombre: user.name,
+      modalidad: cita.modalidad,
       fecha: cita.fecha,
+      fechaFin: cita.fechaFin,
       estado: cita.estado,
     })
     .from(cita)
     .leftJoin(cliente, eq(cita.clienteId, cliente.id))
     .leftJoin(vehiculo, eq(cita.vehiculoId, vehiculo.id))
+    .leftJoin(itemServicio, eq(cita.servicioId, itemServicio.id))
+    .leftJoin(user, eq(cita.mecanicoId, user.id))
     .where(
       and(eq(cita.tallerId, tallerId), gte(cita.fecha, desde), lt(cita.fecha, hasta))
     )
     .orderBy(asc(cita.fecha));
 
   return filas as CitaMes[];
+}
+
+/** Miembros del equipo del taller — para el dropdown de mecánico/técnico. */
+export async function listarEquipoParaCita() {
+  if (!(await tienePlan("impresionOrden"))) return [];
+
+  const tallerId = await tallerActual();
+
+  return db
+    .select({ id: user.id, nombre: user.name })
+    .from(miembroTaller)
+    .innerJoin(user, eq(miembroTaller.userId, user.id))
+    .where(eq(miembroTaller.tallerId, tallerId))
+    .orderBy(asc(user.name));
+}
+
+/** Catálogo de servicios (item_servicio, tipo "servicio") — para el dropdown de Tipo de servicio. */
+export async function listarServiciosParaCita() {
+  if (!(await tienePlan("impresionOrden"))) return [];
+
+  const tallerId = await tallerActual();
+
+  return db
+    .select({ id: itemServicio.id, nombre: itemServicio.nombre })
+    .from(itemServicio)
+    .where(and(eq(itemServicio.tallerId, tallerId), eq(itemServicio.tipo, "servicio")))
+    .orderBy(asc(itemServicio.nombre));
 }
 
 /**
@@ -87,9 +132,16 @@ export async function crearCita(datos: {
   vehiculoId?: string;
   contactoNombre?: string;
   contactoTelefono?: string;
+  titulo?: string;
   motivo: string;
+  servicioId?: string;
+  servicioTexto?: string;
+  mecanicoId?: string;
+  mecanicoTexto?: string;
+  modalidad?: Modalidad;
   fechaIso: string;
   hora: string;
+  horaFin?: string;
 }) {
   if (!(await tienePlan("impresionOrden"))) {
     return { error: "Esta función es del Plan Serviteca." };
@@ -109,6 +161,17 @@ export async function crearCita(datos: {
     return { error: "Fecha u hora inválida." };
   }
 
+  let fechaFin: Date | null = null;
+  if (datos.horaFin) {
+    fechaFin = new Date(`${datos.fechaIso}T${datos.horaFin}:00`);
+    if (Number.isNaN(fechaFin.getTime())) {
+      return { error: "Hora de fin inválida." };
+    }
+    if (fechaFin <= fecha) {
+      return { error: "La hora de fin debe ser después del inicio." };
+    }
+  }
+
   await db.insert(cita).values({
     id: id(),
     tallerId,
@@ -116,8 +179,15 @@ export async function crearCita(datos: {
     vehiculoId: datos.vehiculoId || null,
     contactoNombre: datos.contactoNombre?.trim() || null,
     contactoTelefono: datos.contactoTelefono?.trim() || null,
+    titulo: datos.titulo?.trim() || null,
     motivo: datos.motivo.trim(),
+    servicioId: datos.servicioId || null,
+    servicioTexto: datos.servicioId ? null : datos.servicioTexto?.trim() || null,
+    mecanicoId: datos.mecanicoId || null,
+    mecanicoTexto: datos.mecanicoId ? null : datos.mecanicoTexto?.trim() || null,
+    modalidad: datos.modalidad || "en_taller",
     fecha,
+    fechaFin,
   });
 
   revalidatePath("/panel/agenda");

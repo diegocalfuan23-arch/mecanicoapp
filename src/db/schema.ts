@@ -976,8 +976,30 @@ export const cita = pgTable(
     contactoNombre: text("contacto_nombre"),
     contactoTelefono: text("contacto_telefono"),
 
+    // "Motivo" original — se mantiene como notas largas; el título
+    // corto (visible en el calendario) es un campo nuevo aparte.
     motivo: text("motivo").notNull(),
+    titulo: text("titulo"),
+
+    // Catálogo real (item_servicio, tipo "servicio") cuando existe;
+    // texto libre cuando el taller escribe uno que no está cargado.
+    servicioId: text("servicio_id").references(() => itemServicio.id, {
+      onDelete: "set null",
+    }),
+    servicioTexto: text("servicio_texto"),
+
+    // Miembro del equipo cuando existe; texto libre si se escribe a
+    // mano (ej. un mecánico externo o alguien aún sin cuenta).
+    mecanicoId: text("mecanico_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    mecanicoTexto: text("mecanico_texto"),
+
+    // en_taller · domicilio · retiro_vehiculo
+    modalidad: text("modalidad").notNull().default("en_taller"),
+
     fecha: timestamp("fecha").notNull(),
+    fechaFin: timestamp("fecha_fin"),
     // agendada · confirmada · completada · no_presento · cancelada
     estado: text("estado").notNull().default("agendada"),
 
