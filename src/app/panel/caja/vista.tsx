@@ -30,9 +30,11 @@ const TIPOS_FILTRO = [
 
 const ORIGENES_FILTRO = [
   { valor: "todos", texto: "Todos los orígenes" },
-  { valor: "orden", texto: "Órdenes" },
-  { valor: "venta", texto: "Ventas POS" },
+  { valor: "orden", texto: "Abono de orden" },
+  { valor: "venta", texto: "Venta POS" },
+  { valor: "compra", texto: "Compra pagada" },
   { valor: "manual", texto: "Manual" },
+  { valor: "ajuste", texto: "Ajuste" },
 ];
 
 const ETIQUETA_ORIGEN: Record<string, string> = {
@@ -451,7 +453,7 @@ export function VistaCaja({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
         <Input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
