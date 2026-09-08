@@ -98,7 +98,9 @@ async function netoMovimientosManuales(
  * El disponible anterior no recalcula desde el principio de los
  * tiempos: busca el cierre más reciente ANTES del día pedido y suma
  * lo que entró/salió desde ese cierre hasta el día pedido. Sin ningún
- * cierre previo, arranca desde cero.
+ * cierre previo, es $0 — sin un cierre real no hay forma confiable de
+ * saber cuánto había disponible antes, y recorrer día por día desde
+ * el origen colgaba la página (miles de queries hasta 1970).
  */
 async function disponibleAnterior(tallerId: string, fecha: Date) {
   const desdeDia = inicioDia(fecha);
@@ -110,16 +112,15 @@ async function disponibleAnterior(tallerId: string, fecha: Date) {
     .orderBy(desc(cierreCaja.fecha))
     .limit(1);
 
-  const desde = ultimoCierre ? new Date(ultimoCierre.fecha) : new Date(0);
-  const base = ultimoCierre?.disponible ?? 0;
+  if (!ultimoCierre) return 0;
 
   // Todo lo que entró/salió entre el último cierre (exclusive) y el
   // inicio del día pedido, sin volver a contar el propio día de cierre.
-  const desdeSiguiente = ultimoCierre
-    ? new Date(new Date(ultimoCierre.fecha).getTime() + 24 * 60 * 60 * 1000)
-    : desde;
+  const desdeSiguiente = new Date(
+    new Date(ultimoCierre.fecha).getTime() + 24 * 60 * 60 * 1000
+  );
 
-  let acumulado = base;
+  let acumulado = ultimoCierre.disponible;
   const cursor = new Date(desdeSiguiente);
   while (cursor < desdeDia) {
     const finCursor = finDia(cursor);
