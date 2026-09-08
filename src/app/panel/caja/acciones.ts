@@ -14,16 +14,36 @@ import {
 import { tallerActual, tienePlan } from "@/lib/taller";
 import { auth } from "@/lib/auth";
 
+// Chile no tiene un offset fijo (cambia con el horario de verano), así
+// que en vez de un número fijo se pregunta a Intl cuál es el offset
+// real para esa fecha específica.
+function offsetChile(fecha: Date) {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Santiago",
+    timeZoneName: "shortOffset",
+  }).formatToParts(fecha);
+  const desplazamiento = partes.find((p) => p.type === "timeZoneName")?.value ?? "GMT-4";
+  const coincide = desplazamiento.match(/GMT([+-]\d+)/);
+  return coincide ? Number(coincide[1]) : -4;
+}
+
+/**
+ * `fecha` llega como una fecha "pura" (YYYY-MM-DD, sin hora) desde el
+ * selector — ya sea vía new Date(fechaIso) desde la página, que
+ * JavaScript interpreta como medianoche UTC. Acá se corrige a
+ * medianoche/fin de día en hora de Chile, no en UTC ni en la zona del
+ * proceso donde corre el servidor (Vercel corre en UTC).
+ */
 function inicioDia(fecha: Date) {
-  const d = new Date(fecha);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const offset = offsetChile(fecha);
+  const soloFecha = fecha.toISOString().slice(0, 10);
+  return new Date(`${soloFecha}T00:00:00${offset >= 0 ? "+" : "-"}${String(Math.abs(offset)).padStart(2, "0")}:00`);
 }
 
 function finDia(fecha: Date) {
-  const d = new Date(fecha);
-  d.setHours(23, 59, 59, 999);
-  return d;
+  const offset = offsetChile(fecha);
+  const soloFecha = fecha.toISOString().slice(0, 10);
+  return new Date(`${soloFecha}T23:59:59.999${offset >= 0 ? "+" : "-"}${String(Math.abs(offset)).padStart(2, "0")}:00`);
 }
 
 /**

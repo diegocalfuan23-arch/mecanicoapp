@@ -3,10 +3,14 @@ import { puedeVerPagos } from "@/lib/taller";
 import { resumenDia, listarMovimientosDia } from "./acciones";
 import { VistaCaja } from "./vista";
 
+/**
+ * "Hoy" en la zona horaria del taller (Chile), no la del proceso —
+ * en producción el servidor corre en UTC, así que ahora.getDate() sin
+ * ajustar podía dar un día distinto al que el mecánico ve en su
+ * pantalla según la hora del día.
+ */
 function hoyISO() {
-  const ahora = new Date();
-  const local = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
 }
 
 export default async function Caja({
