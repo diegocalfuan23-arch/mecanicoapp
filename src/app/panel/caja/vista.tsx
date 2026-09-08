@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
@@ -323,18 +323,32 @@ export function VistaCaja({
   movimientos: MovimientoDia[];
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [fechaLocal, setFechaLocal] = useState(fecha);
+  const [fechaSincronizada, setFechaSincronizada] = useState(fecha);
   const [busqueda, setBusqueda] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroOrigen, setFiltroOrigen] = useState("todos");
   const [registrando, setRegistrando] = useState(false);
   const [cerrandoModal, setCerrandoModal] = useState(false);
 
+  // El servidor tarda un poco en traer el resumen del nuevo día — el
+  // selector se actualiza al instante y la navegación real corre
+  // detrás, en vez de esperar a que vuelva el Server Component.
+  if (fecha !== fechaSincronizada) {
+    setFechaSincronizada(fecha);
+    setFechaLocal(fecha);
+  }
+
   function irA(nuevaFecha: string) {
-    router.push(`/panel/caja?fecha=${nuevaFecha}`);
+    setFechaLocal(nuevaFecha);
+    startTransition(() => {
+      router.push(`/panel/caja?fecha=${nuevaFecha}`);
+    });
   }
 
   function cambiarDia(delta: number) {
-    const d = new Date(fecha + "T00:00:00");
+    const d = new Date(fechaLocal + "T00:00:00");
     d.setDate(d.getDate() + delta);
     irA(d.toISOString().slice(0, 10));
   }
@@ -385,7 +399,7 @@ export function VistaCaja({
           </button>
           <Input
             type="date"
-            value={fecha}
+            value={fechaLocal}
             onChange={(e) => irA(e.target.value)}
             className="w-auto"
           />
