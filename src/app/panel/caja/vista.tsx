@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha, miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   registrarMovimiento,
   cerrarCaja,
@@ -48,9 +49,6 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
   const [referencia, setReferencia] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
-
-  const campo =
-    "w-full rounded-lg border border-border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
   async function guardar() {
     setError(null);
@@ -118,23 +116,21 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
             <span className="mb-2 block text-[13px] font-medium">
               Descripción
             </span>
-            <input
+            <Input
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               placeholder="Ej. Compra de trapos, retiro para caja chica…"
               autoFocus
-              className={campo}
             />
           </div>
 
           <div>
             <span className="mb-2 block text-[13px] font-medium">Monto</span>
-            <input
+            <Input
               value={miles(monto)}
               onChange={(e) => setMonto(soloDigitos(e.target.value))}
               placeholder="0"
               inputMode="numeric"
-              className={campo}
             />
           </div>
 
@@ -142,11 +138,10 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
             <span className="mb-2 block text-[13px] font-medium">
               Referencia (opcional)
             </span>
-            <input
+            <Input
               value={referencia}
               onChange={(e) => setReferencia(e.target.value)}
               placeholder="N° boleta, comprobante…"
-              className={campo}
             />
           </div>
         </div>
@@ -386,11 +381,11 @@ export function VistaCaja({
               />
             </svg>
           </button>
-          <input
+          <Input
             type="date"
             value={fecha}
             onChange={(e) => irA(e.target.value)}
-            className="rounded-lg border border-border bg-card px-4 py-2 text-[14px] outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+            className="w-auto"
           />
           <button
             type="button"
@@ -457,11 +452,11 @@ export function VistaCaja({
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <input
+        <Input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por descripción o referencia…"
-          className="rounded-lg border border-border bg-card px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 sm:w-64"
+          className="sm:w-64"
         />
         <div className="sm:w-48">
           <Selector value={filtroTipo} onChange={setFiltroTipo} opciones={TIPOS_FILTRO} />
