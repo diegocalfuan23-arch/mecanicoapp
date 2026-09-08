@@ -312,6 +312,10 @@ export async function registrarMovimiento(datos: {
   monto: number;
   descripcion: string;
   referencia?: string;
+  fechaIso?: string;
+  categoria?: string;
+  medioPago?: string;
+  notas?: string;
 }) {
   if (!(await tienePlan("impresionOrden"))) {
     return { error: "Esta función es del Plan Serviteca." };
@@ -326,6 +330,11 @@ export async function registrarMovimiento(datos: {
     return { error: "El monto debe ser mayor a cero." };
   }
 
+  const fecha = datos.fechaIso ? new Date(`${datos.fechaIso}T12:00:00`) : new Date();
+  if (Number.isNaN(fecha.getTime())) {
+    return { error: "Fecha inválida." };
+  }
+
   await db.insert(movimientoCaja).values({
     id: crypto.randomUUID(),
     tallerId,
@@ -333,6 +342,10 @@ export async function registrarMovimiento(datos: {
     monto: Math.round(datos.monto),
     descripcion: datos.descripcion.trim(),
     referencia: datos.referencia?.trim() || null,
+    categoria: datos.categoria?.trim() || null,
+    medioPago: datos.medioPago?.trim() || null,
+    notas: datos.notas?.trim() || null,
+    fecha,
   });
 
   revalidatePath("/panel/caja");

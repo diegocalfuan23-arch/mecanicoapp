@@ -43,14 +43,54 @@ const ETIQUETA_ORIGEN: Record<string, string> = {
   manual: "Manual",
 };
 
+const CATEGORIAS_INGRESO = [
+  { valor: "abono", texto: "Abono" },
+  { valor: "venta", texto: "Venta" },
+  { valor: "aporte_capital", texto: "Aporte de capital" },
+  { valor: "otro", texto: "Otro" },
+];
+
+const CATEGORIAS_EGRESO = [
+  { valor: "compra_repuestos", texto: "Compra de repuestos" },
+  { valor: "sueldo", texto: "Sueldo" },
+  { valor: "arriendo", texto: "Arriendo" },
+  { valor: "servicios_basicos", texto: "Servicios básicos" },
+  { valor: "retiro", texto: "Retiro" },
+  { valor: "otro", texto: "Otro" },
+];
+
+const MEDIOS_PAGO = [
+  { valor: "sin_especificar", texto: "Sin especificar" },
+  { valor: "efectivo", texto: "Efectivo" },
+  { valor: "transferencia", texto: "Transferencia" },
+  { valor: "debito", texto: "Débito" },
+  { valor: "credito", texto: "Crédito" },
+];
+
+function hoyISOLocal() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().slice(0, 10);
+}
+
 function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
   const router = useRouter();
-  const [tipo, setTipo] = useState<"ingreso" | "egreso">("egreso");
+  const [tipo, setTipo] = useState<"ingreso" | "egreso">("ingreso");
   const [monto, setMonto] = useState("");
+  const [fechaMovimiento, setFechaMovimiento] = useState(hoyISOLocal());
+  const [categoria, setCategoria] = useState("");
+  const [medioPago, setMedioPago] = useState("sin_especificar");
   const [descripcion, setDescripcion] = useState("");
-  const [referencia, setReferencia] = useState("");
+  const [notas, setNotas] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  const categorias = tipo === "ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_EGRESO;
+
+  function cambiarTipo(nuevo: "ingreso" | "egreso") {
+    setTipo(nuevo);
+    setCategoria("");
+  }
 
   async function guardar() {
     setError(null);
@@ -59,7 +99,10 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
       tipo,
       monto: Number(monto) || 0,
       descripcion,
-      referencia,
+      fechaIso: fechaMovimiento,
+      categoria,
+      medioPago,
+      notas,
     });
     setEnviando(false);
     if (res?.error) {
@@ -80,52 +123,78 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
       <div
         role="dialog"
         aria-modal
-        className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 sm:p-8"
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
       >
-        <h2 className="text-lg font-medium">Registrar movimiento</h2>
-        <p className="mt-1 text-[14px] text-muted-foreground">
-          Un gasto, un retiro, o un ingreso que no vino de una orden ni de
-          una venta.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-medium">Nuevo movimiento de caja</h2>
+            <p className="mt-1 text-[14px] text-muted-foreground">
+              Registra un ingreso o egreso manual que no proviene de otra
+              operación.
+            </p>
+          </div>
+          <button
+            aria-label="Cerrar"
+            onClick={onCerrar}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
 
-        <div className="mt-6 flex flex-col gap-4">
-          <div className="flex rounded-lg border border-border p-1">
+        <div className="mt-6">
+          <span className="mb-2 block text-[13px] font-medium">
+            Tipo de movimiento
+          </span>
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setTipo("ingreso")}
-              className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
+              onClick={() => cambiarTipo("ingreso")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-[14px] font-medium transition-colors ${
                 tipo === "ingreso"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border-success bg-success/10 text-success"
+                  : "border-border text-muted-foreground hover:text-foreground"
               }`}
             >
+              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                <path
+                  d="M10 4v12M5 11l5 5 5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
               Ingreso
             </button>
             <button
               type="button"
-              onClick={() => setTipo("egreso")}
-              className={`flex-1 rounded-md px-4 py-2 text-[14px] font-medium transition-colors ${
+              onClick={() => cambiarTipo("egreso")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-[14px] font-medium transition-colors ${
                 tipo === "egreso"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border-destructive bg-destructive/10 text-destructive"
+                  : "border-border text-muted-foreground hover:text-foreground"
               }`}
             >
+              <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                <path
+                  d="M10 16V4M5 9l5-5 5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
               Egreso
             </button>
           </div>
+        </div>
 
-          <div>
-            <span className="mb-2 block text-[13px] font-medium">
-              Descripción
-            </span>
-            <Input
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              placeholder="Ej. Compra de trapos, retiro para caja chica…"
-              autoFocus
-            />
-          </div>
+        <h3 className="mt-6 text-[15px] font-medium">Datos generales</h3>
 
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div>
             <span className="mb-2 block text-[13px] font-medium">Monto</span>
             <Input
@@ -133,19 +202,62 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
               onChange={(e) => setMonto(soloDigitos(e.target.value))}
               placeholder="0"
               inputMode="numeric"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">Fecha</span>
+            <Input
+              type="date"
+              value={fechaMovimiento}
+              onChange={(e) => setFechaMovimiento(e.target.value)}
             />
           </div>
 
           <div>
             <span className="mb-2 block text-[13px] font-medium">
-              Referencia (opcional)
+              Categoría
             </span>
-            <Input
-              value={referencia}
-              onChange={(e) => setReferencia(e.target.value)}
-              placeholder="N° boleta, comprobante…"
+            <Selector
+              value={categoria}
+              onChange={setCategoria}
+              opciones={categorias}
+              placeholder="Elige una categoría"
             />
           </div>
+
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">
+              Medio de pago
+            </span>
+            <Selector
+              value={medioPago}
+              onChange={setMedioPago}
+              opciones={MEDIOS_PAGO}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Descripción
+          </span>
+          <Input
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Ej. Aporte de capital, gasto de oficina…"
+          />
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">Notas</span>
+          <textarea
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            rows={3}
+            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
         </div>
 
         {error && (
@@ -154,12 +266,12 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
           </p>
         )}
 
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <Button type="button" onClick={guardar} disabled={enviando}>
-            {enviando ? "Guardando…" : "Registrar"}
-          </Button>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={onCerrar}>
             Cancelar
+          </Button>
+          <Button type="button" onClick={guardar} disabled={enviando}>
+            {enviando ? "Guardando…" : "Registrar"}
           </Button>
         </div>
       </div>
