@@ -28,6 +28,10 @@ export type ProveedorOpcion = {
   nombre: string;
   email: string | null;
   telefono: string | null;
+  documento: string | null;
+  giro: string | null;
+  direccion: string | null;
+  notas: string | null;
 };
 
 export async function listarProveedores() {

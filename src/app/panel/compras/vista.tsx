@@ -6,11 +6,8 @@ import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha } from "@/lib/formato";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  ModalNuevoProveedor,
-  type ProveedorOpcion,
-} from "@/components/buscador-proveedor";
-import type { CompraLista } from "./acciones";
+import { ModalNuevoProveedor } from "@/components/buscador-proveedor";
+import type { CompraLista, ProveedorOpcion } from "./acciones";
 
 const ETIQUETA_ESTADO: Record<string, string> = {
   pendiente: "Pendiente",
@@ -51,6 +48,7 @@ export function VistaCompras({
     if (!q) return true;
     return (
       p.nombre.toLowerCase().includes(q) ||
+      (p.documento || "").toLowerCase().includes(q) ||
       (p.email || "").toLowerCase().includes(q) ||
       (p.telefono || "").toLowerCase().includes(q)
     );
@@ -97,7 +95,7 @@ export function VistaCompras({
           placeholder={
             pestana === "compras"
               ? "Buscar por número, folio o proveedor…"
-              : "Buscar proveedor…"
+              : "Buscar por nombre o RUT…"
           }
           className="sm:w-80"
         />
@@ -175,9 +173,9 @@ export function VistaCompras({
         )
       ) : proveedoresFiltrados.length === 0 ? (
         <div className="mt-6 rounded-xl border border-dashed border-border py-16 text-center">
-          <p className="font-medium">Sin proveedores registrados</p>
+          <p className="font-medium">Sin proveedores</p>
           <p className="mt-2 text-[14px] text-muted-foreground">
-            Crea tu primer proveedor para asociarlo a las compras.
+            Crea proveedores para asociarlos a tus compras.
           </p>
         </div>
       ) : (
