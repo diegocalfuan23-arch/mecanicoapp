@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
-import { listarCitasDelMes, listarCitasDeSemana } from "./acciones";
+import { listarCitasDelMes, listarCitasDeSemana, listarCitasDeDia } from "./acciones";
 import { listarClientesParaSelector } from "../propietarios/acciones";
 import { listarVehiculosParaSelector } from "../vehiculos/acciones";
 import { VistaAgenda } from "./vista";
@@ -19,17 +19,19 @@ function lunesDeSemana(fechaIso: string) {
 export default async function Agenda({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; semana?: string }>;
+  searchParams: Promise<{ mes?: string; semana?: string; dia?: string }>;
 }) {
   if (!(await tienePlan("impresionOrden"))) redirect("/panel");
 
-  const { mes, semana } = await searchParams;
+  const { mes, semana, dia } = await searchParams;
   const mesSeleccionado = mes || hoyISO();
   const semanaSeleccionada = lunesDeSemana(semana || hoyISO());
+  const diaSeleccionado = dia || hoyISO();
 
-  const [citasMes, citasSemana, clientes, vehiculos] = await Promise.all([
+  const [citasMes, citasSemana, citasDia, clientes, vehiculos] = await Promise.all([
     listarCitasDelMes(mesSeleccionado),
     listarCitasDeSemana(semanaSeleccionada),
+    listarCitasDeDia(diaSeleccionado),
     listarClientesParaSelector(),
     listarVehiculosParaSelector(),
   ]);
@@ -43,8 +45,10 @@ export default async function Agenda({
       <VistaAgenda
         mes={mesSeleccionado}
         semana={semanaSeleccionada}
+        dia={diaSeleccionado}
         citasMes={citasMes}
         citasSemana={citasSemana}
+        citasDia={citasDia}
         clientes={clientes}
         vehiculos={vehiculos}
       />

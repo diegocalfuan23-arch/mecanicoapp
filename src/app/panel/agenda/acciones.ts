@@ -75,6 +75,13 @@ export async function listarCitasDeSemana(lunesIso: string) {
   return listarCitasEntre(desde, hasta);
 }
 
+/** Citas de un solo día — usado por la vista diaria. */
+export async function listarCitasDeDia(diaIso: string) {
+  const desde = new Date(`${diaIso}T00:00:00`);
+  const hasta = new Date(desde.getTime() + 24 * 60 * 60 * 1000);
+  return listarCitasEntre(desde, hasta);
+}
+
 export async function crearCita(datos: {
   clienteId?: string;
   vehiculoId?: string;
