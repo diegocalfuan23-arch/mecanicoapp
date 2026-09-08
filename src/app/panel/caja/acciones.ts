@@ -332,7 +332,7 @@ export async function registrarMovimiento(datos: {
   return { ok: true };
 }
 
-export async function cerrarCaja(fechaIso: string) {
+export async function cerrarCaja(fechaIso: string, comentario?: string) {
   if (!(await tienePlan("impresionOrden"))) {
     return { error: "Esta función es del Plan Serviteca." };
   }
@@ -367,6 +367,7 @@ export async function cerrarCaja(fechaIso: string) {
     tallerId,
     fecha: desde,
     disponible: resumen.disponibleDelDia,
+    comentario: comentario?.trim() || null,
     cerradoPorId: sesion.user.id,
   });
 

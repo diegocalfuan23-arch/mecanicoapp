@@ -168,6 +168,141 @@ function ModalNuevoMovimiento({ onCerrar }: { onCerrar: () => void }) {
   );
 }
 
+function ModalCerrarCaja({
+  fecha,
+  resumen,
+  cantidadMovimientos,
+  onCerrar,
+}: {
+  fecha: string;
+  resumen: Resumen;
+  cantidadMovimientos: number;
+  onCerrar: () => void;
+}) {
+  const router = useRouter();
+  const [comentario, setComentario] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  async function confirmar() {
+    setError(null);
+    setEnviando(true);
+    const res = await cerrarCaja(fecha, comentario);
+    setEnviando(false);
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    onCerrar();
+    router.refresh();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onCerrar}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="relative w-full max-w-2xl rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <svg viewBox="0 0 20 20" className="size-5 text-destructive" aria-hidden>
+              <path
+                d="M6 9V6.5a4 4 0 118 0V9M5 9h10a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6a1 1 0 011-1z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <h2 className="text-lg font-medium">Cerrar caja del día</h2>
+          </div>
+          <button
+            aria-label="Cerrar"
+            onClick={onCerrar}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="mt-1 text-[14px] text-muted-foreground">
+          Resumen del {fecha}
+        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border bg-background p-4">
+            <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">
+              Disponible anterior
+            </p>
+            <p className="mt-2 text-xl font-bold">
+              {pesos(resumen.disponibleAnterior)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-success/30 bg-success/10 p-4">
+            <p className="text-[12px] font-medium tracking-wide text-success uppercase">
+              Total ingresos
+            </p>
+            <p className="mt-2 text-xl font-bold text-success">
+              {pesos(resumen.totalIngresos)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-[12px] font-medium tracking-wide text-destructive uppercase">
+              Total egresos
+            </p>
+            <p className="mt-2 text-xl font-bold text-destructive">
+              {pesos(resumen.totalEgresos)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-[12px] font-medium tracking-wide text-destructive uppercase">
+              Disponible del día
+            </p>
+            <p className="mt-2 text-xl font-bold text-destructive">
+              {pesos(resumen.disponibleDelDia)}
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-4 text-[13px] text-muted-foreground">
+          {cantidadMovimientos} movimiento{cantidadMovimientos === 1 ? "" : "(s)"} en el día
+        </p>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Comentario del cierre
+          </span>
+          <textarea
+            value={comentario}
+            onChange={(e) => setComentario(e.target.value)}
+            placeholder="Observaciones sobre el cierre…"
+            rows={3}
+            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </div>
+
+        {error && (
+          <p className="mt-3 text-[13px] text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 flex justify-end">
+          <Button type="button" onClick={confirmar} disabled={enviando}>
+            {enviando ? "Cerrando…" : "Cerrar caja"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VistaCaja({
   fecha,
   resumen,
@@ -182,8 +317,7 @@ export function VistaCaja({
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroOrigen, setFiltroOrigen] = useState("todos");
   const [registrando, setRegistrando] = useState(false);
-  const [cerrando, setCerrando] = useState(false);
-  const [errorCierre, setErrorCierre] = useState<string | null>(null);
+  const [cerrandoModal, setCerrandoModal] = useState(false);
 
   function irA(nuevaFecha: string) {
     router.push(`/panel/caja?fecha=${nuevaFecha}`);
@@ -193,18 +327,6 @@ export function VistaCaja({
     const d = new Date(fecha + "T00:00:00");
     d.setDate(d.getDate() + delta);
     irA(d.toISOString().slice(0, 10));
-  }
-
-  async function confirmarCierre() {
-    setErrorCierre(null);
-    setCerrando(true);
-    const res = await cerrarCaja(fecha);
-    setCerrando(false);
-    if (res?.error) {
-      setErrorCierre(res.error);
-      return;
-    }
-    router.refresh();
   }
 
   const q = busqueda.trim().toLowerCase();
@@ -221,6 +343,15 @@ export function VistaCaja({
     <>
       {registrando && (
         <ModalNuevoMovimiento onCerrar={() => setRegistrando(false)} />
+      )}
+
+      {cerrandoModal && (
+        <ModalCerrarCaja
+          fecha={fecha}
+          resumen={resumen}
+          cantidadMovimientos={movimientos.length}
+          onCerrar={() => setCerrandoModal(false)}
+        />
       )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -270,26 +401,16 @@ export function VistaCaja({
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={confirmarCierre}
-            disabled={resumen.cerrado || cerrando}
+            onClick={() => setCerrandoModal(true)}
+            disabled={resumen.cerrado}
           >
-            {resumen.cerrado
-              ? "Caja cerrada"
-              : cerrando
-                ? "Cerrando…"
-                : "Cerrar caja"}
+            {resumen.cerrado ? "Caja cerrada" : "Cerrar caja"}
           </Button>
           <Button onClick={() => setRegistrando(true)}>
             + Registrar movimiento
           </Button>
         </div>
       </div>
-
-      {errorCierre && (
-        <p className="mt-2 text-[13px] text-destructive" role="alert">
-          {errorCierre}
-        </p>
-      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-border bg-card p-4">

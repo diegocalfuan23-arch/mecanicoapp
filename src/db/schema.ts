@@ -848,6 +848,7 @@ export const cierreCaja = pgTable(
     // cierre por taller por día.
     fecha: timestamp("fecha").notNull(),
     disponible: integer("disponible").notNull(),
+    comentario: text("comentario"),
     cerradoPorId: text("cerrado_por_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
