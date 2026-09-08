@@ -247,6 +247,10 @@ export function VistaAgenda({
 
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => diaInicialDelMes(mes));
   const [creando, setCreando] = useState(false);
+  // "Vista diaria" y "Semana" son solo el marco visual por ahora — se
+  // conectan en un paso siguiente, ver conversación con Diego.
+  const [modoVista, setModoVista] = useState<"calendario" | "diaria">("calendario");
+  const [escala, setEscala] = useState<"mes" | "semana">("mes");
 
   if (mes !== mesSincronizado) {
     setMesSincronizado(mes);
@@ -309,8 +313,95 @@ export function VistaAgenda({
         />
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex rounded-lg border border-border p-1">
+          <button
+            type="button"
+            onClick={() => setModoVista("calendario")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              modoVista === "calendario"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+              <path
+                d="M5 4.5h10a1 1 0 011 1V16a1 1 0 01-1 1H5a1 1 0 01-1-1V5.5a1 1 0 011-1zM4 8h12M7 3v3M13 3v3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Calendario
+          </button>
+          <button
+            type="button"
+            onClick={() => setModoVista("diaria")}
+            disabled
+            title="Próximamente"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              modoVista === "diaria"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+              <path
+                d="M4 5.5h12M4 10h12M4 14.5h8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            Vista diaria
+          </button>
+        </div>
+
+        <div className="flex rounded-lg border border-border p-1">
+          <button
+            type="button"
+            onClick={() => setEscala("mes")}
+            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              escala === "mes"
+                ? "bg-success/15 font-semibold text-success"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Mes
+          </button>
+          <button
+            type="button"
+            onClick={() => setEscala("semana")}
+            disabled
+            title="Próximamente"
+            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              escala === "semana"
+                ? "bg-success/15 font-semibold text-success"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Semana
+          </button>
+        </div>
+
+        <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+          <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+            <path
+              d="M13.5 4a3 3 0 00-3.9 3.9L4 13.5V16h2.5l5.6-5.6a3 3 0 003.9-3.9l-2 2-1.5-.5-.5-1.5 2-2z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          0 OT en curso
+        </span>
+
+        <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
             onClick={() => cambiarMes(-1)}
