@@ -19,6 +19,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/agenda",
+    texto: "Agenda",
+    icono: (
+      <path
+        d="M5 4.5h10a1 1 0 011 1V16a1 1 0 01-1 1H5a1 1 0 01-1-1V5.5a1 1 0 011-1zM4 8h12M7 3v3M13 3v3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/historial",
     texto: "Buscar patente",
     icono: (
@@ -231,6 +245,7 @@ function Enlaces({
 }) {
   const ruta = usePathname();
   const secciones = SECCIONES.filter((s) => {
+    if (s.href === "/panel/agenda") return tieneServicios;
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneCatalogoServicios;
     if (s.href === "/panel/diagnosticos") return tieneServicios;

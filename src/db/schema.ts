@@ -949,3 +949,44 @@ export const itemInspeccion = pgTable(
     index("item_inspeccion_inspeccion_idx").on(t.inspeccionId),
   ]
 );
+
+/**
+ * Cita de la Agenda — independiente de Órdenes por ahora: es solo un
+ * horario reservado, el mecánico crea la Orden manualmente cuando el
+ * cliente llega. cliente/vehículo son opcionales porque a veces se
+ * agenda solo con un nombre/teléfono de contacto, antes de tener el
+ * cliente cargado en el catálogo.
+ */
+export const cita = pgTable(
+  "cita",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    clienteId: text("cliente_id").references(() => cliente.id, {
+      onDelete: "set null",
+    }),
+    vehiculoId: text("vehiculo_id").references(() => vehiculo.id, {
+      onDelete: "set null",
+    }),
+
+    // Texto libre de respaldo cuando no hay cliente cargado aún.
+    contactoNombre: text("contacto_nombre"),
+    contactoTelefono: text("contacto_telefono"),
+
+    motivo: text("motivo").notNull(),
+    fecha: timestamp("fecha").notNull(),
+    // agendada · confirmada · completada · no_presento · cancelada
+    estado: text("estado").notNull().default("agendada"),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("cita_taller_idx").on(t.tallerId, t.fecha),
+    index("cita_cliente_idx").on(t.clienteId),
+    index("cita_vehiculo_idx").on(t.vehiculoId),
+  ]
+);
