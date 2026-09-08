@@ -55,12 +55,30 @@ const CATEGORIAS_INGRESO = [
 ];
 
 const CATEGORIAS_EGRESO = [
-  { valor: "compra_repuestos", texto: "Compra de repuestos" },
-  { valor: "sueldo", texto: "Sueldo" },
+  { valor: "aguinaldo", texto: "Aguinaldo" },
+  { valor: "agua", texto: "Agua" },
   { valor: "arriendo", texto: "Arriendo" },
-  { valor: "servicios_basicos", texto: "Servicios básicos" },
-  { valor: "retiro", texto: "Retiro" },
-  { valor: "otro", texto: "Otro" },
+  { valor: "bono", texto: "Bono" },
+  { valor: "compra", texto: "Compra" },
+  { valor: "compra_insumos", texto: "Compra insumos" },
+  { valor: "devoluciones", texto: "Devoluciones" },
+  { valor: "electricidad", texto: "Electricidad" },
+  { valor: "gasto_administrativo", texto: "Gasto administrativo" },
+  { valor: "gasto_operacional", texto: "Gasto operacional" },
+  { valor: "gas", texto: "Gas" },
+  { valor: "impuestos", texto: "Impuestos" },
+  { valor: "internet", texto: "Internet" },
+  { valor: "leasing", texto: "Leasing" },
+  { valor: "mantenimiento_equipos", texto: "Mantenimiento equipos" },
+  { valor: "otro_egreso", texto: "Otro egreso" },
+  { valor: "pago_proveedor", texto: "Pago proveedor" },
+  { valor: "comision", texto: "Comisión" },
+  { valor: "remuneraciones", texto: "Remuneraciones" },
+  { valor: "repuesto", texto: "Repuesto" },
+  { valor: "retiro_caja", texto: "Retiro de caja" },
+  { valor: "seguros", texto: "Seguros" },
+  { valor: "telefono", texto: "Teléfono" },
+  { valor: "ajuste", texto: "Ajuste" },
 ];
 
 const MEDIOS_PAGO = [
