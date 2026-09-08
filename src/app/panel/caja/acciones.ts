@@ -210,7 +210,7 @@ export type MovimientoDia = {
   monto: number;
   descripcion: string;
   referencia: string | null;
-  origen: "orden" | "venta" | "manual";
+  origen: "orden" | "venta" | "compra" | "manual";
   fecha: Date;
 };
 
@@ -263,6 +263,7 @@ export async function listarMovimientosDia(fechaIso: string) {
       monto: movimientoCaja.monto,
       descripcion: movimientoCaja.descripcion,
       referencia: movimientoCaja.referencia,
+      categoria: movimientoCaja.categoria,
       fecha: movimientoCaja.fecha,
     })
     .from(movimientoCaja)
@@ -299,7 +300,7 @@ export async function listarMovimientosDia(fechaIso: string) {
       monto: m.monto,
       descripcion: m.descripcion,
       referencia: m.referencia,
-      origen: "manual" as const,
+      origen: (m.categoria === "compra" ? "compra" : "manual") as "compra" | "manual",
       fecha: m.fecha,
     })),
   ];

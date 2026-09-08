@@ -213,6 +213,20 @@ const SECCIONES = [
     ),
   },
   {
+    href: "/panel/compras",
+    texto: "Compras",
+    icono: (
+      <path
+        d="M4 6l1-3h10l1 3M4 6h12M4 6v9a1 1 0 001 1h10a1 1 0 001-1V6M7.5 9a2.5 2.5 0 005 0"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  {
     href: "/panel/cuenta",
     texto: "Mi cuenta",
     icono: (
@@ -246,6 +260,7 @@ function Enlaces({
   const ruta = usePathname();
   const secciones = SECCIONES.filter((s) => {
     if (s.href === "/panel/agenda") return tieneServicios;
+    if (s.href === "/panel/compras") return tieneServicios;
     if (s.href === "/panel/inventario") return tieneInventario;
     if (s.href === "/panel/servicios") return tieneCatalogoServicios;
     if (s.href === "/panel/diagnosticos") return tieneServicios;

@@ -40,6 +40,7 @@ const ORIGENES_FILTRO = [
 const ETIQUETA_ORIGEN: Record<string, string> = {
   orden: "Orden",
   venta: "Venta POS",
+  compra: "Compra",
   manual: "Manual",
 };
 

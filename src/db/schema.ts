@@ -1012,3 +1012,86 @@ export const cita = pgTable(
     index("cita_vehiculo_idx").on(t.vehiculoId),
   ]
 );
+
+export const proveedor = pgTable(
+  "proveedor",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    nombre: text("nombre").notNull(),
+    email: text("email"),
+    telefono: text("telefono"),
+    documento: text("documento"),
+    giro: text("giro"),
+    direccion: text("direccion"),
+    notas: text("notas"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("proveedor_taller_idx").on(t.tallerId)]
+);
+
+/**
+ * El stock sube al REGISTRAR la compra (línea "Desde inventario" o
+ * "Producto nuevo"), no cuando se marca Pagada — Diego confirmó que
+ * si ya se está cargando la mercadería es porque ya llegó, el estado
+ * de pago es independiente de si el repuesto ya está físicamente en
+ * el taller.
+ */
+export const compra = pgTable(
+  "compra",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    numero: integer("numero").notNull(),
+
+    proveedorId: text("proveedor_id").references(() => proveedor.id, {
+      onDelete: "set null",
+    }),
+    // Texto libre cuando no se elige un proveedor registrado.
+    proveedorNombre: text("proveedor_nombre"),
+
+    fecha: timestamp("fecha").notNull(),
+    // pendiente · pagada · anulada
+    estado: text("estado").notNull().default("pendiente"),
+    folio: text("folio"),
+    notas: text("notas"),
+
+    subtotal: integer("subtotal").notNull().default(0),
+    impuesto: integer("impuesto").notNull().default(0),
+    total: integer("total").notNull().default(0),
+
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("compra_taller_idx").on(t.tallerId, t.fecha),
+    index("compra_proveedor_idx").on(t.proveedorId),
+  ]
+);
+
+export const itemCompra = pgTable(
+  "item_compra",
+  {
+    id: text("id").primaryKey(),
+    compraId: text("compra_id")
+      .notNull()
+      .references(() => compra.id, { onDelete: "cascade" }),
+
+    // "inventario" (repuesto ya existente, suma a su stock) ·
+    // "nuevo" (crea un repuesto en Inventario) · "manual" (solo
+    // gasto, no toca Inventario).
+    origen: text("origen").notNull(),
+    parteId: text("parte_id").references(() => parte.id, {
+      onDelete: "set null",
+    }),
+
+    descripcion: text("descripcion").notNull(),
+    cantidad: integer("cantidad").notNull().default(1),
+    costoUnitario: integer("costo_unitario").notNull().default(0),
+  },
+  (t) => [index("item_compra_compra_idx").on(t.compraId)]
+);
