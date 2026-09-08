@@ -453,22 +453,24 @@ export function VistaCaja({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por descripción o referencia…"
           className="sm:w-64"
         />
-        <div className="sm:w-48">
-          <Selector value={filtroTipo} onChange={setFiltroTipo} opciones={TIPOS_FILTRO} />
-        </div>
-        <div className="sm:w-48">
-          <Selector
-            value={filtroOrigen}
-            onChange={setFiltroOrigen}
-            opciones={ORIGENES_FILTRO}
-          />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="sm:w-48">
+            <Selector value={filtroTipo} onChange={setFiltroTipo} opciones={TIPOS_FILTRO} />
+          </div>
+          <div className="sm:w-48">
+            <Selector
+              value={filtroOrigen}
+              onChange={setFiltroOrigen}
+              opciones={ORIGENES_FILTRO}
+            />
+          </div>
         </div>
       </div>
 
