@@ -45,9 +45,13 @@ const ETIQUETA_ORIGEN: Record<string, string> = {
 
 const CATEGORIAS_INGRESO = [
   { valor: "abono", texto: "Abono" },
+  { valor: "abono_ot", texto: "Abono OT" },
+  { valor: "nota_venta", texto: "Nota de venta" },
+  { valor: "ot", texto: "OT" },
+  { valor: "otro_ingreso", texto: "Otro ingreso" },
+  { valor: "pago_ot_pendiente", texto: "Pago OT pendiente" },
   { valor: "venta", texto: "Venta" },
-  { valor: "aporte_capital", texto: "Aporte de capital" },
-  { valor: "otro", texto: "Otro" },
+  { valor: "ajuste", texto: "Ajuste" },
 ];
 
 const CATEGORIAS_EGRESO = [
