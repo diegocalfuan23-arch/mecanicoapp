@@ -17,6 +17,8 @@ type Resumen = {
   totalEgresos: number;
   disponibleDelDia: number;
   cerrado: boolean;
+  cerradoPor: string | null;
+  comentarioCierre: string | null;
 };
 
 const TIPOS_FILTRO = [
@@ -183,6 +185,7 @@ function ModalCerrarCaja({
   const [comentario, setComentario] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const cerrada = resumen.cerrado;
 
   async function confirmar() {
     setError(null);
@@ -221,7 +224,9 @@ function ModalCerrarCaja({
                 strokeLinejoin="round"
               />
             </svg>
-            <h2 className="text-lg font-medium">Cerrar caja del día</h2>
+            <h2 className="text-lg font-medium">
+              {cerrada ? "Caja cerrada" : "Cerrar caja del día"}
+            </h2>
           </div>
           <button
             aria-label="Cerrar"
@@ -235,15 +240,13 @@ function ModalCerrarCaja({
           Resumen del {fecha}
         </p>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-border bg-background p-4">
-            <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">
-              Disponible anterior
-            </p>
-            <p className="mt-2 text-xl font-bold">
-              {pesos(resumen.disponibleAnterior)}
-            </p>
+        {cerrada && (
+          <div className="mt-4 rounded-lg bg-amber-500 px-4 py-3 text-[14px] font-medium text-amber-950">
+            Caja cerrada{resumen.cerradoPor ? ` por ${resumen.cerradoPor}.` : "."}
           </div>
+        )}
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-success/30 bg-success/10 p-4">
             <p className="text-[12px] font-medium tracking-wide text-success uppercase">
               Total ingresos
@@ -270,21 +273,29 @@ function ModalCerrarCaja({
           </div>
         </div>
 
-        <p className="mt-4 text-[13px] text-muted-foreground">
-          {cantidadMovimientos} movimiento{cantidadMovimientos === 1 ? "" : "(s)"} en el día
-        </p>
+        {!cerrada && (
+          <p className="mt-4 text-[13px] text-muted-foreground">
+            {cantidadMovimientos} movimiento{cantidadMovimientos === 1 ? "" : "(s)"} en el día
+          </p>
+        )}
 
         <div className="mt-4">
           <span className="mb-2 block text-[13px] font-medium">
             Comentario del cierre
           </span>
-          <textarea
-            value={comentario}
-            onChange={(e) => setComentario(e.target.value)}
-            placeholder="Observaciones sobre el cierre…"
-            rows={3}
-            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
-          />
+          {cerrada ? (
+            <p className="rounded-lg border border-border bg-background px-4 py-2 text-[14px] text-muted-foreground">
+              {resumen.comentarioCierre || "Sin comentarios."}
+            </p>
+          ) : (
+            <textarea
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              placeholder="Observaciones sobre el cierre…"
+              rows={3}
+              className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+            />
+          )}
         </div>
 
         {error && (
@@ -293,11 +304,13 @@ function ModalCerrarCaja({
           </p>
         )}
 
-        <div className="mt-6 flex justify-end">
-          <Button type="button" onClick={confirmar} disabled={enviando}>
-            {enviando ? "Cerrando…" : "Cerrar caja"}
-          </Button>
-        </div>
+        {!cerrada && (
+          <div className="mt-6 flex justify-end">
+            <Button type="button" onClick={confirmar} disabled={enviando}>
+              {enviando ? "Cerrando…" : "Cerrar caja"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -399,11 +412,7 @@ export function VistaCaja({
         </div>
 
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCerrandoModal(true)}
-            disabled={resumen.cerrado}
-          >
+          <Button variant="outline" onClick={() => setCerrandoModal(true)}>
             {resumen.cerrado ? "Caja cerrada" : "Cerrar caja"}
           </Button>
           <Button onClick={() => setRegistrando(true)}>

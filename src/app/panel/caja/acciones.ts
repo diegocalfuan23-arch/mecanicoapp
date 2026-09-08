@@ -10,6 +10,7 @@ import {
   venta,
   movimientoCaja,
   cierreCaja,
+  user,
 } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 import { auth } from "@/lib/auth";
@@ -176,8 +177,12 @@ export async function resumenDia(fechaIso: string) {
   const totalEgresos = egresosManuales;
 
   const [cierre] = await db
-    .select({ id: cierreCaja.id })
+    .select({
+      comentario: cierreCaja.comentario,
+      cerradoPor: user.name,
+    })
     .from(cierreCaja)
+    .innerJoin(user, eq(cierreCaja.cerradoPorId, user.id))
     .where(
       and(
         eq(cierreCaja.tallerId, tallerId),
@@ -194,6 +199,8 @@ export async function resumenDia(fechaIso: string) {
     totalEgresos,
     disponibleDelDia: anterior + totalIngresos - totalEgresos,
     cerrado: !!cierre,
+    cerradoPor: cierre?.cerradoPor ?? null,
+    comentarioCierre: cierre?.comentario ?? null,
   };
 }
 
