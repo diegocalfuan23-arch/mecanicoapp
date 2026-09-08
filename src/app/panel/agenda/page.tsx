@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { tienePlan } from "@/lib/taller";
-import { listarCitasDelMes } from "./acciones";
+import { listarCitasDelMes, listarCitasDeSemana } from "./acciones";
 import { listarClientesParaSelector } from "../propietarios/acciones";
 import { listarVehiculosParaSelector } from "../vehiculos/acciones";
 import { VistaAgenda } from "./vista";
@@ -9,18 +9,27 @@ function hoyISO() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
 }
 
+function lunesDeSemana(fechaIso: string) {
+  const d = new Date(`${fechaIso}T00:00:00`);
+  const offset = (d.getDay() + 6) % 7; // getDay(): 0=domingo — se corrige a lunes-primero.
+  d.setDate(d.getDate() - offset);
+  return d.toISOString().slice(0, 10);
+}
+
 export default async function Agenda({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string }>;
+  searchParams: Promise<{ mes?: string; semana?: string }>;
 }) {
   if (!(await tienePlan("impresionOrden"))) redirect("/panel");
 
-  const { mes } = await searchParams;
+  const { mes, semana } = await searchParams;
   const mesSeleccionado = mes || hoyISO();
+  const semanaSeleccionada = lunesDeSemana(semana || hoyISO());
 
-  const [citas, clientes, vehiculos] = await Promise.all([
+  const [citasMes, citasSemana, clientes, vehiculos] = await Promise.all([
     listarCitasDelMes(mesSeleccionado),
+    listarCitasDeSemana(semanaSeleccionada),
     listarClientesParaSelector(),
     listarVehiculosParaSelector(),
   ]);
@@ -33,7 +42,9 @@ export default async function Agenda({
 
       <VistaAgenda
         mes={mesSeleccionado}
-        citas={citas}
+        semana={semanaSeleccionada}
+        citasMes={citasMes}
+        citasSemana={citasSemana}
         clientes={clientes}
         vehiculos={vehiculos}
       />

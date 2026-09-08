@@ -27,17 +27,10 @@ export type CitaMes = {
   estado: EstadoCita;
 };
 
-/**
- * Todas las citas del mes que cubre `fechaIso` (cualquier día de ese
- * mes) — la vista de calendario pinta el mes completo de una vez.
- */
-export async function listarCitasDelMes(fechaIso: string) {
+async function listarCitasEntre(desde: Date, hasta: Date) {
   if (!(await tienePlan("impresionOrden"))) return [];
 
   const tallerId = await tallerActual();
-  const fecha = new Date(`${fechaIso}T00:00:00`);
-  const desde = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
-  const hasta = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 1);
 
   const filas = await db
     .select({
@@ -58,6 +51,28 @@ export async function listarCitasDelMes(fechaIso: string) {
     .orderBy(asc(cita.fecha));
 
   return filas as CitaMes[];
+}
+
+/**
+ * Todas las citas del mes que cubre `fechaIso` (cualquier día de ese
+ * mes) — la vista de calendario mensual pinta el mes completo de una vez.
+ */
+export async function listarCitasDelMes(fechaIso: string) {
+  const fecha = new Date(`${fechaIso}T00:00:00`);
+  const desde = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+  const hasta = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 1);
+  return listarCitasEntre(desde, hasta);
+}
+
+/**
+ * Todas las citas de los 7 días que empiezan en `lunesIso` — la vista
+ * semanal puede cruzar el límite de un mes, así que no le sirve
+ * listarCitasDelMes.
+ */
+export async function listarCitasDeSemana(lunesIso: string) {
+  const desde = new Date(`${lunesIso}T00:00:00`);
+  const hasta = new Date(desde.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return listarCitasEntre(desde, hasta);
 }
 
 export async function crearCita(datos: {

@@ -22,6 +22,7 @@ import {
 } from "./acciones";
 
 const DIAS_SEMANA = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+const DIAS_SEMANA_LARGO = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -224,14 +225,26 @@ function ModalNuevaCita({
   );
 }
 
+function numeroSemanaISO(fecha: Date) {
+  const d = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
+  const diaSemana = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - diaSemana);
+  const inicioAnio = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - inicioAnio.getTime()) / 86400000 + 1) / 7);
+}
+
 export function VistaAgenda({
   mes,
-  citas,
+  semana,
+  citasMes,
+  citasSemana,
   clientes,
   vehiculos,
 }: {
   mes: string;
-  citas: CitaMes[];
+  semana: string;
+  citasMes: CitaMes[];
+  citasSemana: CitaMes[];
   clientes: ClienteOpcion[];
   vehiculos: VehiculoOpcion[];
 }) {
@@ -239,6 +252,8 @@ export function VistaAgenda({
   const [, startTransition] = useTransition();
   const [mesLocal, setMesLocal] = useState(mes);
   const [mesSincronizado, setMesSincronizado] = useState(mes);
+  const [semanaLocal, setSemanaLocal] = useState(semana);
+  const [semanaSincronizada, setSemanaSincronizada] = useState(semana);
 
   function diaInicialDelMes(mesIso: string) {
     const hoy = hoyISOLocal();
@@ -247,8 +262,8 @@ export function VistaAgenda({
 
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => diaInicialDelMes(mes));
   const [creando, setCreando] = useState(false);
-  // "Vista diaria" y "Semana" son solo el marco visual por ahora — se
-  // conectan en un paso siguiente, ver conversación con Diego.
+  // "Vista diaria" es solo el marco visual por ahora — se conecta en
+  // un paso siguiente, ver conversación con Diego.
   const [modoVista, setModoVista] = useState<"calendario" | "diaria">("calendario");
   const [escala, setEscala] = useState<"mes" | "semana">("mes");
 
@@ -256,6 +271,10 @@ export function VistaAgenda({
     setMesSincronizado(mes);
     setMesLocal(mes);
     setDiaSeleccionado(diaInicialDelMes(mes));
+  }
+  if (semana !== semanaSincronizada) {
+    setSemanaSincronizada(semana);
+    setSemanaLocal(semana);
   }
 
   const fechaRef = new Date(`${mesLocal}T00:00:00`);
@@ -269,9 +288,34 @@ export function VistaAgenda({
     });
   }
 
+  function irASemana(nuevaSemana: string) {
+    setSemanaLocal(nuevaSemana);
+    startTransition(() => {
+      router.push(`/panel/agenda?semana=${nuevaSemana}&mes=${mesLocal}`);
+    });
+  }
+
   function cambiarMes(delta: number) {
     const d = new Date(anio, mesIndice + delta, 1);
     irAMes(diaISO(d));
+  }
+
+  function cambiarSemana(delta: number) {
+    const d = new Date(`${semanaLocal}T00:00:00`);
+    d.setDate(d.getDate() + delta * 7);
+    irASemana(diaISO(d));
+  }
+
+  function irAHoy() {
+    if (escala === "mes") {
+      irAMes(hoyISOLocal().slice(0, 7) + "-01");
+      setDiaSeleccionado(hoyISOLocal());
+    } else {
+      const hoy = new Date(`${hoyISOLocal()}T00:00:00`);
+      const offset = (hoy.getDay() + 6) % 7;
+      hoy.setDate(hoy.getDate() - offset);
+      irASemana(diaISO(hoy));
+    }
   }
 
   const primerDiaMes = new Date(anio, mesIndice, 1);
@@ -280,9 +324,15 @@ export function VistaAgenda({
   const diasEnMes = new Date(anio, mesIndice + 1, 0).getDate();
 
   const citasPorDia = new Map<string, CitaMes[]>();
-  for (const c of citas) {
+  for (const c of citasMes) {
     const clave = diaISO(c.fecha);
     citasPorDia.set(clave, [...(citasPorDia.get(clave) ?? []), c]);
+  }
+
+  const citasSemanaPorDia = new Map<string, CitaMes[]>();
+  for (const c of citasSemana) {
+    const clave = diaISO(c.fecha);
+    citasSemanaPorDia.set(clave, [...(citasSemanaPorDia.get(clave) ?? []), c]);
   }
 
   const celdas: (number | null)[] = [
@@ -291,6 +341,15 @@ export function VistaAgenda({
   ];
 
   const citasDelDia = citasPorDia.get(diaSeleccionado) ?? [];
+
+  const inicioSemana = new Date(`${semanaLocal}T00:00:00`);
+  const diasSemana = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(inicioSemana);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const finSemana = diasSemana[6];
+  const semanaLabel = `Semana ${numeroSemanaISO(inicioSemana)}, ${inicioSemana.getFullYear()} · ${inicioSemana.getDate()} ${MESES[inicioSemana.getMonth()].slice(0, 3)} – ${finSemana.getDate()} ${MESES[finSemana.getMonth()].slice(0, 3)}`;
 
   async function marcarEstado(citaId: string, estado: EstadoCita) {
     const res = await cambiarEstadoCita(citaId, estado);
@@ -375,9 +434,7 @@ export function VistaAgenda({
           <button
             type="button"
             onClick={() => setEscala("semana")}
-            disabled
-            title="Próximamente"
-            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
               escala === "semana"
                 ? "bg-success/15 font-semibold text-success"
                 : "text-muted-foreground hover:text-foreground"
@@ -404,8 +461,8 @@ export function VistaAgenda({
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            onClick={() => cambiarMes(-1)}
-            aria-label="Mes anterior"
+            onClick={() => (escala === "mes" ? cambiarMes(-1) : cambiarSemana(-1))}
+            aria-label="Anterior"
             className="flex size-9 items-center justify-center rounded-lg border border-border hover:bg-card"
           >
             <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
@@ -419,13 +476,13 @@ export function VistaAgenda({
               />
             </svg>
           </button>
-          <p className="min-w-40 text-center text-[15px] font-medium">
-            {MESES[mesIndice]} de {anio}
+          <p className="min-w-40 text-center text-[15px] font-medium whitespace-nowrap">
+            {escala === "mes" ? `${MESES[mesIndice]} de ${anio}` : semanaLabel}
           </p>
           <button
             type="button"
-            onClick={() => cambiarMes(1)}
-            aria-label="Mes siguiente"
+            onClick={() => (escala === "mes" ? cambiarMes(1) : cambiarSemana(1))}
+            aria-label="Siguiente"
             className="flex size-9 items-center justify-center rounded-lg border border-border hover:bg-card"
           >
             <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
@@ -439,11 +496,71 @@ export function VistaAgenda({
               />
             </svg>
           </button>
+          <button
+            type="button"
+            onClick={irAHoy}
+            className="rounded-lg border border-border px-3 py-2 text-[13px] font-medium hover:bg-card"
+          >
+            Hoy
+          </button>
         </div>
 
         <Button onClick={() => setCreando(true)}>+ Nueva cita</Button>
       </div>
 
+      {escala === "semana" ? (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          {diasSemana.map((d) => {
+            const clave = diaISO(d);
+            const citasDia = citasSemanaPorDia.get(clave) ?? [];
+            const esHoy = clave === hoyISOLocal();
+            const esSeleccionado = clave === diaSeleccionado;
+
+            return (
+              <button
+                key={clave}
+                type="button"
+                onClick={() => setDiaSeleccionado(clave)}
+                className={`min-h-56 rounded-xl border p-3 text-left transition-colors ${
+                  esSeleccionado ? "border-primary" : "border-border hover:bg-card/70"
+                }`}
+              >
+                <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  {DIAS_SEMANA_LARGO[(d.getDay() + 6) % 7]}
+                </p>
+                <p
+                  className={`text-xl font-bold ${esHoy ? "text-primary" : ""}`}
+                >
+                  {d.getDate()}
+                </p>
+                <p className="text-[12px] text-muted-foreground">
+                  {MESES[d.getMonth()].toLowerCase().slice(0, 4)}
+                </p>
+
+                <div className="mt-4 flex flex-col gap-2">
+                  {citasDia.length === 0 ? (
+                    <p className="text-[13px] text-muted-foreground">
+                      Sin citas este día
+                    </p>
+                  ) : (
+                    citasDia.map((c) => (
+                      <div
+                        key={c.id}
+                        className="rounded-lg border border-border p-2 text-[12px]"
+                      >
+                        <p className="font-medium tabular-nums">{horaLocal(c.fecha)}</p>
+                        <p className="truncate">
+                          {c.clienteNombre || c.contactoNombre || "Sin nombre"}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="overflow-hidden rounded-xl border border-border">
           <div className="grid grid-cols-7 border-b border-border bg-card">
@@ -564,6 +681,7 @@ export function VistaAgenda({
           )}
         </div>
       </div>
+      )}
     </>
   );
 }
