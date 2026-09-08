@@ -39,11 +39,11 @@ const MESES = [
 ];
 
 const ESTADOS_CITA: { valor: EstadoCita; texto: string }[] = [
-  { valor: "agendada", texto: "Agendada" },
+  { valor: "agendada", texto: "Programada" },
   { valor: "confirmada", texto: "Confirmada" },
   { valor: "completada", texto: "Completada" },
-  { valor: "no_presento", texto: "No se presentó" },
   { valor: "cancelada", texto: "Cancelada" },
+  { valor: "no_presento", texto: "No asistió" },
 ];
 
 const COLOR_ESTADO: Record<EstadoCita, string> = {
