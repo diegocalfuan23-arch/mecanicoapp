@@ -228,6 +228,26 @@ export async function actualizarRatingNps(
   return { ok: true };
 }
 
+export async function actualizarNotificarEmail(clienteId: string, activo: boolean) {
+  const tallerId = await tallerActual();
+
+  const [suyo] = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.id, clienteId), eq(cliente.tallerId, tallerId)))
+    .limit(1);
+
+  if (!suyo) return { error: "No se encontró ese cliente." };
+
+  await db
+    .update(cliente)
+    .set({ notificarEmail: activo, updatedAt: new Date() })
+    .where(eq(cliente.id, clienteId));
+
+  revalidatePath(`/panel/propietarios/${clienteId}`);
+  return { ok: true };
+}
+
 export type ClienteCRM = {
   id: string;
   numero: number;
@@ -290,6 +310,7 @@ export async function listarClientesCRM() {
 export type ClienteCRMDetalle = ClienteCRM & {
   direccion: string | null;
   notas: string | null;
+  notificarEmail: boolean;
   updatedAt: Date;
   ordenesDetalle: { id: string; numero: number; fecha: Date; total: number }[];
   ventasDetalle: { id: string; numero: number; fecha: Date; total: number }[];
@@ -305,6 +326,8 @@ export type ClienteCRMDetalle = ClienteCRM & {
     marca: string | null;
     modelo: string | null;
     anio: number | null;
+    color: string | null;
+    vin: string | null;
   }[];
 };
 
@@ -324,6 +347,7 @@ export async function obtenerClienteCRM(clienteId: string) {
       notas: cliente.notas,
       rating: cliente.rating,
       nps: cliente.nps,
+      notificarEmail: cliente.notificarEmail,
       updatedAt: cliente.updatedAt,
     })
     .from(cliente)
@@ -356,6 +380,8 @@ export async function obtenerClienteCRM(clienteId: string) {
         marca: vehiculo.marca,
         modelo: vehiculo.modelo,
         anio: vehiculo.anio,
+        color: vehiculo.color,
+        vin: vehiculo.vin,
       })
       .from(vehiculo)
       .where(eq(vehiculo.propietarioId, clienteId)),

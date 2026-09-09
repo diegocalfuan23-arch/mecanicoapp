@@ -192,6 +192,13 @@ export const cliente = pgTable(
     rating: integer("rating"),
     nps: integer("nps"),
 
+    // Si el cliente quiere avisos del taller por este canal. Se
+    // guarda ya, aunque el envío automático por email todavía no
+    // existe — el dato queda listo para cuando se conecte.
+    // notificarWhatsapp no se persiste todavía: el toggle sigue
+    // deshabilitado hasta que haya integración de WhatsApp.
+    notificarEmail: boolean("notificar_email").notNull().default(false),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

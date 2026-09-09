@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
-import { actualizarRatingNps, type ClienteCRMDetalle } from "../acciones";
+import {
+  actualizarRatingNps,
+  actualizarNotificarEmail,
+  type ClienteCRMDetalle,
+} from "../acciones";
 import { Formulario } from "../tabla";
 
 function nombreCompleto(c: ClienteCRMDetalle) {
@@ -46,6 +50,35 @@ const ETIQUETA_ESTADO_CITA: Record<string, string> = {
   cancelada: "Cancelada",
   no_presento: "No asistió",
 };
+
+function Interruptor({
+  activo,
+  onClick,
+  disabled,
+}: {
+  activo: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      onClick={onClick}
+      disabled={disabled}
+      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed ${
+        activo ? "bg-primary" : "bg-border"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 size-4 rounded-full bg-background transition-transform ${
+          activo ? "translate-x-4.5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
+}
 
 function Acordeon({
   titulo,
@@ -101,6 +134,7 @@ export function DetalleClienteCRM({
   const [editando, setEditando] = useState(false);
   const [rating, setRating] = useState(cliente.rating ? String(cliente.rating) : "");
   const [nps, setNps] = useState(cliente.nps != null ? String(cliente.nps) : "");
+  const [notificarEmail, setNotificarEmail] = useState(cliente.notificarEmail);
   const [guardando, setGuardando] = useState(false);
 
   async function guardarRatingNps(nuevoRating: string, nuevoNps: string) {
@@ -110,6 +144,13 @@ export function DetalleClienteCRM({
       nps: nuevoNps ? Number(nuevoNps) : null,
     });
     setGuardando(false);
+    router.refresh();
+  }
+
+  async function alternarNotificarEmail() {
+    const nuevo = !notificarEmail;
+    setNotificarEmail(nuevo);
+    await actualizarNotificarEmail(cliente.id, nuevo);
     router.refresh();
   }
 
@@ -373,29 +414,72 @@ export function DetalleClienteCRM({
         </div>
       </div>
 
-      {cliente.vehiculosDetalle.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
-            Vehículos
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {cliente.vehiculosDetalle.map((v) => (
-              <Link
-                key={v.id}
-                href={`/panel/historial/${v.patente}`}
-                className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-card/70"
-              >
-                <p className="inline-block rounded-md border border-border px-2 py-1 font-mono text-[14px] font-bold">
-                  {v.patente}
-                </p>
-                <p className="mt-2 text-[14px] text-muted-foreground">
-                  {[v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Sin datos"}
-                </p>
-              </Link>
-            ))}
+      <div className="mt-8 rounded-xl border border-border bg-card p-6">
+        <h2 className="text-lg font-medium">Notificaciones</h2>
+        <p className="mt-1 text-[13px] text-muted-foreground italic">
+          Activa los canales en los que el cliente desea recibir avisos del
+          taller.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-8">
+          <label className="flex items-center gap-3">
+            <Interruptor activo={notificarEmail} onClick={alternarNotificarEmail} />
+            <span className="text-[14px]">Notificar por email</span>
+          </label>
+          <div>
+            <label className="flex items-center gap-3">
+              <Interruptor activo={false} disabled />
+              <span className="text-[14px] text-muted-foreground">
+                Notificar por WhatsApp
+              </span>
+            </label>
+            <p className="mt-1 text-[12px] text-acento">
+              Conecta WhatsApp en configuración para habilitar esta opción.
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-medium">Vehículos sugeridos</h2>
+        <p className="mt-1 text-[13px] text-muted-foreground italic">
+          Se agregan al usar un vehículo en una cotización, orden o cita; no
+          implican propiedad del vehículo.
+        </p>
+        {cliente.vehiculosDetalle.length === 0 ? (
+          <p className="mt-4 text-[14px] text-muted-foreground">
+            Sin vehículos sugeridos para este cliente.
+          </p>
+        ) : (
+          <div className="mt-4 flex flex-col gap-3">
+            {cliente.vehiculosDetalle.map((v) => (
+              <div key={v.id} className="rounded-xl border border-border bg-card p-4">
+                <Link
+                  href={`/panel/historial/${v.patente}`}
+                  className="inline-block rounded-md border border-border px-2 py-1 font-mono text-[14px] font-bold hover:bg-background"
+                >
+                  {v.patente}
+                </Link>
+                <p className="mt-2 text-[14px] text-muted-foreground">
+                  {[v.marca, v.modelo, v.anio, v.color].filter(Boolean).join(" ") ||
+                    "Sin datos"}
+                </p>
+                {v.vin && (
+                  <p className="mt-1 text-[12px] text-muted-foreground">VIN: {v.vin}</p>
+                )}
+                <label className="mt-3 flex items-center gap-3">
+                  <Interruptor activo={false} disabled />
+                  <span className="text-[14px] text-muted-foreground">
+                    Notificar recordatorio de revisión técnica
+                  </span>
+                </label>
+                <p className="mt-1 text-[12px] text-acento">
+                  Conecta WhatsApp en configuración para enviar el recordatorio.
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 }
