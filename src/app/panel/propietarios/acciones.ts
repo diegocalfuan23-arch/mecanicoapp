@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { cliente, vehiculo, trabajo } from "@/db/schema";
+import { cliente, vehiculo, trabajo, venta, cita } from "@/db/schema";
 import { tallerActual } from "@/lib/taller";
 
 /**
@@ -198,4 +198,188 @@ export async function actualizarPropietario(
   revalidatePath("/panel/propietarios");
   revalidatePath("/panel/historial");
   return { ok: true };
+}
+
+export async function actualizarRatingNps(
+  clienteId: string,
+  datos: { rating?: number | null; nps?: number | null }
+) {
+  const tallerId = await tallerActual();
+
+  const [suyo] = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.id, clienteId), eq(cliente.tallerId, tallerId)))
+    .limit(1);
+
+  if (!suyo) return { error: "No se encontró ese cliente." };
+
+  await db
+    .update(cliente)
+    .set({
+      rating: datos.rating ?? null,
+      nps: datos.nps ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(cliente.id, clienteId));
+
+  revalidatePath("/panel/propietarios");
+  revalidatePath(`/panel/propietarios/${clienteId}`);
+  return { ok: true };
+}
+
+export type ClienteCRM = {
+  id: string;
+  numero: number;
+  nombre: string;
+  apellido: string | null;
+  rut: string | null;
+  telefono: string | null;
+  email: string | null;
+  rating: number | null;
+  nps: number | null;
+  ultimoContacto: Date | null;
+  ordenes: number;
+  presupuestos: number;
+  ventas: number;
+  citas: number;
+  vehiculos: number;
+};
+
+/**
+ * Vista consolidada para el CRM — cruza al cliente con lo que ya
+ * existe en Órdenes, Ventas, Citas y Vehículos. "Presupuestos" queda
+ * en 0 siempre: a diferencia de venta/cita, presupuesto no tiene
+ * clienteId (solo patente/nombre/teléfono como texto libre, igual
+ * que Diagnósticos), así que no hay cruce confiable por ahora.
+ */
+export async function listarClientesCRM() {
+  const tallerId = await tallerActual();
+
+  const filas = await db
+    .select({
+      id: cliente.id,
+      numero: cliente.numero,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      rut: cliente.rut,
+      telefono: cliente.telefono,
+      email: cliente.email,
+      rating: cliente.rating,
+      nps: cliente.nps,
+      ordenes: sql<number>`count(distinct ${trabajo.id})`.mapWith(Number),
+      vehiculos: sql<number>`count(distinct ${vehiculo.id})`.mapWith(Number),
+      ventas: sql<number>`count(distinct ${venta.id})`.mapWith(Number),
+      citas: sql<number>`count(distinct ${cita.id})`.mapWith(Number),
+      ultimoContacto: sql<Date | null>`greatest(
+        max(${trabajo.fecha}), max(${venta.fecha}), max(${cita.fecha})
+      )`,
+    })
+    .from(cliente)
+    .leftJoin(vehiculo, eq(vehiculo.propietarioId, cliente.id))
+    .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
+    .leftJoin(venta, eq(venta.clienteId, cliente.id))
+    .leftJoin(cita, eq(cita.clienteId, cliente.id))
+    .where(eq(cliente.tallerId, tallerId))
+    .groupBy(cliente.id)
+    .orderBy(asc(cliente.nombre));
+
+  return filas.map((f) => ({ ...f, presupuestos: 0 })) as ClienteCRM[];
+}
+
+export type ClienteCRMDetalle = ClienteCRM & {
+  direccion: string | null;
+  notas: string | null;
+  updatedAt: Date;
+  ordenesDetalle: { id: string; numero: number; fecha: Date; total: number }[];
+  ventasDetalle: { id: string; numero: number; fecha: Date; total: number }[];
+  citasDetalle: {
+    id: string;
+    fecha: Date;
+    motivo: string;
+    estado: string;
+  }[];
+  vehiculosDetalle: {
+    id: string;
+    patente: string;
+    marca: string | null;
+    modelo: string | null;
+    anio: number | null;
+  }[];
+};
+
+export async function obtenerClienteCRM(clienteId: string) {
+  const tallerId = await tallerActual();
+
+  const [datos] = await db
+    .select({
+      id: cliente.id,
+      numero: cliente.numero,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      rut: cliente.rut,
+      telefono: cliente.telefono,
+      email: cliente.email,
+      direccion: cliente.direccion,
+      notas: cliente.notas,
+      rating: cliente.rating,
+      nps: cliente.nps,
+      updatedAt: cliente.updatedAt,
+    })
+    .from(cliente)
+    .where(and(eq(cliente.id, clienteId), eq(cliente.tallerId, tallerId)))
+    .limit(1);
+
+  if (!datos) return null;
+
+  const [ordenesDetalle, ventasDetalle, citasDetalle, vehiculosDetalle] = await Promise.all([
+    db
+      .select({ id: trabajo.id, numero: trabajo.numero, fecha: trabajo.fecha, total: trabajo.total })
+      .from(trabajo)
+      .innerJoin(vehiculo, eq(trabajo.vehiculoId, vehiculo.id))
+      .where(eq(vehiculo.propietarioId, clienteId))
+      .orderBy(desc(trabajo.fecha)),
+    db
+      .select({ id: venta.id, numero: venta.numero, fecha: venta.fecha, total: venta.total })
+      .from(venta)
+      .where(eq(venta.clienteId, clienteId))
+      .orderBy(desc(venta.fecha)),
+    db
+      .select({ id: cita.id, fecha: cita.fecha, motivo: cita.motivo, estado: cita.estado })
+      .from(cita)
+      .where(eq(cita.clienteId, clienteId))
+      .orderBy(desc(cita.fecha)),
+    db
+      .select({
+        id: vehiculo.id,
+        patente: vehiculo.patente,
+        marca: vehiculo.marca,
+        modelo: vehiculo.modelo,
+        anio: vehiculo.anio,
+      })
+      .from(vehiculo)
+      .where(eq(vehiculo.propietarioId, clienteId)),
+  ]);
+
+  const ultimoContacto = [
+    ordenesDetalle[0]?.fecha,
+    ventasDetalle[0]?.fecha,
+    citasDetalle[0]?.fecha,
+  ]
+    .filter((f): f is Date => !!f)
+    .sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+
+  return {
+    ...datos,
+    ultimoContacto,
+    ordenes: ordenesDetalle.length,
+    presupuestos: 0,
+    ventas: ventasDetalle.length,
+    citas: citasDetalle.length,
+    vehiculos: vehiculosDetalle.length,
+    ordenesDetalle,
+    ventasDetalle,
+    citasDetalle,
+    vehiculosDetalle,
+  } as ClienteCRMDetalle;
 }

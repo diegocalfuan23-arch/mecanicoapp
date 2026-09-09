@@ -186,6 +186,12 @@ export const cliente = pgTable(
     /** Cómo suele pagar: contado · cuotas · fiado. */
     formaPago: text("forma_pago"),
 
+    // Editables a mano por el taller — 1 a 5 estrellas y 0 a 10 (Net
+    // Promoter Score). Sin encuesta automática todavía: es un juicio
+    // manual del mecánico, no un promedio calculado.
+    rating: integer("rating"),
+    nps: integer("nps"),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
