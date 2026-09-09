@@ -158,16 +158,16 @@ function ModalRecordatorio({
   }
 
   return (
-    <div className="scroll-discreto fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <button
         aria-label="Cancelar"
         onClick={onCerrar}
-        className="fixed inset-0 z-0 bg-black/60"
+        className="absolute inset-0 bg-black/60"
       />
       <div
         role="dialog"
         aria-modal
-        className="relative z-10 my-8 w-full max-w-lg rounded-xl border border-border bg-card p-6 sm:p-8"
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg font-medium">Recordatorio de servicio</h2>
