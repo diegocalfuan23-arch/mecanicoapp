@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { listarVehiculos } from "./acciones";
+import { listarClientesParaSelector } from "../propietarios/acciones";
 import { tienePlan } from "@/lib/taller";
 import { TablaVehiculos } from "./tabla";
 
@@ -9,9 +10,10 @@ export default async function Vehiculos() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
 
-  const [vehiculos, tieneImpresion] = await Promise.all([
+  const [vehiculos, tieneImpresion, clientes] = await Promise.all([
     listarVehiculos(),
     tienePlan("impresionOrden"),
+    listarClientesParaSelector(),
   ]);
 
   return (
@@ -25,7 +27,7 @@ export default async function Vehiculos() {
         </p>
       </div>
 
-      <TablaVehiculos vehiculos={vehiculos} tieneImpresion={tieneImpresion} />
+      <TablaVehiculos vehiculos={vehiculos} tieneImpresion={tieneImpresion} clientes={clientes} />
     </>
   );
 }

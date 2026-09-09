@@ -48,6 +48,12 @@ export type DatosVehiculo = {
   movil?: string;
   procedencia?: string;
   kilometrajeInicial?: string;
+  // Cliente ya elegido del catálogo de Propietarios (BuscadorCliente)
+  // — cuando viene, no se busca/crea por nombre, se usa directo.
+  propietarioId?: string;
+  // Solo queda como respaldo para llamadores que aún no migraron a
+  // propietarioId (ej. ninguno hoy, pero se mantiene por compatibilidad
+  // si algún formulario no pasa el buscador).
   propietarioNombre?: string;
   propietarioTelefono?: string;
   copropietario?: string;
@@ -246,7 +252,10 @@ export async function listarVehiculos() {
       notas: vehiculo.notas,
       primeraVez: vehiculo.primeraVez,
       comparteHistorial: vehiculo.comparteHistorial,
+      propietarioId: vehiculo.propietarioId,
       propietario: cliente.nombre,
+      propietarioApellido: cliente.apellido,
+      propietarioRut: cliente.rut,
       propietarioTelefono: cliente.telefono,
       propietarioEmail: cliente.email,
       propietarioDireccion: cliente.direccion,
@@ -260,6 +269,63 @@ export async function listarVehiculos() {
     .leftJoin(cliente, eq(vehiculo.propietarioId, cliente.id))
     .where(eq(vehiculo.tallerId, tallerId))
     .orderBy(desc(vehiculo.createdAt));
+}
+
+/**
+ * Resuelve el propietario a partir de lo que mandó el formulario:
+ * si viene `propietarioId` (elegido con BuscadorCliente, ya es un
+ * cliente real del catálogo), se usa directo — solo se actualiza el
+ * teléfono si vino uno nuevo. Sin propietarioId, cae al
+ * comportamiento anterior (buscar/crear por coincidencia exacta de
+ * nombre), que sigue siendo necesario para llamadores que aún no
+ * pasan el buscador.
+ */
+async function resolverPropietarioId(
+  tallerId: string,
+  datos: Pick<DatosVehiculo, "propietarioId" | "propietarioNombre" | "propietarioTelefono">
+) {
+  if (datos.propietarioId) {
+    const telefono = datos.propietarioTelefono?.trim();
+    if (telefono) {
+      await db
+        .update(cliente)
+        .set({ telefono, updatedAt: new Date() })
+        .where(and(eq(cliente.id, datos.propietarioId), eq(cliente.tallerId, tallerId)));
+    }
+    return datos.propietarioId;
+  }
+
+  const nombre = datos.propietarioNombre?.trim();
+  if (!nombre) return null;
+
+  const existente = await db
+    .select({ id: cliente.id })
+    .from(cliente)
+    .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
+    .limit(1);
+
+  // Solo el teléfono se toca desde acá: email/dirección/empresa son
+  // datos del cliente que se editan en Propietarios, para no
+  // pisarlos sin querer si este formulario no los muestra.
+  const datosCliente = { telefono: datos.propietarioTelefono?.trim() || null };
+
+  if (existente.length) {
+    await db
+      .update(cliente)
+      .set({ ...datosCliente, updatedAt: new Date() })
+      .where(eq(cliente.id, existente[0].id));
+    return existente[0].id;
+  }
+
+  const nuevoId = id();
+  await db.insert(cliente).values({
+    id: nuevoId,
+    tallerId,
+    numero: await siguienteNumeroCliente(tallerId),
+    nombre,
+    ...datosCliente,
+  });
+  return nuevoId;
 }
 
 export async function actualizarVehiculo(
@@ -288,40 +354,7 @@ export async function actualizarVehiculo(
     return { error: `La patente ${patente} ya está en otra ficha.` };
   }
 
-  let propietarioId: string | null = null;
-  const nombre = datos.propietarioNombre?.trim();
-
-  if (nombre) {
-    const existente = await db
-      .select({ id: cliente.id })
-      .from(cliente)
-      .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
-      .limit(1);
-
-    // Solo el teléfono se toca desde acá: email/dirección/empresa son
-    // datos del cliente que se editan en Propietarios, para no
-    // pisarlos sin querer si este formulario no los muestra.
-    const datosCliente = {
-      telefono: datos.propietarioTelefono?.trim() || null,
-    };
-
-    if (existente.length) {
-      propietarioId = existente[0].id;
-      await db
-        .update(cliente)
-        .set({ ...datosCliente, updatedAt: new Date() })
-        .where(eq(cliente.id, propietarioId));
-    } else {
-      propietarioId = id();
-      await db.insert(cliente).values({
-        id: propietarioId,
-        tallerId,
-        numero: await siguienteNumeroCliente(tallerId),
-        nombre,
-        ...datosCliente,
-      });
-    }
-  }
+  const propietarioId = await resolverPropietarioId(tallerId, datos);
 
   await db
     .update(vehiculo)
@@ -406,41 +439,7 @@ export async function guardarVehiculo(datos: DatosVehiculo) {
     return { error: `La patente ${patente} ya está registrada.` };
   }
 
-  // El propietario tiene ficha propia: se reutiliza si ya existe por nombre.
-  let propietarioId: string | null = null;
-  const nombre = datos.propietarioNombre?.trim();
-
-  if (nombre) {
-    const existente = await db
-      .select({ id: cliente.id })
-      .from(cliente)
-      .where(and(eq(cliente.tallerId, tallerId), eq(cliente.nombre, nombre)))
-      .limit(1);
-
-    // Solo el teléfono se toca desde acá: email/dirección/empresa son
-    // datos del cliente que se editan en Propietarios, para no
-    // pisarlos sin querer si este formulario no los muestra.
-    const datosCliente = {
-      telefono: datos.propietarioTelefono?.trim() || null,
-    };
-
-    if (existente.length) {
-      propietarioId = existente[0].id;
-      await db
-        .update(cliente)
-        .set({ ...datosCliente, updatedAt: new Date() })
-        .where(eq(cliente.id, propietarioId));
-    } else {
-      propietarioId = id();
-      await db.insert(cliente).values({
-        id: propietarioId,
-        tallerId,
-        numero: await siguienteNumeroCliente(tallerId),
-        nombre,
-        ...datosCliente,
-      });
-    }
-  }
+  const propietarioId = await resolverPropietarioId(tallerId, datos);
 
   await db.insert(vehiculo).values({
     id: id(),

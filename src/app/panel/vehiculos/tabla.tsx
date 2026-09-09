@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormularioVehiculo, type VehiculoEditable } from "./formulario";
 import { eliminarVehiculo } from "./acciones";
 import { Button } from "@/components/ui/button";
+import type { ClienteOpcion } from "@/components/buscador-cliente";
 
 type Vehiculo = VehiculoEditable;
 
@@ -81,9 +82,11 @@ function Acciones({ v, onBorrar }: { v: Vehiculo; onBorrar: () => void }) {
 export function TablaVehiculos({
   vehiculos,
   tieneImpresion,
+  clientes,
 }: {
   vehiculos: Vehiculo[];
   tieneImpresion: boolean;
+  clientes: ClienteOpcion[];
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -145,6 +148,7 @@ export function TablaVehiculos({
             vehiculo={editando ?? undefined}
             autoguardar={!!editando}
             tieneImpresion={tieneImpresion}
+            clientes={clientes}
             patenteInicial={patenteDesdeUrl ?? undefined}
             onListo={() => {
               setAbiertoManual(false);

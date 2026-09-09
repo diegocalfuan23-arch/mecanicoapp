@@ -9,6 +9,7 @@ import { miles, soloDigitos } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { TIPOS_VEHICULO } from "@/lib/tipos-vehiculo";
 import { Button } from "@/components/ui/button";
+import { BuscadorCliente, type ClienteOpcion } from "@/components/buscador-cliente";
 
 const TIPOS: string[] = [...TIPOS_VEHICULO];
 
@@ -77,7 +78,10 @@ export type VehiculoEditable = {
   notas: string | null;
   primeraVez: boolean;
   comparteHistorial: boolean;
+  propietarioId: string | null;
   propietario: string | null;
+  propietarioApellido: string | null;
+  propietarioRut: string | null;
   propietarioTelefono: string | null;
   propietarioEmail: string | null;
   propietarioDireccion: string | null;
@@ -98,6 +102,7 @@ export function FormularioVehiculo({
   tieneImpresion = false,
   patenteInicial,
   soloVehiculo = false,
+  clientes = [],
   onCreado,
 }: {
   onListo: () => void;
@@ -113,6 +118,9 @@ export function FormularioVehiculo({
    * se registra aparte (ej. dentro del carrito de Ventas POS), para
    * no pedir el mismo dato dos veces. */
   soloVehiculo?: boolean;
+  /** Catálogo de Propietarios para el buscador de "El dueño" — vacío
+   * en callers con soloVehiculo, que no muestran esa sección. */
+  clientes?: ClienteOpcion[];
   /** Cuando alguien más (ej. Ventas POS) necesita saber qué patente quedó. */
   onCreado?: (patente: string) => void;
 }) {
@@ -122,6 +130,18 @@ export function FormularioVehiculo({
   const [buscando, setBuscando] = useState(false);
   const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null);
   const editando = !!vehiculo;
+
+  const [propietario, setPropietario] = useState<ClienteOpcion | null>(() => {
+    if (!vehiculo?.propietarioId) return null;
+    return {
+      id: vehiculo.propietarioId,
+      nombre: vehiculo.propietario ?? "",
+      apellido: vehiculo.propietarioApellido,
+      rut: vehiculo.propietarioRut,
+      telefono: vehiculo.propietarioTelefono,
+      email: vehiculo.propietarioEmail,
+    };
+  });
 
   const form = useFormik({
     initialValues: {
@@ -138,8 +158,6 @@ export function FormularioVehiculo({
       movil: texto(vehiculo?.movil),
       procedencia: texto(vehiculo?.procedencia),
       kilometrajeInicial: texto(vehiculo?.kilometrajeInicial),
-      propietarioNombre: texto(vehiculo?.propietario),
-      propietarioTelefono: texto(vehiculo?.propietarioTelefono),
       copropietario: texto(vehiculo?.copropietario),
       copropietarioTelefono: texto(vehiculo?.copropietarioTelefono),
       primeraVez: vehiculo?.primeraVez ?? true,
@@ -149,9 +167,14 @@ export function FormularioVehiculo({
     validationSchema: esquema,
     onSubmit: async (valores) => {
       setErrorServidor(null);
+      const datosEnvio = {
+        ...valores,
+        propietarioId: propietario?.id,
+        propietarioTelefono: propietario?.telefono ?? undefined,
+      };
       const res = vehiculo
-        ? await actualizarVehiculo(vehiculo.id, valores)
-        : await guardarVehiculo(valores);
+        ? await actualizarVehiculo(vehiculo.id, datosEnvio)
+        : await guardarVehiculo(datosEnvio);
 
       if (res?.error) {
         setErrorServidor(res.error);
@@ -360,12 +383,16 @@ export function FormularioVehiculo({
             <h3 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
               El dueño
             </h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {campo("propietarioNombre", "Nombre", { placeholder: "Juan Pérez" })}
-              {campo("propietarioTelefono", "Teléfono", {
-                placeholder: "+56 9 1234 5678",
-                inputMode: "tel",
-              })}
+            <div className="mt-4">
+              <BuscadorCliente
+                clientes={clientes}
+                seleccionado={propietario}
+                onSeleccionar={(c) => {
+                  setPropietario(c);
+                  if (autoguardar) setTimeout(() => form.submitForm(), 0);
+                }}
+                tieneImpresion={tieneImpresion}
+              />
             </div>
 
             {tieneImpresion && vehiculo?.esEmpresa && (
