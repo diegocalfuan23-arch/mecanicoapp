@@ -36,12 +36,11 @@ export function Selector({
     >
       <Select.Trigger
         autoFocus={autoFocus}
-        // focus-visible, no focus: con focus el borde se quedaba
-        // "pegado" en naranja después de cualquier clic (el foco del
-        // mouse activa :focus igual que el de teclado); focus-visible
-        // solo lo muestra al navegar con teclado (Tab), que es cuando
-        // el resalte realmente ayuda.
-        className={`flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background px-4 py-2 text-left text-[15px] transition-colors outline-none select-none focus-visible:border-primary/60 focus-visible:ring-1 focus-visible:ring-primary/30 data-popup-open:border-primary/60 ${className}`}
+        // Solo focus-visible (navegación por teclado) cambia el
+        // borde — data-popup-open se quitó porque quedaba activo de
+        // forma persistente incluso con el popup visualmente cerrado,
+        // pintando el borde naranja sin relación al estado real.
+        className={`flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background px-4 py-2 text-left text-[15px] transition-colors outline-none select-none focus-visible:border-primary/60 focus-visible:ring-1 focus-visible:ring-primary/30 ${className}`}
       >
         <Select.Value
           className="truncate data-placeholder:text-muted-foreground/50"
