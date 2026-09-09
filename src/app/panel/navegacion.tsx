@@ -226,20 +226,44 @@ const SECCIONES = [
       />
     ),
   },
-  {
-    href: "/panel/cuenta",
-    texto: "Mi cuenta",
-    icono: (
-      <path
-        d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM10 2.5l1.2 1.7 2-.5.4 2 1.9.8-.9 1.9.9 1.9-1.9.8-.4 2-2-.5L10 17.5l-1.2-1.9-2 .5-.4-2-1.9-.8.9-1.9-.9-1.9 1.9-.8.4-2 2 .5L10 2.5z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-    ),
-  },
 ];
+
+const ETIQUETA_PLAN: Record<string, string> = {
+  prueba: "Gratis",
+  taller: "Plan Taller",
+  serviteca: "Plan Serviteca",
+  empresarial: "Plan Empresarial",
+};
+
+function iniciales(nombre: string) {
+  const partes = nombre.trim().split(/\s+/);
+  return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
+}
+
+/**
+ * Tarjeta de perfil al fondo del sidebar — reemplaza al ítem de texto
+ * plano "Mi cuenta" que antes vivía dentro de la lista de enlaces.
+ * Mismo patrón que ChatGPT/otros SaaS: avatar + nombre + plan a la
+ * izquierda, acción a la derecha.
+ */
+function TarjetaCuenta({ nombre, plan }: { nombre: string; plan: string }) {
+  return (
+    <Link
+      href="/panel/cuenta"
+      className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2 transition-colors hover:bg-card"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[12px] font-semibold text-primary">
+        {iniciales(nombre) || "?"}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-medium">{nombre}</span>
+        <span className="block truncate text-[12px] text-muted-foreground">
+          {ETIQUETA_PLAN[plan] ?? plan}
+        </span>
+      </span>
+    </Link>
+  );
+}
 
 function Enlaces({
   alNavegar,
@@ -303,12 +327,16 @@ function Enlaces({
 
 /** Barra lateral fija, solo en pantallas grandes. */
 export function Sidebar({
+  nombre,
+  plan,
   tieneInventario,
   tieneServicios,
   tieneCatalogoServicios,
   vePagos,
   veEquipo,
 }: {
+  nombre: string;
+  plan: string;
   tieneInventario: boolean;
   tieneServicios: boolean;
   tieneCatalogoServicios: boolean;
@@ -324,13 +352,18 @@ export function Sidebar({
         >
           Mecanico<span className="text-acento">App</span>
         </Link>
-        <Enlaces
-          tieneInventario={tieneInventario}
-          tieneServicios={tieneServicios}
-          tieneCatalogoServicios={tieneCatalogoServicios}
-          vePagos={vePagos}
-          veEquipo={veEquipo}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Enlaces
+            tieneInventario={tieneInventario}
+            tieneServicios={tieneServicios}
+            tieneCatalogoServicios={tieneCatalogoServicios}
+            vePagos={vePagos}
+            veEquipo={veEquipo}
+          />
+        </div>
+        <div className="mt-2 shrink-0">
+          <TarjetaCuenta nombre={nombre} plan={plan} />
+        </div>
       </div>
     </aside>
   );
@@ -338,12 +371,16 @@ export function Sidebar({
 
 /** Botón y panel deslizante, solo en pantallas chicas. */
 export function MenuMovil({
+  nombre,
+  plan,
   tieneInventario,
   tieneServicios,
   tieneCatalogoServicios,
   vePagos,
   veEquipo,
 }: {
+  nombre: string;
+  plan: string;
   tieneInventario: boolean;
   tieneServicios: boolean;
   tieneCatalogoServicios: boolean;
@@ -376,18 +413,23 @@ export function MenuMovil({
             onClick={() => setAbierto(false)}
             className="absolute inset-0 bg-black/60"
           />
-          <div className="absolute inset-y-0 left-0 w-64 border-r border-border bg-background p-4">
-            <div className="mb-6 px-4 py-2 text-lg font-semibold tracking-tight">
+          <div className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-background p-4">
+            <div className="mb-6 shrink-0 px-4 py-2 text-lg font-semibold tracking-tight">
               Mecanico<span className="text-acento">App</span>
             </div>
-            <Enlaces
-              alNavegar={() => setAbierto(false)}
-              tieneInventario={tieneInventario}
-              tieneServicios={tieneServicios}
-              tieneCatalogoServicios={tieneCatalogoServicios}
-              vePagos={vePagos}
-              veEquipo={veEquipo}
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <Enlaces
+                alNavegar={() => setAbierto(false)}
+                tieneInventario={tieneInventario}
+                tieneServicios={tieneServicios}
+                tieneCatalogoServicios={tieneCatalogoServicios}
+                vePagos={vePagos}
+                veEquipo={veEquipo}
+              />
+            </div>
+            <div className="mt-2 shrink-0">
+              <TarjetaCuenta nombre={nombre} plan={plan} />
+            </div>
           </div>
         </div>
       )}

@@ -64,6 +64,8 @@ export default async function LayoutPanel({
         <div className="flex h-dvh overflow-hidden">
           <RegistrarSW />
           <Sidebar
+            nombre={sesion.user.name}
+            plan={sesion.user.plan || "prueba"}
             tieneInventario={tieneInventario}
             tieneServicios={tieneServicios}
             tieneCatalogoServicios={tieneCatalogoServicios}
@@ -77,6 +79,8 @@ export default async function LayoutPanel({
                 <div className="flex min-w-0 items-center gap-2">
                   <FlechaVolver />
                   <MenuMovil
+                    nombre={sesion.user.name}
+                    plan={sesion.user.plan || "prueba"}
                     tieneInventario={tieneInventario}
                     tieneServicios={tieneServicios}
                     tieneCatalogoServicios={tieneCatalogoServicios}
