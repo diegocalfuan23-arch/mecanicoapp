@@ -118,69 +118,98 @@ function FilaItem({
         </button>
       </div>
 
-      <div className="mt-3">
-        {linea.origen === "inventario" ? (
-          repuestoSel ? (
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
-              <div className="min-w-0">
-                <p className="truncate text-[14px] font-medium">{repuestoSel.nombre}</p>
-                <p className="text-[12px] text-muted-foreground">
-                  Stock actual: {repuestoSel.stock}
-                  {repuestoSel.codigo ? ` · ${repuestoSel.codigo}` : ""}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  onCambiar({ ...linea, parteId: "", descripcion: "" })
-                }
-                className="shrink-0 text-[12px] text-muted-foreground hover:text-destructive"
-              >
-                Cambiar
-              </button>
-            </div>
-          ) : (
-            <>
-              <Input
-                value={busquedaRepuesto}
-                onChange={(e) => setBusquedaRepuesto(e.target.value)}
-                placeholder="Buscar por nombre, SKU, código de parte o marca…"
-              />
-              {busquedaRepuesto.trim() && (
-                <ul className="mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-card p-1">
-                  {repuestosFiltrados.length === 0 && (
-                    <li className="py-3 text-center text-[13px] text-muted-foreground">
-                      Nada coincide con esa búsqueda.
-                    </li>
-                  )}
-                  {repuestosFiltrados.slice(0, 20).map((r) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onCambiar({
-                            ...linea,
-                            parteId: r.id,
-                            descripcion: r.nombre,
-                            costoUnitario: linea.costoUnitario || String(r.costo),
-                          })
-                        }
-                        className="flex w-full flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-background"
-                      >
-                        <span className="text-[14px] font-medium">{r.nombre}</span>
-                        <span className="text-[12px] text-muted-foreground">
-                          Stock: {r.stock}
-                          {r.codigo ? ` · ${r.codigo}` : ""}
-                          {r.marca ? ` · ${r.marca}` : ""}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+      {linea.origen === "nuevo" && (
+        <p className="mt-3 text-[13px] text-muted-foreground italic">
+          Al marcar como pagada se creará el ítem en inventario con el stock
+          indicado.
+        </p>
+      )}
+
+      {linea.origen === "inventario" && !repuestoSel && (
+        <div className="mt-3">
+          <Input
+            value={busquedaRepuesto}
+            onChange={(e) => setBusquedaRepuesto(e.target.value)}
+            placeholder="Buscar por nombre, SKU, código de parte o marca…"
+          />
+          {busquedaRepuesto.trim() && (
+            <ul className="mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-card p-1">
+              {repuestosFiltrados.length === 0 && (
+                <li className="py-3 text-center text-[13px] text-muted-foreground">
+                  Nada coincide con esa búsqueda.
+                </li>
               )}
-            </>
-          )
-        ) : (
+              {repuestosFiltrados.slice(0, 20).map((r) => (
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCambiar({
+                        ...linea,
+                        parteId: r.id,
+                        descripcion: r.nombre,
+                        costoUnitario: linea.costoUnitario || String(r.costo),
+                      })
+                    }
+                    className="flex w-full flex-col rounded-lg px-3 py-2 text-left transition-colors hover:bg-background"
+                  >
+                    <span className="text-[14px] font-medium">{r.nombre}</span>
+                    <span className="text-[12px] text-muted-foreground">
+                      Stock: {r.stock}
+                      {r.codigo ? ` · ${r.codigo}` : ""}
+                      {r.marca ? ` · ${r.marca}` : ""}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {linea.origen === "inventario" && repuestoSel && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+          <svg
+            viewBox="0 0 20 20"
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden
+          >
+            <path
+              d="M4 6l1-3h10l1 3M4 6h12M4 6v9a1 1 0 001 1h10a1 1 0 001-1V6M7.5 9a2.5 2.5 0 005 0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <p className="min-w-0 flex-1 truncate text-[13px]">
+            {[
+              repuestoSel.nombre,
+              repuestoSel.codigo,
+              repuestoSel.marca,
+              `Precio: ${pesos(repuestoSel.precio)}`,
+              `stock: ${repuestoSel.stock}`,
+            ]
+              .filter(Boolean)
+              .join(" | ")}
+          </p>
+          <button
+            type="button"
+            onClick={() => onCambiar({ ...linea, parteId: "", descripcion: "" })}
+            aria-label="Quitar selección"
+            className="shrink-0 text-destructive hover:opacity-70"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {linea.origen !== "inventario" && (
+        <div className="mt-3">
+          <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+            {linea.origen === "nuevo" ? "Nombre del producto" : "Descripción"}
+          </span>
           <Input
             value={linea.descripcion}
             onChange={(e) => onCambiar({ ...linea, descripcion: e.target.value })}
@@ -190,10 +219,22 @@ function FilaItem({
                 : "Descripción del gasto…"
             }
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      {linea.origen === "inventario" && (
+        <div className="mt-3">
+          <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+            Descripción
+          </span>
+          <Input
+            value={linea.descripcion}
+            onChange={(e) => onCambiar({ ...linea, descripcion: e.target.value })}
+          />
+        </div>
+      )}
+
+      <div className="mt-3 grid grid-cols-3 gap-3">
         <div>
           <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
             Cantidad
@@ -206,7 +247,7 @@ function FilaItem({
         </div>
         <div>
           <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
-            Costo unitario
+            Precio de compra
           </span>
           <Input
             value={miles(linea.costoUnitario)}
@@ -215,6 +256,14 @@ function FilaItem({
             }
             inputMode="numeric"
           />
+        </div>
+        <div>
+          <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+            Total línea
+          </span>
+          <p className="rounded-lg border border-border bg-card px-3 py-2 text-[15px] font-medium">
+            {pesos((Number(linea.costoUnitario) || 0) * (Number(linea.cantidad) || 1))}
+          </p>
         </div>
       </div>
     </div>
@@ -251,6 +300,8 @@ export function NuevaCompra({
     (acc, l) => acc + (Number(l.costoUnitario) || 0) * (Number(l.cantidad) || 1),
     0
   );
+  const impuesto = Math.round(subtotal * 0.19);
+  const total = subtotal + impuesto;
 
   async function guardar() {
     setError(null);
@@ -265,7 +316,7 @@ export function NuevaCompra({
       items: lineas.map((l) => ({
         origen: l.origen,
         parteId: l.parteId || undefined,
-        descripcion: l.origen === "inventario" ? l.descripcion : l.descripcion,
+        descripcion: l.descripcion,
         cantidad: Number(l.cantidad) || 1,
         costoUnitario: Number(l.costoUnitario) || 0,
       })),
@@ -377,11 +428,11 @@ export function NuevaCompra({
         </div>
         <div className="flex w-full max-w-xs justify-between text-[14px] text-muted-foreground">
           <span>Impuesto</span>
-          <span>{pesos(0)}</span>
+          <span>{pesos(impuesto)}</span>
         </div>
         <div className="flex w-full max-w-xs justify-between text-lg font-bold">
           <span>Total</span>
-          <span>{pesos(subtotal)}</span>
+          <span>{pesos(total)}</span>
         </div>
       </div>
 

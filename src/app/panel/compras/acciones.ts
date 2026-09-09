@@ -98,6 +98,7 @@ export type RepuestoOpcion = {
   marca: string | null;
   stock: number;
   costo: number;
+  precio: number;
 };
 
 export async function listarRepuestosParaCompra() {
@@ -113,6 +114,7 @@ export async function listarRepuestosParaCompra() {
       marca: parte.marca,
       stock: parte.stock,
       costo: parte.costo,
+      precio: parte.precio,
     })
     .from(parte)
     .where(eq(parte.tallerId, tallerId))
@@ -156,15 +158,15 @@ export async function listarCompras() {
   return filas as CompraLista[];
 }
 
+const TASA_IVA = 0.19;
+
 async function calcularTotales(items: ItemCompraEntrada[]) {
   const subtotal = items.reduce(
     (acc, i) => acc + Math.round(i.costoUnitario) * Math.max(1, Math.round(i.cantidad)),
     0
   );
-  // Sin impuesto separado por ahora — el taller lo agrega dentro del
-  // costo unitario si corresponde; no hay integración de facturación
-  // electrónica todavía que necesite el desglose.
-  return { subtotal, impuesto: 0, total: subtotal };
+  const impuesto = Math.round(subtotal * TASA_IVA);
+  return { subtotal, impuesto, total: subtotal + impuesto };
 }
 
 export async function crearCompra(datos: {
@@ -311,7 +313,8 @@ export async function cambiarEstadoCompra(compraId: string, estado: EstadoCompra
     .set({ estado, updatedAt: new Date() })
     .where(eq(compra.id, compraId));
 
-  // Pasa a pagada desde otro estado → genera el egreso en Caja.
+  // Pasa a pagada desde otro estado → genera el egreso en Caja. El
+  // stock ya subió al registrar la compra, no se toca de nuevo acá.
   if (estado === "pagada" && actual.estado !== "pagada") {
     await db.insert(movimientoCaja).values({
       id: id(),
@@ -325,7 +328,34 @@ export async function cambiarEstadoCompra(compraId: string, estado: EstadoCompra
     });
   }
 
+  // Anular una compra revierte el stock que había sumado al
+  // registrarla — sin esto, anular dejaría stock fantasma que nunca
+  // llegó (o que se está devolviendo al proveedor).
+  if (estado === "anulada" && actual.estado !== "anulada") {
+    const items = await db
+      .select({
+        origen: itemCompra.origen,
+        parteId: itemCompra.parteId,
+        cantidad: itemCompra.cantidad,
+      })
+      .from(itemCompra)
+      .where(eq(itemCompra.compraId, compraId));
+
+    for (const linea of items) {
+      if ((linea.origen === "inventario" || linea.origen === "nuevo") && linea.parteId) {
+        await db
+          .update(parte)
+          .set({
+            stock: sql`greatest(0, ${parte.stock} - ${linea.cantidad})`,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(parte.id, linea.parteId), eq(parte.tallerId, tallerId)));
+      }
+    }
+  }
+
   revalidatePath("/panel/compras");
+  revalidatePath("/panel/inventario");
   revalidatePath("/panel/caja");
   return { ok: true };
 }
