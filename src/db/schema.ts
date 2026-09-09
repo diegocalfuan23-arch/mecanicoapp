@@ -386,6 +386,9 @@ export const parte = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     nombre: text("nombre").notNull(),
     codigo: text("codigo"),
+    // Distinto de `codigo` ("código de parte", del fabricante) — el
+    // SKU es el identificador interno propio del taller.
+    sku: text("sku"),
     // Bosch, NGK, Monroe... — Plan Serviteca en adelante.
     marca: text("marca"),
     stock: integer("stock").notNull().default(0),
@@ -1082,10 +1085,15 @@ export const itemCompra = pgTable(
       .references(() => compra.id, { onDelete: "cascade" }),
 
     // "inventario" (repuesto ya existente, suma a su stock) ·
-    // "nuevo" (crea un repuesto en Inventario) · "manual" (solo
-    // gasto, no toca Inventario).
+    // "nuevo" (crea un repuesto/servicio) · "manual" (solo gasto, no
+    // toca Inventario).
     origen: text("origen").notNull(),
     parteId: text("parte_id").references(() => parte.id, {
+      onDelete: "set null",
+    }),
+    // Solo cuando origen="nuevo" y el tipo elegido es servicio/mano
+    // de obra en vez de repuesto — mismo catálogo que usa Inventario.
+    itemServicioId: text("item_servicio_id").references(() => itemServicio.id, {
       onDelete: "set null",
     }),
 

@@ -15,6 +15,7 @@ import {
   type EstadoCompra,
   type OrigenItemCompra,
   type RepuestoOpcion,
+  type TipoItemNuevo,
 } from "../acciones";
 
 const ESTADOS: { valor: EstadoCompra; texto: string }[] = [
@@ -23,13 +24,23 @@ const ESTADOS: { valor: EstadoCompra; texto: string }[] = [
   { valor: "anulada", texto: "Anulada" },
 ];
 
+const TIPOS_ITEM_NUEVO: { valor: TipoItemNuevo; texto: string }[] = [
+  { valor: "producto", texto: "Repuesto/producto" },
+  { valor: "servicio", texto: "Servicio" },
+  { valor: "mano_obra", texto: "Mano de obra" },
+];
+
 type Linea = {
   clave: number;
   origen: OrigenItemCompra;
   parteId: string;
+  tipoNuevo: TipoItemNuevo;
+  sku: string;
+  codigo: string;
   descripcion: string;
   cantidad: string;
   costoUnitario: string;
+  precioVenta: string;
 };
 
 let contadorLinea = 0;
@@ -39,9 +50,13 @@ function lineaVacia(): Linea {
     clave: contadorLinea,
     origen: "inventario",
     parteId: "",
+    tipoNuevo: "producto",
+    sku: "",
+    codigo: "",
     descripcion: "",
     cantidad: "1",
     costoUnitario: "",
+    precioVenta: "",
   };
 }
 
@@ -119,9 +134,62 @@ function FilaItem({
       </div>
 
       {linea.origen === "nuevo" && (
+        <>
+          <p className="mt-3 text-[13px] text-muted-foreground italic">
+            Al marcar como pagada se creará el ítem en inventario con el
+            stock indicado.
+          </p>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+                Tipo
+              </span>
+              <Selector
+                value={linea.tipoNuevo}
+                onChange={(v) => onCambiar({ ...linea, tipoNuevo: v as TipoItemNuevo })}
+                opciones={TIPOS_ITEM_NUEVO}
+              />
+            </div>
+            <div>
+              <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+                Nombre del producto
+              </span>
+              <Input
+                value={linea.descripcion}
+                onChange={(e) => onCambiar({ ...linea, descripcion: e.target.value })}
+              />
+            </div>
+
+            {linea.tipoNuevo === "producto" && (
+              <>
+                <div>
+                  <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+                    SKU
+                  </span>
+                  <Input
+                    value={linea.sku}
+                    onChange={(e) => onCambiar({ ...linea, sku: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+                    Código de parte
+                  </span>
+                  <Input
+                    value={linea.codigo}
+                    onChange={(e) => onCambiar({ ...linea, codigo: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {linea.origen === "manual" && (
         <p className="mt-3 text-[13px] text-muted-foreground italic">
-          Al marcar como pagada se creará el ítem en inventario con el stock
-          indicado.
+          Solo registro de gasto; no se carga al inventario.
         </p>
       )}
 
@@ -205,19 +273,15 @@ function FilaItem({
         </div>
       )}
 
-      {linea.origen !== "inventario" && (
+      {linea.origen === "manual" && (
         <div className="mt-3">
           <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
-            {linea.origen === "nuevo" ? "Nombre del producto" : "Descripción"}
+            Descripción
           </span>
           <Input
             value={linea.descripcion}
             onChange={(e) => onCambiar({ ...linea, descripcion: e.target.value })}
-            placeholder={
-              linea.origen === "nuevo"
-                ? "Nombre del producto nuevo…"
-                : "Descripción del gasto…"
-            }
+            placeholder="Descripción del gasto…"
           />
         </div>
       )}
@@ -234,7 +298,9 @@ function FilaItem({
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-3 gap-3">
+      <div
+        className={`mt-3 grid gap-3 ${linea.origen === "nuevo" ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+      >
         <div>
           <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
             Cantidad
@@ -257,6 +323,20 @@ function FilaItem({
             inputMode="numeric"
           />
         </div>
+        {linea.origen === "nuevo" && (
+          <div>
+            <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
+              Precio de venta
+            </span>
+            <Input
+              value={miles(linea.precioVenta)}
+              onChange={(e) =>
+                onCambiar({ ...linea, precioVenta: soloDigitos(e.target.value) })
+              }
+              inputMode="numeric"
+            />
+          </div>
+        )}
         <div>
           <span className="mb-1 block text-[12px] font-medium text-muted-foreground">
             Total línea
@@ -316,9 +396,13 @@ export function NuevaCompra({
       items: lineas.map((l) => ({
         origen: l.origen,
         parteId: l.parteId || undefined,
+        tipoNuevo: l.origen === "nuevo" ? l.tipoNuevo : undefined,
+        sku: l.origen === "nuevo" ? l.sku : undefined,
+        codigo: l.origen === "nuevo" ? l.codigo : undefined,
         descripcion: l.descripcion,
         cantidad: Number(l.cantidad) || 1,
         costoUnitario: Number(l.costoUnitario) || 0,
+        precioVenta: l.origen === "nuevo" ? Number(l.precioVenta) || undefined : undefined,
       })),
     });
     setEnviando(false);

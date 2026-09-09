@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { compra, itemCompra, proveedor, parte, movimientoCaja } from "@/db/schema";
+import { compra, itemCompra, proveedor, parte, itemServicio, movimientoCaja } from "@/db/schema";
 import { tallerActual, tienePlan } from "@/lib/taller";
 
 function id() {
@@ -12,13 +12,19 @@ function id() {
 
 export type EstadoCompra = "pendiente" | "pagada" | "anulada";
 export type OrigenItemCompra = "inventario" | "nuevo" | "manual";
+/** Solo aplica a origen="nuevo" — qué catálogo crea. */
+export type TipoItemNuevo = "producto" | "servicio" | "mano_obra";
 
 export type ItemCompraEntrada = {
   origen: OrigenItemCompra;
   parteId?: string;
+  tipoNuevo?: TipoItemNuevo;
+  sku?: string;
+  codigo?: string;
   descripcion: string;
   cantidad: number;
   costoUnitario: number;
+  precioVenta?: number;
 };
 
 // ---------- Proveedores ----------
@@ -220,22 +226,42 @@ export async function crearCompra(datos: {
     total,
   });
 
-  // "Producto nuevo" crea el repuesto antes de poder referenciarlo en
-  // la línea de la compra.
+  // "Producto nuevo" crea el repuesto o el servicio/mano de obra
+  // antes de poder referenciarlo en la línea de la compra —
+  // itemServicio no tiene stock, así que solo Producto/servicio pasa
+  // por parte.
   const parteIdPorLinea = new Map<number, string>();
+  const servicioIdPorLinea = new Map<number, string>();
   for (let idx = 0; idx < items.length; idx++) {
     const linea = items[idx];
     if (linea.origen === "nuevo") {
-      const nuevaParteId = id();
-      await db.insert(parte).values({
-        id: nuevaParteId,
-        tallerId,
-        nombre: linea.descripcion.trim(),
-        stock: Math.max(1, Math.round(linea.cantidad)),
-        costo: Math.round(linea.costoUnitario),
-        precio: 0,
-      });
-      parteIdPorLinea.set(idx, nuevaParteId);
+      const cantidad = Math.max(1, Math.round(linea.cantidad));
+      if (linea.tipoNuevo === "servicio" || linea.tipoNuevo === "mano_obra") {
+        const nuevoServicioId = id();
+        await db.insert(itemServicio).values({
+          id: nuevoServicioId,
+          tallerId,
+          tipo: linea.tipoNuevo,
+          nombre: linea.descripcion.trim(),
+          costo: Math.round(linea.costoUnitario),
+          precio: linea.tipoNuevo === "servicio" ? (linea.precioVenta ?? null) : null,
+          tarifaHora: linea.tipoNuevo === "mano_obra" ? (linea.precioVenta ?? null) : null,
+        });
+        servicioIdPorLinea.set(idx, nuevoServicioId);
+      } else {
+        const nuevaParteId = id();
+        await db.insert(parte).values({
+          id: nuevaParteId,
+          tallerId,
+          nombre: linea.descripcion.trim(),
+          sku: linea.sku?.trim() || null,
+          codigo: linea.codigo?.trim() || null,
+          stock: cantidad,
+          costo: Math.round(linea.costoUnitario),
+          precio: linea.precioVenta ? Math.round(linea.precioVenta) : 0,
+        });
+        parteIdPorLinea.set(idx, nuevaParteId);
+      }
     } else if (linea.origen === "inventario" && linea.parteId) {
       await db
         .update(parte)
@@ -258,6 +284,7 @@ export async function crearCompra(datos: {
           : linea.origen === "inventario"
             ? linea.parteId || null
             : null,
+      itemServicioId: linea.origen === "nuevo" ? (servicioIdPorLinea.get(idx) ?? null) : null,
       descripcion: linea.descripcion.trim(),
       cantidad: Math.max(1, Math.round(linea.cantidad)),
       costoUnitario: Math.round(linea.costoUnitario),
@@ -281,6 +308,7 @@ export async function crearCompra(datos: {
 
   revalidatePath("/panel/compras");
   revalidatePath("/panel/inventario");
+  revalidatePath("/panel/servicios");
   revalidatePath("/panel/caja");
   return { ok: true, id: compraId, numero: ultimo + 1 };
 }
