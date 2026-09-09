@@ -6,12 +6,16 @@ import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha } from "@/lib/formato";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   actualizarRatingNps,
   actualizarNotificarEmail,
   type ClienteCRMDetalle,
 } from "../acciones";
+import { crearCita } from "../../agenda/acciones";
 import { Formulario } from "../tabla";
+
+const OTRO = "__otro__";
 
 function nombreCompleto(c: ClienteCRMDetalle) {
   return [c.nombre, c.apellido].filter(Boolean).join(" ");
@@ -80,6 +84,220 @@ function Interruptor({
   );
 }
 
+function hoyISOLocal() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function sumarFecha(fechaIso: string, meses: number) {
+  const d = new Date(`${fechaIso}T00:00:00`);
+  d.setMonth(d.getMonth() + meses);
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().slice(0, 10);
+}
+
+function ModalRecordatorio({
+  cliente,
+  equipo,
+  servicios,
+  onCerrar,
+}: {
+  cliente: ClienteCRMDetalle;
+  equipo: { id: string; nombre: string }[];
+  servicios: { id: string; nombre: string }[];
+  onCerrar: () => void;
+}) {
+  const router = useRouter();
+  const [vehiculoId, setVehiculoId] = useState("");
+  const [servicioSel, setServicioSel] = useState("");
+  const [servicioTexto, setServicioTexto] = useState("");
+  const [mecanicoSel, setMecanicoSel] = useState("");
+  const [mecanicoTexto, setMecanicoTexto] = useState("");
+  const [fecha, setFecha] = useState(hoyISOLocal());
+  const [hora, setHora] = useState("09:00");
+  const [comentarios, setComentarios] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const opcionesVehiculo = cliente.vehiculosDetalle.map((v) => ({
+    valor: v.id,
+    texto: `${v.patente} · ${[v.marca, v.modelo].filter(Boolean).join(" ") || "Sin datos"}`,
+  }));
+  const opcionesServicio = [
+    ...servicios.map((s) => ({ valor: s.id, texto: s.nombre })),
+    { valor: OTRO, texto: "Otro (escribir)" },
+  ];
+  const opcionesEquipo = [
+    ...equipo.map((m) => ({ valor: m.id, texto: m.nombre })),
+    { valor: OTRO, texto: "Otro (escribir)" },
+  ];
+
+  async function guardar() {
+    setError(null);
+    setEnviando(true);
+    const res = await crearCita({
+      clienteId: cliente.id,
+      vehiculoId: vehiculoId || undefined,
+      titulo: "Recordatorio de servicio",
+      motivo: comentarios.trim() || "Recordatorio de servicio",
+      servicioId: servicioSel && servicioSel !== OTRO ? servicioSel : undefined,
+      servicioTexto: servicioSel === OTRO ? servicioTexto : undefined,
+      mecanicoId: mecanicoSel && mecanicoSel !== OTRO ? mecanicoSel : undefined,
+      mecanicoTexto: mecanicoSel === OTRO ? mecanicoTexto : undefined,
+      fechaIso: fecha,
+      hora,
+    });
+    setEnviando(false);
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    onCerrar();
+    router.refresh();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onCerrar}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-lg font-medium">Recordatorio de servicio</h2>
+          <button
+            aria-label="Cerrar"
+            onClick={onCerrar}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="mt-1 text-[13px] text-muted-foreground italic">
+          Agenda el próximo servicio del cliente. Quedará en la agenda del
+          taller y se podrá notificar según las preferencias del cliente.
+        </p>
+
+        <div className="mt-4 rounded-lg bg-background px-4 py-2 text-[14px]">
+          Cliente: <span className="font-medium">{nombreCompleto(cliente)}</span>
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">Vehículo</span>
+          <Selector
+            value={vehiculoId}
+            onChange={setVehiculoId}
+            opciones={opcionesVehiculo}
+            placeholder="Seleccionar…"
+          />
+        </div>
+
+        <h3 className="mt-6 text-[15px] font-medium">Próximo servicio</h3>
+
+        <div className="mt-3">
+          <span className="mb-2 block text-[13px] font-medium">
+            Tipo de servicio
+          </span>
+          <Selector
+            value={servicioSel}
+            onChange={setServicioSel}
+            opciones={opcionesServicio}
+            placeholder="Seleccionar…"
+          />
+          {servicioSel === OTRO && (
+            <Input
+              className="mt-2"
+              value={servicioTexto}
+              onChange={(e) => setServicioTexto(e.target.value)}
+              placeholder="Escribe el servicio"
+            />
+          )}
+        </div>
+
+        <div className="mt-3">
+          <span className="mb-2 block text-[13px] font-medium">Técnico</span>
+          <Selector
+            value={mecanicoSel}
+            onChange={setMecanicoSel}
+            opciones={opcionesEquipo}
+            placeholder="Sin técnico (opcional)"
+          />
+          {mecanicoSel === OTRO && (
+            <Input
+              className="mt-2"
+              value={mecanicoTexto}
+              onChange={(e) => setMecanicoTexto(e.target.value)}
+              placeholder="Escribe el nombre"
+            />
+          )}
+        </div>
+
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">Fecha</span>
+            <Input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          </div>
+          <div>
+            <span className="mb-2 block text-[13px] font-medium">Hora</span>
+            <Input type="time" value={hora} onChange={(e) => setHora(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="mt-2 flex gap-2">
+          {[
+            { etiqueta: "+3 meses", meses: 3 },
+            { etiqueta: "+6 meses", meses: 6 },
+            { etiqueta: "+1 año", meses: 12 },
+          ].map((a) => (
+            <button
+              key={a.etiqueta}
+              type="button"
+              onClick={() => setFecha((f) => sumarFecha(f, a.meses))}
+              className="rounded-lg border border-border px-3 py-1.5 text-[13px] font-medium hover:bg-background"
+            >
+              {a.etiqueta}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <span className="mb-2 block text-[13px] font-medium">
+            Comentarios
+          </span>
+          <textarea
+            value={comentarios}
+            onChange={(e) => setComentarios(e.target.value)}
+            placeholder="Detalle del recordatorio (opcional)"
+            rows={3}
+            className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+          />
+        </div>
+
+        {error && (
+          <p className="mt-3 text-[13px] text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={onCerrar}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={guardar} disabled={enviando}>
+            {enviando ? "Guardando…" : "Crear recordatorio"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Acordeon({
   titulo,
   cantidad,
@@ -126,9 +344,13 @@ function Acordeon({
 export function DetalleClienteCRM({
   cliente,
   tieneImpresion,
+  equipo,
+  servicios,
 }: {
   cliente: ClienteCRMDetalle;
   tieneImpresion: boolean;
+  equipo: { id: string; nombre: string }[];
+  servicios: { id: string; nombre: string }[];
 }) {
   const router = useRouter();
   const [editando, setEditando] = useState(false);
@@ -136,6 +358,7 @@ export function DetalleClienteCRM({
   const [nps, setNps] = useState(cliente.nps != null ? String(cliente.nps) : "");
   const [notificarEmail, setNotificarEmail] = useState(cliente.notificarEmail);
   const [guardando, setGuardando] = useState(false);
+  const [creandoRecordatorio, setCreandoRecordatorio] = useState(false);
 
   async function guardarRatingNps(nuevoRating: string, nuevoNps: string) {
     setGuardando(true);
@@ -200,6 +423,15 @@ export function DetalleClienteCRM({
 
   return (
     <>
+      {creandoRecordatorio && (
+        <ModalRecordatorio
+          cliente={cliente}
+          equipo={equipo}
+          servicios={servicios}
+          onCerrar={() => setCreandoRecordatorio(false)}
+        />
+      )}
+
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link
@@ -216,6 +448,13 @@ export function DetalleClienteCRM({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setCreandoRecordatorio(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-1.5 text-[13px] font-medium text-primary-foreground transition-colors hover:opacity-90"
+          >
+            Crear recordatorio de servicio
+          </button>
           {cliente.email && (
             <a
               href={`mailto:${cliente.email}`}
