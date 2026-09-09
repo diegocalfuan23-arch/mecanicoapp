@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { pesos, fecha as formatoFecha } from "@/lib/formato";
@@ -119,6 +119,18 @@ function ModalRecordatorio({
   const [comentarios, setComentarios] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const contenidoRef = useRef<HTMLDivElement>(null);
+
+  // El dropdown "Vehículo" es el primer campo interactivo del modal
+  // — sin esto, el navegador le da foco automático al montar el
+  // diálogo y queda con el borde de focus-visible encendido sin que
+  // nadie lo haya tocado.
+  useEffect(() => {
+    const activo = document.activeElement;
+    if (activo instanceof HTMLElement && contenidoRef.current?.contains(activo)) {
+      activo.blur();
+    }
+  }, []);
 
   const opcionesVehiculo = cliente.vehiculosDetalle.map((v) => ({
     valor: v.id,
@@ -165,6 +177,7 @@ function ModalRecordatorio({
         className="absolute inset-0 bg-black/60"
       />
       <div
+        ref={contenidoRef}
         role="dialog"
         aria-modal
         className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
