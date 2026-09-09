@@ -167,7 +167,7 @@ function ModalRecordatorio({
       <div
         role="dialog"
         aria-modal
-        className="relative my-8 w-full max-w-lg rounded-xl border border-border bg-card p-6 sm:my-0 sm:p-8"
+        className="relative my-8 w-full max-w-lg rounded-xl border border-border bg-card p-6 sm:p-8"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg font-medium">Recordatorio de servicio</h2>
