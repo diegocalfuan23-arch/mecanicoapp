@@ -1,13 +1,21 @@
 "use client";
 
-import { Select } from "@base-ui/react/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
 
 type Opcion = { valor: string; texto: string };
 
 /**
- * Reemplaza al <select> nativo, cuya lista desplegable la pinta el
- * sistema operativo con su propio azul — un color ajeno a la paleta que
- * no se puede quitar de forma confiable en todos los navegadores.
+ * Envoltorio sobre el Select de shadcn con la API simple que ya usa
+ * todo el proyecto (value/onChange/opciones) — evita tener que tocar
+ * cada pantalla que lo usa. Reemplaza al <select> nativo, cuyo
+ * desplegable pinta el sistema operativo con su propio azul, un color
+ * ajeno a la paleta que no se puede quitar de forma confiable.
  */
 export function Selector({
   value,
@@ -25,52 +33,27 @@ export function Selector({
   className?: string;
 }) {
   return (
-    <Select.Root
-      // null y no "": base-ui trata la cadena vacía como un valor
-      // elegido y no mostraría el placeholder.
-      value={value || null}
+    <Select
+      // "" y no null: a diferencia de base-ui puro, el wrapper de
+      // shadcn espera string | undefined — value="" ya alcanza para
+      // que SelectValue muestre el placeholder.
+      value={value || undefined}
       onValueChange={(v) => onChange((v as string) ?? "")}
-      // Sin `items`, Select.Value muestra el valor crudo — el id del
-      // vehículo en vez de su patente.
       items={opciones.map((o) => ({ value: o.valor, label: o.texto }))}
     >
-      <Select.Trigger
+      <SelectTrigger
         autoFocus={autoFocus}
-        className={`flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background px-4 py-2 text-left text-[15px] transition-colors outline-none select-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30 data-popup-open:border-primary/60 ${className}`}
+        className={`w-full rounded-lg border-border bg-background px-4 py-2 text-[15px] font-normal whitespace-normal ${className}`}
       >
-        <Select.Value
-          className="truncate data-placeholder:text-muted-foreground/50"
-          placeholder={placeholder}
-        />
-        <Select.Icon className="shrink-0 text-muted-foreground">
-          <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
-            <path
-              d="M6 8l4 4 4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Select.Icon>
-      </Select.Trigger>
-
-      <Select.Portal>
-        <Select.Positioner className="z-50 outline-none select-none" sideOffset={4}>
-          <Select.Popup className="scroll-discreto max-h-[min(24rem,var(--available-height))] min-w-(--anchor-width) overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
-            {opciones.map((o) => (
-              <Select.Item
-                key={o.valor}
-                value={o.valor}
-                className="cursor-default px-4 py-2 text-[15px] outline-none select-none data-highlighted:bg-secondary data-selected:font-medium"
-              >
-                <Select.ItemText>{o.texto}</Select.ItemText>
-              </Select.Item>
-            ))}
-          </Select.Popup>
-        </Select.Positioner>
-      </Select.Portal>
-    </Select.Root>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {opciones.map((o) => (
+          <SelectItem key={o.valor} value={o.valor}>
+            {o.texto}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
