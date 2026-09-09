@@ -36,10 +36,6 @@ export function Selector({
     >
       <Select.Trigger
         autoFocus={autoFocus}
-        // Solo focus-visible (navegación por teclado) cambia el
-        // borde — data-popup-open se quitó porque quedaba activo de
-        // forma persistente incluso con el popup visualmente cerrado,
-        // pintando el borde naranja sin relación al estado real.
         className={`flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-background px-4 py-2 text-left text-[15px] transition-colors outline-none select-none focus-visible:border-primary/60 focus-visible:ring-1 focus-visible:ring-primary/30 ${className}`}
       >
         <Select.Value
@@ -63,15 +59,21 @@ export function Selector({
       <Select.Portal>
         <Select.Positioner className="z-50 outline-none select-none" sideOffset={4}>
           <Select.Popup className="scroll-discreto max-h-[min(24rem,var(--available-height))] min-w-(--anchor-width) overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg outline-none">
-            {opciones.map((o) => (
-              <Select.Item
-                key={o.valor}
-                value={o.valor}
-                className="cursor-default px-4 py-2 text-[15px] outline-none select-none data-highlighted:bg-secondary data-selected:font-medium"
-              >
-                <Select.ItemText>{o.texto}</Select.ItemText>
-              </Select.Item>
-            ))}
+            {opciones.length === 0 ? (
+              <p className="px-4 py-2 text-[14px] text-muted-foreground">
+                Sin opciones disponibles
+              </p>
+            ) : (
+              opciones.map((o) => (
+                <Select.Item
+                  key={o.valor}
+                  value={o.valor}
+                  className="cursor-default px-4 py-2 text-[15px] outline-none select-none data-highlighted:bg-secondary data-selected:font-medium"
+                >
+                  <Select.ItemText>{o.texto}</Select.ItemText>
+                </Select.Item>
+              ))
+            )}
           </Select.Popup>
         </Select.Positioner>
       </Select.Portal>
