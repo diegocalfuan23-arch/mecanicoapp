@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { exportarMisDatos, eliminarMiCuenta } from "./acciones";
 import { Button } from "@/components/ui/button";
 
 export function PanelDatos({ correo }: { correo: string }) {
-  const router = useRouter();
   const [exportando, setExportando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [escrito, setEscrito] = useState("");
@@ -48,7 +46,10 @@ export function PanelDatos({ correo }: { correo: string }) {
     }
 
     await authClient.signOut();
-    router.push("/");
+    // location.href, no router.push: fuerza una recarga completa del
+    // documento — sin esto la landing pública podía heredar la clase
+    // de tema claro/oscuro que quedó pegada del panel.
+    window.location.href = "/";
   }
 
   return (
