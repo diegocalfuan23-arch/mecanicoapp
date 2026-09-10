@@ -218,3 +218,65 @@ export async function marcarVentaPagada(
   revalidatePath("/panel/pagos");
   return { ok: true };
 }
+
+export type ItemVentaDetalle = {
+  id: string;
+  nombre: string;
+  cantidad: number;
+  precioUnitario: number;
+};
+
+export type VentaDetalle = {
+  id: string;
+  numero: number;
+  clienteNombre: string | null;
+  patente: string | null;
+  estado: string;
+  metodoPago: string | null;
+  referenciaPago: string | null;
+  descuentoPorcentaje: number;
+  conIva: boolean;
+  total: number;
+  notas: string | null;
+  fecha: Date;
+  items: ItemVentaDetalle[];
+};
+
+export async function obtenerVenta(ventaId: string) {
+  if (!(await tienePlan("impresionOrden"))) return null;
+
+  const tallerId = await tallerActual();
+
+  const [datos] = await db
+    .select({
+      id: venta.id,
+      numero: venta.numero,
+      clienteNombre: venta.clienteNombre,
+      patente: venta.patente,
+      estado: venta.estado,
+      metodoPago: venta.metodoPago,
+      referenciaPago: venta.referenciaPago,
+      descuentoPorcentaje: venta.descuentoPorcentaje,
+      conIva: venta.conIva,
+      total: venta.total,
+      notas: venta.notas,
+      fecha: venta.fecha,
+    })
+    .from(venta)
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)))
+    .limit(1);
+
+  if (!datos) return null;
+
+  const items = await db
+    .select({
+      id: itemVenta.id,
+      nombre: itemVenta.nombre,
+      cantidad: itemVenta.cantidad,
+      precioUnitario: itemVenta.precioUnitario,
+    })
+    .from(itemVenta)
+    .where(eq(itemVenta.ventaId, ventaId));
+
+  return { ...datos, items } as VentaDetalle;
+}

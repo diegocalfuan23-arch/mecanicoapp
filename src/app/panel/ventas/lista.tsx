@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { pesos, fecha } from "@/lib/formato";
 import { Button } from "@/components/ui/button";
 import { Selector } from "@/components/ui/selector";
-import { marcarVentaPagada } from "./acciones";
+import { marcarVentaPagada, obtenerVenta, type VentaDetalle } from "./acciones";
 
 type Venta = {
   id: string;
@@ -131,9 +131,181 @@ function ModalCobrar({
   );
 }
 
+function ModalDetalleVenta({
+  ventaId,
+  onCerrar,
+}: {
+  ventaId: string;
+  onCerrar: () => void;
+}) {
+  const [venta, setVenta] = useState<VentaDetalle | null>(null);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    let cancelado = false;
+    obtenerVenta(ventaId).then((res) => {
+      if (!cancelado) {
+        setVenta(res);
+        setCargando(false);
+      }
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [ventaId]);
+
+  const subtotal = venta?.items.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0) ?? 0;
+  const montoDescuento = venta
+    ? Math.round((subtotal * venta.descuentoPorcentaje) / 100)
+    : 0;
+  const neto = subtotal - montoDescuento;
+  const impuesto = venta?.conIva ? Math.round(neto * 0.19) : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onCerrar}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-medium">Detalle de venta</h2>
+            {venta && <p className="text-[14px] text-muted-foreground">{venta.numero}</p>}
+          </div>
+          <button
+            aria-label="Cerrar"
+            onClick={onCerrar}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+
+        {cargando ? (
+          <p className="mt-6 text-[14px] text-muted-foreground">Cargando…</p>
+        ) : !venta ? (
+          <p className="mt-6 text-[14px] text-muted-foreground">
+            No se encontró esa venta.
+          </p>
+        ) : (
+          <>
+            <h3 className="mt-6 text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+              Resumen
+            </h3>
+            <div className="mt-3 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-muted-foreground">Estado</span>
+                <span
+                  className={`rounded-full px-2 py-1 text-[12px] font-medium ${
+                    ESTILO_ESTADO[venta.estado] ?? ""
+                  }`}
+                >
+                  {TEXTO_ESTADO[venta.estado] ?? venta.estado}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-muted-foreground">Cliente</span>
+                <span className="text-[14px]">
+                  {venta.clienteNombre ?? "Cliente ocasional"}
+                </span>
+              </div>
+              {venta.metodoPago && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">
+                    Medio de pago
+                  </span>
+                  <span className="text-[14px]">
+                    {TEXTO_METODO[venta.metodoPago] ?? venta.metodoPago}
+                  </span>
+                </div>
+              )}
+              {venta.referenciaPago && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">
+                    Referencia de pago
+                  </span>
+                  <span className="text-[14px]">{venta.referenciaPago}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-muted-foreground">Fecha</span>
+                <span className="text-[14px]">{fecha(venta.fecha)}</span>
+              </div>
+            </div>
+
+            <h3 className="mt-6 text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+              Ítems vendidos
+            </h3>
+            <div className="mt-3 flex flex-col gap-2">
+              {venta.items.map((i) => (
+                <div
+                  key={i.id}
+                  className="flex items-center justify-between rounded-lg border border-border px-4 py-2"
+                >
+                  <div>
+                    <p className="text-[14px] font-medium">{i.nombre}</p>
+                    <p className="text-[12px] text-muted-foreground">
+                      {i.cantidad} × {pesos(i.precioUnitario)}
+                    </p>
+                  </div>
+                  <p className="text-[14px] font-medium tabular-nums">
+                    {pesos(i.cantidad * i.precioUnitario)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="mt-6 text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+              Totales
+            </h3>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-[14px]">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{pesos(subtotal)}</span>
+              </div>
+              {venta.descuentoPorcentaje > 0 && (
+                <div className="flex items-center justify-between text-[14px]">
+                  <span className="text-muted-foreground">
+                    Descuento ({venta.descuentoPorcentaje}%)
+                  </span>
+                  <span>-{pesos(montoDescuento)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[14px]">
+                <span className="text-muted-foreground">Impuestos</span>
+                <span>{pesos(impuesto)}</span>
+              </div>
+              <div className="flex items-center justify-between text-lg font-bold">
+                <span>Total</span>
+                <span className="text-acento">{pesos(venta.total)}</span>
+              </div>
+            </div>
+
+            {venta.notas && (
+              <>
+                <h3 className="mt-6 text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Comentarios / notas
+                </h3>
+                <p className="mt-2 text-[14px] whitespace-pre-wrap">{venta.notas}</p>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ListaVentas({ ventas }: { ventas: Venta[] }) {
   const [busqueda, setBusqueda] = useState("");
   const [cobrando, setCobrando] = useState<Venta | null>(null);
+  const [viendoDetalle, setViendoDetalle] = useState<string | null>(null);
 
   const filtradas = busqueda.trim()
     ? ventas.filter((v) => {
@@ -150,6 +322,12 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
     <>
       {cobrando && (
         <ModalCobrar venta={cobrando} onCerrar={() => setCobrando(null)} />
+      )}
+      {viendoDetalle && (
+        <ModalDetalleVenta
+          ventaId={viendoDetalle}
+          onCerrar={() => setViendoDetalle(null)}
+        />
       )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -179,7 +357,8 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
             {filtradas.map((v) => (
               <li
                 key={v.id}
-                className="rounded-xl border border-border bg-card p-4"
+                onClick={() => setViendoDetalle(v.id)}
+                className="cursor-pointer rounded-xl border border-border bg-card p-4"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">
@@ -212,7 +391,10 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCobrando(v)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCobrando(v);
+                    }}
                     className="mt-3 w-full"
                   >
                     Marcar como pagada
@@ -242,7 +424,8 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
                 {filtradas.map((v) => (
                   <tr
                     key={v.id}
-                    className="border-b border-border last:border-0 hover:bg-card/50"
+                    onClick={() => setViendoDetalle(v.id)}
+                    className="cursor-pointer border-b border-border last:border-0 hover:bg-card/50"
                   >
                     <td className="px-4 py-4 font-medium whitespace-nowrap">
                       V-{v.numero}
@@ -286,7 +469,10 @@ export function ListaVentas({ ventas }: { ventas: Venta[] }) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCobrando(v)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCobrando(v);
+                          }}
                         >
                           Marcar como pagada
                         </Button>
