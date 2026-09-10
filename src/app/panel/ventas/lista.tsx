@@ -6,7 +6,12 @@ import Link from "next/link";
 import { pesos, fecha } from "@/lib/formato";
 import { Button } from "@/components/ui/button";
 import { Selector } from "@/components/ui/selector";
-import { marcarVentaPagada, obtenerVenta, type VentaDetalle } from "./acciones";
+import {
+  marcarVentaPagada,
+  obtenerVenta,
+  cambiarEstadoVenta,
+  type VentaDetalle,
+} from "./acciones";
 
 type Venta = {
   id: string;
@@ -37,6 +42,12 @@ const TEXTO_METODO: Record<string, string> = {
   transferencia: "Transferencia",
   otro: "Otro",
 };
+
+const ESTADOS_VENTA = [
+  { valor: "pendiente", texto: "Pendiente" },
+  { valor: "pagada", texto: "Pagada" },
+  { valor: "cotizacion", texto: "Cotización", deshabilitado: true },
+];
 
 const METODOS_PAGO = [
   { valor: "efectivo", texto: "Efectivo" },
@@ -138,8 +149,11 @@ function ModalDetalleVenta({
   ventaId: string;
   onCerrar: () => void;
 }) {
+  const router = useRouter();
   const [venta, setVenta] = useState<VentaDetalle | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const [errorEstado, setErrorEstado] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -153,6 +167,21 @@ function ModalDetalleVenta({
       cancelado = true;
     };
   }, [ventaId]);
+
+  async function actualizarEstado(nuevoEstado: string) {
+    if (nuevoEstado !== "pendiente" && nuevoEstado !== "pagada") return;
+    setErrorEstado(null);
+    setCambiandoEstado(true);
+    const res = await cambiarEstadoVenta(ventaId, nuevoEstado);
+    setCambiandoEstado(false);
+    if (res?.error) {
+      setErrorEstado(res.error);
+      return;
+    }
+    const actualizada = await obtenerVenta(ventaId);
+    setVenta(actualizada);
+    router.refresh();
+  }
 
   const subtotal = venta?.items.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0) ?? 0;
   const montoDescuento = venta
@@ -171,7 +200,7 @@ function ModalDetalleVenta({
       <div
         role="dialog"
         aria-modal
-        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -199,16 +228,34 @@ function ModalDetalleVenta({
               Resumen
             </h3>
             <div className="mt-3 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-[13px] text-muted-foreground">Estado</span>
-                <span
-                  className={`rounded-full px-2 py-1 text-[12px] font-medium ${
-                    ESTILO_ESTADO[venta.estado] ?? ""
-                  }`}
-                >
-                  {TEXTO_ESTADO[venta.estado] ?? venta.estado}
-                </span>
+                {venta.estado === "cotizacion" ? (
+                  <span
+                    className={`rounded-full px-2 py-1 text-[12px] font-medium ${
+                      ESTILO_ESTADO[venta.estado] ?? ""
+                    }`}
+                  >
+                    {TEXTO_ESTADO[venta.estado]}
+                  </span>
+                ) : (
+                  <div className="w-40">
+                    <Selector
+                      value={venta.estado}
+                      onChange={actualizarEstado}
+                      opciones={ESTADOS_VENTA}
+                    />
+                  </div>
+                )}
               </div>
+              {errorEstado && (
+                <p className="text-[13px] text-destructive" role="alert">
+                  {errorEstado}
+                </p>
+              )}
+              {cambiandoEstado && (
+                <p className="text-[13px] text-muted-foreground">Actualizando…</p>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-[13px] text-muted-foreground">Cliente</span>
                 <span className="text-[14px]">

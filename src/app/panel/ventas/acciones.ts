@@ -219,6 +219,51 @@ export async function marcarVentaPagada(
   return { ok: true };
 }
 
+/**
+ * Cambia el estado entre pendiente y pagada, en cualquier dirección
+ * — "cotizacion" no es un destino válido acá: una venta que ya
+ * descontó stock (pendiente/pagada) nunca vuelve a ser una simple
+ * cotización sin comprometer inventario. Caja/Pagos leen
+ * venta.estado directo en cada consulta, así que revertir a
+ * pendiente ya la saca de ahí sin necesidad de deshacer nada más.
+ */
+export async function cambiarEstadoVenta(
+  ventaId: string,
+  estado: "pendiente" | "pagada"
+) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+
+  const [fila] = await db
+    .select({ estado: venta.estado })
+    .from(venta)
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)))
+    .limit(1);
+
+  if (!fila) return { error: "No se encontró esa venta." };
+  if (fila.estado === "cotizacion") {
+    return { error: "Una cotización no se puede marcar como pendiente o pagada desde acá." };
+  }
+  if (fila.estado === estado) return { ok: true };
+
+  await db
+    .update(venta)
+    .set(
+      estado === "pendiente"
+        ? { estado, metodoPago: null, referenciaPago: null }
+        : { estado }
+    )
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)));
+
+  revalidatePath("/panel/ventas");
+  revalidatePath("/panel/pagos");
+  revalidatePath("/panel/caja");
+  return { ok: true };
+}
+
 export type ItemVentaDetalle = {
   id: string;
   nombre: string;

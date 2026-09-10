@@ -2,7 +2,7 @@
 
 import { Select } from "@base-ui/react/select";
 
-type Opcion = { valor: string; texto: string };
+type Opcion = { valor: string; texto: string; deshabilitado?: boolean };
 
 /**
  * Reemplaza al <select> nativo, cuya lista desplegable la pinta el
@@ -68,7 +68,8 @@ export function Selector({
                 <Select.Item
                   key={o.valor}
                   value={o.valor}
-                  className="cursor-default px-4 py-2 text-[15px] outline-none select-none data-highlighted:bg-secondary data-selected:font-medium"
+                  disabled={o.deshabilitado}
+                  className="cursor-default px-4 py-2 text-[15px] outline-none select-none data-highlighted:bg-secondary data-selected:font-medium data-disabled:cursor-not-allowed data-disabled:opacity-40"
                 >
                   <Select.ItemText>{o.texto}</Select.ItemText>
                 </Select.Item>
