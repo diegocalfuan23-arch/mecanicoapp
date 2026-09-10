@@ -326,7 +326,6 @@ function ModalNuevaCita({
             onChange={(e) => setMotivo(e.target.value)}
             placeholder="Ej. Revisión de frenos, cambio de aceite…"
             rows={3}
-            autoFocus
             className="w-full rounded-lg border border-border bg-background px-4 py-2 text-[14px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
           />
         </div>
