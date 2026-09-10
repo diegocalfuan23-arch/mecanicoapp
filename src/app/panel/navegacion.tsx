@@ -447,6 +447,21 @@ function Enlaces({
   });
 
   const sinGrupo = secciones.filter((s) => !("grupo" in s));
+  const conGrupo = secciones.filter((s) => "grupo" in s);
+
+  // Agrupar en acordeones solo vale la pena con varios ítems que
+  // esconder (Plan Serviteca, ~12) — en Plan Taller cada grupo queda
+  // con 1-2 ítems y el acordeón es puro ruido visual sin nada que
+  // plegar. Con pocos ítems totales, se listan planos como antes.
+  if (conGrupo.length <= 6) {
+    return (
+      <ul className="flex flex-col gap-1">
+        {secciones.map((s) => (
+          <ItemEnlace key={s.href} seccion={s} activo={ruta === s.href} alNavegar={alNavegar} />
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div>
@@ -459,7 +474,7 @@ function Enlaces({
         <GrupoColapsable
           key={grupo}
           titulo={grupo}
-          secciones={secciones.filter((s) => "grupo" in s && s.grupo === grupo)}
+          secciones={conGrupo.filter((s) => "grupo" in s && s.grupo === grupo)}
           ruta={ruta}
           colapsado={colapsados.has(grupo)}
           onToggle={() => toggleGrupo(grupo)}
