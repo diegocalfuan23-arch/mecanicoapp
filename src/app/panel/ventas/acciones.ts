@@ -264,6 +264,44 @@ export async function cambiarEstadoVenta(
   return { ok: true };
 }
 
+/**
+ * Cambia el medio de pago (y opcionalmente la referencia) de una
+ * venta ya pagada — separado de cambiarEstadoVenta para que se pueda
+ * corregir después sin tener que pasar por pendiente primero.
+ */
+export async function actualizarMedioPagoVenta(
+  ventaId: string,
+  datos: { metodoPago?: string; referenciaPago?: string }
+) {
+  if (!(await tienePlan("impresionOrden"))) {
+    return { error: "Esta función es del Plan Serviteca." };
+  }
+
+  const tallerId = await tallerActual();
+
+  const [fila] = await db
+    .select({ estado: venta.estado })
+    .from(venta)
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)))
+    .limit(1);
+
+  if (!fila) return { error: "No se encontró esa venta." };
+  if (fila.estado !== "pagada") {
+    return { error: "Solo una venta pagada tiene medio de pago." };
+  }
+
+  await db
+    .update(venta)
+    .set({
+      metodoPago: datos.metodoPago || null,
+      referenciaPago: datos.referenciaPago?.trim() || null,
+    })
+    .where(and(eq(venta.id, ventaId), eq(venta.tallerId, tallerId)));
+
+  revalidatePath("/panel/ventas");
+  return { ok: true };
+}
+
 export type ItemVentaDetalle = {
   id: string;
   nombre: string;

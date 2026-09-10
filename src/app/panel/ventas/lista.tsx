@@ -10,6 +10,7 @@ import {
   marcarVentaPagada,
   obtenerVenta,
   cambiarEstadoVenta,
+  actualizarMedioPagoVenta,
   type VentaDetalle,
 } from "./acciones";
 
@@ -45,8 +46,16 @@ const TEXTO_METODO: Record<string, string> = {
 
 const ESTADOS_VENTA = [
   { valor: "pendiente", texto: "Pendiente" },
-  { valor: "pagada", texto: "Pagada" },
+  { valor: "pagada", texto: "Completada" },
   { valor: "cotizacion", texto: "Cotización", deshabilitado: true },
+];
+
+const METODOS_PAGO_CON_DEFECTO = [
+  { valor: "", texto: "Sin especificar" },
+  { valor: "efectivo", texto: "Efectivo" },
+  { valor: "tarjeta", texto: "Tarjeta" },
+  { valor: "transferencia", texto: "Transferencia" },
+  { valor: "otro", texto: "Otro" },
 ];
 
 const METODOS_PAGO = [
@@ -183,6 +192,15 @@ function ModalDetalleVenta({
     router.refresh();
   }
 
+  async function actualizarMedioPago(metodoPago: string) {
+    setCambiandoEstado(true);
+    await actualizarMedioPagoVenta(ventaId, { metodoPago });
+    setCambiandoEstado(false);
+    const actualizada = await obtenerVenta(ventaId);
+    setVenta(actualizada);
+    router.refresh();
+  }
+
   const subtotal = venta?.items.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0) ?? 0;
   const montoDescuento = venta
     ? Math.round((subtotal * venta.descuentoPorcentaje) / 100)
@@ -248,6 +266,11 @@ function ModalDetalleVenta({
                   </div>
                 )}
               </div>
+              {venta.estado === "pagada" && (
+                <p className="text-[13px] text-muted-foreground italic">
+                  Registra el cobro, descuenta stock y crea movimiento de caja.
+                </p>
+              )}
               {errorEstado && (
                 <p className="text-[13px] text-destructive" role="alert">
                   {errorEstado}
@@ -262,14 +285,18 @@ function ModalDetalleVenta({
                   {venta.clienteNombre ?? "Cliente ocasional"}
                 </span>
               </div>
-              {venta.metodoPago && (
-                <div className="flex items-center justify-between">
+              {venta.estado === "pagada" && (
+                <div className="flex items-center justify-between gap-4">
                   <span className="text-[13px] text-muted-foreground">
                     Medio de pago
                   </span>
-                  <span className="text-[14px]">
-                    {TEXTO_METODO[venta.metodoPago] ?? venta.metodoPago}
-                  </span>
+                  <div className="w-48">
+                    <Selector
+                      value={venta.metodoPago ?? ""}
+                      onChange={actualizarMedioPago}
+                      opciones={METODOS_PAGO_CON_DEFECTO}
+                    />
+                  </div>
                 </div>
               )}
               {venta.referenciaPago && (
