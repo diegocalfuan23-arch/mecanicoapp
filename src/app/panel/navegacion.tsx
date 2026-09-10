@@ -438,7 +438,10 @@ function Enlaces({
     if (s.href === "/panel/ventas") return tieneServicios;
     if (s.href === "/panel/presupuestos") return tieneServicios;
     if (s.href === "/panel/pagos") return vePagos;
-    if (s.href === "/panel/caja") return vePagos;
+    // Caja es Plan Serviteca (como Agenda/Compras), además del gate
+    // de rol que ya tenía — antes cualquier Plan Taller con permiso
+    // de ver Pagos también veía Caja, sin chequear el plan.
+    if (s.href === "/panel/caja") return vePagos && tieneServicios;
     if (s.href === "/panel/equipo") return veEquipo;
     return true;
   });

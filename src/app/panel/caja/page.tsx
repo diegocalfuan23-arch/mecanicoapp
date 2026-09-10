@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { puedeVerPagos } from "@/lib/taller";
+import { puedeVerPagos, tienePlan } from "@/lib/taller";
 import { resumenDia, listarMovimientosDia } from "./acciones";
 import { VistaCaja } from "./vista";
 
@@ -18,9 +18,14 @@ export default async function Caja({
 }: {
   searchParams: Promise<{ fecha?: string }>;
 }) {
-  // Mismo criterio de acceso que Pagos: el dueño puede ocultárselo a
-  // un ayudante puntual sin tener que bajarle el rol completo.
-  if (!(await puedeVerPagos())) redirect("/panel");
+  // Mismo criterio de acceso que Pagos (el dueño puede ocultárselo a
+  // un ayudante puntual sin tener que bajarle el rol completo), más
+  // el gate de Plan Serviteca — Caja no está en Plan Taller.
+  const [vePagos, tieneServicios] = await Promise.all([
+    puedeVerPagos(),
+    tienePlan("impresionOrden"),
+  ]);
+  if (!vePagos || !tieneServicios) redirect("/panel");
 
   const { fecha } = await searchParams;
   const fechaSeleccionada = fecha || hoyISO();
