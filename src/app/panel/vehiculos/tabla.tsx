@@ -82,10 +82,12 @@ function Acciones({ v, onBorrar }: { v: Vehiculo; onBorrar: () => void }) {
 export function TablaVehiculos({
   vehiculos,
   tieneImpresion,
+  tieneBusquedaExterna,
   clientes,
 }: {
   vehiculos: Vehiculo[];
   tieneImpresion: boolean;
+  tieneBusquedaExterna: boolean;
   clientes: ClienteOpcion[];
 }) {
   const router = useRouter();
@@ -148,6 +150,7 @@ export function TablaVehiculos({
             vehiculo={editando ?? undefined}
             autoguardar={!!editando}
             tieneImpresion={tieneImpresion}
+            tieneBusquedaExterna={tieneBusquedaExterna}
             clientes={clientes}
             patenteInicial={patenteDesdeUrl ?? undefined}
             onListo={() => {

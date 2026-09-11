@@ -32,12 +32,15 @@ export function BuscadorVehiculo({
   seleccionado,
   onSeleccionar,
   tieneImpresion,
+  tieneBusquedaExterna,
 }: {
   vehiculos: VehiculoOpcion[];
   seleccionado: VehiculoOpcion | null;
   onSeleccionar: (vehiculo: VehiculoOpcion | null) => void;
-  /** Plan Serviteca: el formulario real autocompleta por patente vía GetAPI. */
+  /** Plan Serviteca: agrega cilindrada y patente de móvil/flota en el formulario. */
   tieneImpresion: boolean;
+  /** Todos los planes: el formulario real autocompleta por patente vía GetAPI. */
+  tieneBusquedaExterna: boolean;
 }) {
   const [busqueda, setBusqueda] = useState("");
   const [creando, setCreando] = useState(false);
@@ -152,6 +155,7 @@ export function BuscadorVehiculo({
               <FormularioVehiculo
                 key={busqueda}
                 tieneImpresion={tieneImpresion}
+                tieneBusquedaExterna={tieneBusquedaExterna}
                 soloVehiculo
                 patenteInicial={busqueda}
                 onListo={() => setCreando(false)}

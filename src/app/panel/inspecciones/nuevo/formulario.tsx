@@ -128,6 +128,7 @@ export function NuevaInspeccion({
               seleccionado={vehiculo}
               onSeleccionar={setVehiculo}
               tieneImpresion
+              tieneBusquedaExterna
             />
           </div>
         </div>

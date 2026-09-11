@@ -100,6 +100,7 @@ export function FormularioVehiculo({
   vehiculo,
   autoguardar = false,
   tieneImpresion = false,
+  tieneBusquedaExterna = false,
   patenteInicial,
   soloVehiculo = false,
   clientes = [],
@@ -112,6 +113,8 @@ export function FormularioVehiculo({
   autoguardar?: boolean;
   /** Plan Serviteca: agrega cilindrada y patente de móvil/flota. */
   tieneImpresion?: boolean;
+  /** Todos los planes: autocompleta por patente contra GetAPI. */
+  tieneBusquedaExterna?: boolean;
   /** Al llegar desde "Historial por patente" sin encontrar el auto. */
   patenteInicial?: string;
   /** Oculta "El dueño" y "Copropietario" — usado donde el cliente ya
@@ -199,9 +202,9 @@ export function FormularioVehiculo({
     form.touched[campo] ? (form.errors[campo] as string | undefined) : undefined;
 
   /**
-   * Autocompleta por patente (Plan Serviteca) — solo llena los campos
-   * que el mecánico todavía no escribió, para no pisarle algo que ya
-   * corrigió a mano.
+   * Autocompleta por patente (todos los planes) — solo llena los
+   * campos que el mecánico todavía no escribió, para no pisarle algo
+   * que ya corrigió a mano.
    */
   async function buscarPatente(patente: string) {
     setErrorBusqueda(null);
@@ -231,7 +234,7 @@ export function FormularioVehiculo({
   // vez de disparar una consulta por letra.
   const yaBuscada = useRef<string | null>(null);
   useEffect(() => {
-    if (!tieneImpresion || editando) return;
+    if (!tieneBusquedaExterna || editando) return;
     // Ya se autocompletó (marca es el campo más confiable de que la
     // búsqueda anterior sí trajo datos) — no repetir la consulta ni
     // arriesgar un error de red pisando datos que ya están bien.
@@ -248,7 +251,7 @@ export function FormularioVehiculo({
 
     return () => clearTimeout(espera);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.values.patente, form.values.marca, tieneImpresion, editando]);
+  }, [form.values.patente, form.values.marca, tieneBusquedaExterna, editando]);
 
   /**
    * En modo autoguardar no hay botón "Guardar": cada onBlur dispara el
@@ -332,7 +335,7 @@ export function FormularioVehiculo({
           El vehículo
         </h3>
 
-        {tieneImpresion && !editando && (buscando || errorBusqueda) && (
+        {tieneBusquedaExterna && !editando && (buscando || errorBusqueda) && (
           <div className="mt-4">
             {buscando && (
               <p className="text-[13px] text-muted-foreground">

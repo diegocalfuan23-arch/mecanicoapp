@@ -2,7 +2,7 @@ import { Buscador } from "./buscador";
 import { tienePlan } from "@/lib/taller";
 
 export default async function Historial() {
-  const tieneImpresion = await tienePlan("impresionOrden");
+  const tieneBusquedaExterna = await tienePlan("busquedaPatente");
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -15,7 +15,7 @@ export default async function Historial() {
         </p>
       </div>
 
-      <Buscador tieneImpresion={tieneImpresion} />
+      <Buscador tieneBusquedaExterna={tieneBusquedaExterna} />
     </div>
   );
 }

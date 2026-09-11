@@ -27,12 +27,12 @@ type DatosExternos = {
 };
 
 export function Buscador({
-  tieneImpresion = false,
+  tieneBusquedaExterna = false,
 }: {
-  /** Plan Serviteca: si no hay coincidencia local, busca en GetAPI
+  /** Todos los planes: si no hay coincidencia local, busca en GetAPI
    * por patente (marca/modelo/año/color/VIN) — nunca trae historial
    * de trabajos, eso solo existe para autos que ya pasaron por acá. */
-  tieneImpresion?: boolean;
+  tieneBusquedaExterna?: boolean;
 }) {
   const router = useRouter();
   const [consulta, setConsulta] = useState("");
@@ -84,7 +84,7 @@ export function Buscador({
       return;
     }
 
-    if (!tieneImpresion) return;
+    if (!tieneBusquedaExterna) return;
 
     setBuscandoExterno(true);
     const res = await buscarPorPatente(patente);
@@ -169,7 +169,7 @@ export function Buscador({
   // escribir, y solo corre si ya se sabe que no hay nada local.
   useEffect(() => {
     const q = consulta.trim();
-    if (!q || !tieneImpresion || buscando || resultados.length > 0) return;
+    if (!q || !tieneBusquedaExterna || buscando || resultados.length > 0) return;
     if (!buscoAlgo) return;
     // buscarYa() ya resolvió esta misma consulta a mano — no repetirla.
     if (resueltaAMano.current === q) return;
@@ -191,7 +191,7 @@ export function Buscador({
     }, 1200);
 
     return () => clearTimeout(espera);
-  }, [consulta, tieneImpresion, buscando, buscoAlgo, resultados.length]);
+  }, [consulta, tieneBusquedaExterna, buscando, buscoAlgo, resultados.length]);
 
   return (
     <>
@@ -250,8 +250,8 @@ export function Buscador({
         <p className="mt-6 text-muted-foreground">Buscando…</p>
       )}
 
-      {/* Sin coincidencia local, pero sí en el registro externo (Plan
-          Serviteca): se ve como una tarjeta más, marcada como que no
+      {/* Sin coincidencia local, pero sí en el registro externo
+          (GetAPI): se ve como una tarjeta más, marcada como que no
           ha pasado por acá — solo trae datos del auto, nunca
           historial de trabajos (eso no existe fuera de este taller).
           El propietario nunca viene de acá: no existe en registros

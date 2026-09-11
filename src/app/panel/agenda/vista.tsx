@@ -210,6 +210,7 @@ function ModalNuevaCita({
             seleccionado={vehiculo}
             onSeleccionar={setVehiculo}
             tieneImpresion
+            tieneBusquedaExterna
           />
         </div>
 

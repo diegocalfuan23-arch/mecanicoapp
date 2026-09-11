@@ -10,9 +10,10 @@ export default async function Vehiculos() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
 
-  const [vehiculos, tieneImpresion, clientes] = await Promise.all([
+  const [vehiculos, tieneImpresion, tieneBusquedaExterna, clientes] = await Promise.all([
     listarVehiculos(),
     tienePlan("impresionOrden"),
+    tienePlan("busquedaPatente"),
     listarClientesParaSelector(),
   ]);
 
@@ -27,7 +28,12 @@ export default async function Vehiculos() {
         </p>
       </div>
 
-      <TablaVehiculos vehiculos={vehiculos} tieneImpresion={tieneImpresion} clientes={clientes} />
+      <TablaVehiculos
+        vehiculos={vehiculos}
+        tieneImpresion={tieneImpresion}
+        tieneBusquedaExterna={tieneBusquedaExterna}
+        clientes={clientes}
+      />
     </>
   );
 }

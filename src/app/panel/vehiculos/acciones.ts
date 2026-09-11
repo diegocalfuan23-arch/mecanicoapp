@@ -64,7 +64,7 @@ export type DatosVehiculo = {
 };
 
 /**
- * Autocompleta datos del vehículo por patente — Plan Serviteca.
+ * Autocompleta datos del vehículo por patente — todos los planes.
  * Orden de búsqueda, de más barato a más caro: (1) `vehiculo` — si
  * cualquier taller ya lo registró, sus datos técnicos sirven igual;
  * (2) `vehiculoExterno` — caché de una consulta a GetAPI anterior;
@@ -76,11 +76,12 @@ export type DatosVehiculo = {
  * vence.
  */
 export async function buscarPorPatente(patente: string) {
-  // El botón solo se ve con Plan Serviteca, pero una server action es
-  // invocable igual sin pasar por la UI — sin este chequeo, cualquiera
-  // podría gastar la key compartida (3 consultas/min en la demo).
-  if (!(await tienePlan("impresionOrden"))) {
-    return { error: "Esta función es del Plan Serviteca." };
+  // Disponible desde Plan Prueba (ver FUNCIONES_POR_PLAN) — el costo
+  // real está acotado por el caché compartido en vehiculoExterno. El
+  // chequeo igual queda: una server action es invocable sin pasar por
+  // la UI, y esto exige sesión válida antes de gastar la key.
+  if (!(await tienePlan("busquedaPatente"))) {
+    return { error: "Esta función no está disponible." };
   }
 
   const limpia = patente.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");

@@ -18,12 +18,21 @@ import { user, miembroTaller } from "@/db/schema";
 export const PLANES = ["prueba", "taller", "serviteca", "empresarial"] as const;
 export type Plan = (typeof PLANES)[number];
 
-/** Qué funciones desbloquea cada plan. "prueba" y "taller" ven lo mismo. */
-export const FUNCIONES_POR_PLAN: Record<Plan, { inventario: boolean; impresionOrden: boolean }> = {
-  prueba: { inventario: false, impresionOrden: false },
-  taller: { inventario: false, impresionOrden: false },
-  serviteca: { inventario: true, impresionOrden: true },
-  empresarial: { inventario: true, impresionOrden: true },
+/**
+ * Qué funciones desbloquea cada plan. "prueba" y "taller" ven lo
+ * mismo, salvo `busquedaPatente`: se dejó abierta en todos los
+ * planes (incluido prueba) porque el costo real está acotado por el
+ * caché compartido en `vehiculoExterno` — solo se gasta cuota de
+ * GetAPI en patentes que nadie buscó antes en toda la plataforma.
+ */
+export const FUNCIONES_POR_PLAN: Record<
+  Plan,
+  { inventario: boolean; impresionOrden: boolean; busquedaPatente: boolean }
+> = {
+  prueba: { inventario: false, impresionOrden: false, busquedaPatente: true },
+  taller: { inventario: false, impresionOrden: false, busquedaPatente: true },
+  serviteca: { inventario: true, impresionOrden: true, busquedaPatente: true },
+  empresarial: { inventario: true, impresionOrden: true, busquedaPatente: true },
 };
 
 /**

@@ -599,6 +599,7 @@ export function NuevaVenta({
                   seleccionado={vehiculo}
                   onSeleccionar={setVehiculo}
                   tieneImpresion
+                  tieneBusquedaExterna
                 />
               </div>
             )}
