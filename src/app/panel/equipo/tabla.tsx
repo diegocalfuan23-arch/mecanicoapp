@@ -49,6 +49,36 @@ const ETIQUETA_ROL: Record<string, string> = {
 /** Prefijo para distinguir un valor de rol a medida dentro del mismo Selector que jefe_taller/mecanico. */
 const PREFIJO_PERSONALIZADO = "personalizado:";
 
+/**
+ * Opciones del Selector de rol: Mecánico/Jefe de taller (según quién
+ * gestiona) más los roles a medida del taller. Sin ninguno creado
+ * aún, se muestra una opción atenuada que invita a crear uno primero
+ * — así el dueño sabe que la función existe, sin bloquear nunca
+ * invitar a alguien como Mecánico/Jefe de taller por esto.
+ */
+function opcionesRolConPersonalizados(
+  esDueno: boolean,
+  rolesPersonalizados: RolPersonalizado[]
+) {
+  return [
+    ...(esDueno ? ROLES : ROLES.filter((r) => r.valor === "mecanico")),
+    ...(esDueno
+      ? rolesPersonalizados.length > 0
+        ? rolesPersonalizados.map((r) => ({
+            valor: `${PREFIJO_PERSONALIZADO}${r.id}`,
+            texto: r.nombre,
+          }))
+        : [
+            {
+              valor: `${PREFIJO_PERSONALIZADO}ninguno`,
+              texto: "Rol a medida (crea uno primero, en la pestaña Roles)",
+              deshabilitado: true,
+            },
+          ]
+      : []),
+  ];
+}
+
 const campo =
   "w-full rounded-lg border border-border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
@@ -79,15 +109,7 @@ function Formulario({
     ? valorRol.slice(PREFIJO_PERSONALIZADO.length)
     : null;
 
-  const opcionesRol = [
-    ...(esDueno ? ROLES : ROLES.filter((r) => r.valor === "mecanico")),
-    ...(esDueno
-      ? rolesPersonalizados.map((r) => ({
-          valor: `${PREFIJO_PERSONALIZADO}${r.id}`,
-          texto: r.nombre,
-        }))
-      : []),
-  ];
+  const opcionesRol = opcionesRolConPersonalizados(esDueno, rolesPersonalizados);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -489,17 +511,10 @@ export function TablaEquipo({
                           : m.rol
                       }
                       onChange={(v) => alternarRol(m, v)}
-                      opciones={[
-                        ...(esDueno
-                          ? ROLES
-                          : ROLES.filter((r) => r.valor === "mecanico")),
-                        ...(esDueno
-                          ? rolesPersonalizados.map((r) => ({
-                              valor: `${PREFIJO_PERSONALIZADO}${r.id}`,
-                              texto: r.nombre,
-                            }))
-                          : []),
-                      ]}
+                      opciones={opcionesRolConPersonalizados(
+                        esDueno,
+                        rolesPersonalizados
+                      )}
                       className="text-[13px]"
                     />
                   </div>
