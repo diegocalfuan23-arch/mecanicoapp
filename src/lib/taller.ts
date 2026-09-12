@@ -36,6 +36,9 @@ export type Plan = (typeof PLANES)[number];
  * planes (incluido prueba) porque el costo real está acotado por el
  * caché compartido en `vehiculoExterno` — solo se gasta cuota de
  * GetAPI en patentes que nadie buscó antes en toda la plataforma.
+ * `rolesPersonalizados` está abierto en los 4 — lo que varía por plan
+ * es la LISTA de módulos disponibles para armar la matriz, no si la
+ * función existe (ver MODULOS_POR_PLAN en modulos-panel.ts).
  */
 export const FUNCIONES_POR_PLAN: Record<
   Plan,
@@ -43,9 +46,6 @@ export const FUNCIONES_POR_PLAN: Record<
     inventario: boolean;
     impresionOrden: boolean;
     busquedaPatente: boolean;
-    // Roles a medida con matriz de permisos por módulo — cadenas de
-    // talleres con estructura más compleja (Contador, Ayudante de
-    // recepción, etc.), exclusivo Empresarial.
     rolesPersonalizados: boolean;
   }
 > = {
@@ -53,19 +53,19 @@ export const FUNCIONES_POR_PLAN: Record<
     inventario: false,
     impresionOrden: false,
     busquedaPatente: true,
-    rolesPersonalizados: false,
+    rolesPersonalizados: true,
   },
   taller: {
     inventario: false,
     impresionOrden: false,
     busquedaPatente: true,
-    rolesPersonalizados: false,
+    rolesPersonalizados: true,
   },
   serviteca: {
     inventario: true,
     impresionOrden: true,
     busquedaPatente: true,
-    rolesPersonalizados: false,
+    rolesPersonalizados: true,
   },
   empresarial: {
     inventario: true,

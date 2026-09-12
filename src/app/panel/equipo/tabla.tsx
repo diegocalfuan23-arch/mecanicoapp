@@ -11,7 +11,7 @@ import {
   asignarRolPersonalizado,
 } from "./acciones";
 import { Roles, type RolPersonalizado } from "./roles";
-import { MODULOS_PERSONALIZABLES, ETIQUETA_MODULO } from "@/lib/modulos-panel";
+import { ETIQUETA_MODULO } from "@/lib/modulos-panel";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
 
@@ -241,14 +241,17 @@ export function TablaEquipo({
   esDueno,
   rolesPersonalizados,
   tieneRolesPersonalizados,
+  modulosDisponibles,
 }: {
   miembros: Miembro[];
   invitaciones: Invitacion[];
   /** El dueño puede nombrar jefes de taller y tocar a cualquiera. */
   esDueno: boolean;
   rolesPersonalizados: RolPersonalizado[];
-  /** Plan Empresarial — sin esto, la pestaña "Roles" ni se muestra. */
+  /** Siempre true hoy (los 4 planes lo tienen) — se deja por si algún plan futuro vuelve a excluirlo. */
   tieneRolesPersonalizados: boolean;
+  /** Qué módulos puede marcar un rol a medida — varía según el plan del taller. */
+  modulosDisponibles: readonly string[];
 }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
@@ -337,7 +340,7 @@ export function TablaEquipo({
         <PestanasEquipo pestana={pestana} onCambiar={setPestana} />
         <Roles
           roles={rolesPersonalizados}
-          modulos={MODULOS_PERSONALIZABLES}
+          modulos={modulosDisponibles}
           etiquetas={ETIQUETA_MODULO}
         />
       </>

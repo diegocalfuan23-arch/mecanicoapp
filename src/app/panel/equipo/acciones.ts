@@ -16,9 +16,10 @@ import {
   tallerActual,
   rolActual,
   tienePlan,
-  MODULOS_PERSONALIZABLES,
+  planActual,
   type Rol,
 } from "@/lib/taller";
+import { MODULOS_POR_PLAN } from "@/lib/modulos-panel";
 import { enviarInvitacionEquipo } from "@/lib/correo";
 import { hashPassword } from "@better-auth/utils/password";
 
@@ -48,8 +49,10 @@ export async function listarEquipo() {
 }
 
 /**
- * Roles a medida del taller — Plan Empresarial. Vacío en cualquier
- * otro plan: ni siquiera se molesta en consultar la tabla.
+ * Roles a medida del taller — disponible en los 4 planes, cada uno
+ * con su propia lista de módulos habilitables (ver MODULOS_POR_PLAN).
+ * El chequeo de tienePlan queda igual por si algún plan futuro vuelve
+ * a excluir la función del todo.
  */
 export async function listarRolesPersonalizados() {
   if (!(await tienePlan("rolesPersonalizados"))) return [];
@@ -75,9 +78,17 @@ async function puedeGestionarRoles() {
   );
 }
 
-function permisosValidos(permisos: Record<string, boolean>) {
+/**
+ * Filtra a solo los módulos que el plan actual del taller realmente
+ * ofrece (ver MODULOS_POR_PLAN) — sin esto, un taller en Plan Taller
+ * podría guardar "Inventario" marcado en un rol aunque ese módulo ni
+ * siquiera exista para su plan.
+ */
+async function permisosValidos(permisos: Record<string, boolean>) {
+  const plan = await planActual();
+  const disponibles = MODULOS_POR_PLAN[plan];
   const limpio: Record<string, boolean> = {};
-  for (const modulo of MODULOS_PERSONALIZABLES) {
+  for (const modulo of disponibles) {
     if (permisos[modulo] === true) limpio[modulo] = true;
   }
   return limpio;
@@ -100,7 +111,7 @@ export async function crearRolPersonalizado(datos: {
     id: crypto.randomUUID(),
     tallerId,
     nombre,
-    permisos: permisosValidos(datos.permisos),
+    permisos: await permisosValidos(datos.permisos),
   });
 
   revalidatePath("/panel/equipo");
@@ -122,7 +133,7 @@ export async function actualizarRolPersonalizado(
 
   await db
     .update(rolPersonalizado)
-    .set({ nombre, permisos: permisosValidos(datos.permisos) })
+    .set({ nombre, permisos: await permisosValidos(datos.permisos) })
     .where(
       and(eq(rolPersonalizado.id, rolId), eq(rolPersonalizado.tallerId, tallerId))
     );
@@ -189,7 +200,7 @@ export async function crearInvitacion(datos: {
   nombre: string;
   correo: string;
   rol: Rol;
-  /** Solo Plan Empresarial — manda sobre `rol` si viene seteado. */
+  /** Rol a medida del taller — manda sobre `rol` si viene seteado. */
   rolPersonalizadoId?: string | null;
 }) {
   const sesion = await auth.api.getSession({ headers: await headers() });
