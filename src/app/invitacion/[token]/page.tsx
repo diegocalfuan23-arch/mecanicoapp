@@ -33,6 +33,7 @@ export default function Invitacion() {
     nombre: string;
     email: string;
     rol: string;
+    rolPersonalizadoNombre: string | null;
     tallerNombre: string;
   } | null>(null);
   const [errorInvitacion, setErrorInvitacion] = useState<string | null>(null);
@@ -89,7 +90,7 @@ export default function Invitacion() {
   return (
     <MarcoAuth
       titulo={`Únete a ${datos.tallerNombre}`}
-      bajada={`Te invitaron como ${ETIQUETA_ROL[datos.rol] ?? datos.rol}. Crea tu contraseña para entrar.`}
+      bajada={`Te invitaron como ${datos.rolPersonalizadoNombre ?? ETIQUETA_ROL[datos.rol] ?? datos.rol}. Crea tu contraseña para entrar.`}
       pie={
         <Link
           href="/entrar"

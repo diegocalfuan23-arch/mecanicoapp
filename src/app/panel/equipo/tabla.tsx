@@ -8,7 +8,10 @@ import {
   cambiarRol,
   cambiarVePagos,
   quitarMiembro,
+  asignarRolPersonalizado,
 } from "./acciones";
+import { Roles, type RolPersonalizado } from "./roles";
+import { MODULOS_PERSONALIZABLES, ETIQUETA_MODULO } from "@/lib/modulos-panel";
 import { Selector } from "@/components/ui/selector";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +23,8 @@ type Miembro = {
   correo: string;
   rol: string;
   vePagos: boolean;
+  rolPersonalizadoId: string | null;
+  rolPersonalizadoNombre: string | null;
   createdAt: Date;
 };
 
@@ -41,32 +46,55 @@ const ETIQUETA_ROL: Record<string, string> = {
   mecanico: "Mecánico",
 };
 
+/** Prefijo para distinguir un valor de rol a medida dentro del mismo Selector que jefe_taller/mecanico. */
+const PREFIJO_PERSONALIZADO = "personalizado:";
+
 const campo =
   "w-full rounded-lg border border-border bg-background px-4 py-2 text-[15px] outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30";
 
 function Formulario({
   onListo,
   esDueno,
+  rolesPersonalizados,
 }: {
   onListo: () => void;
-  /** Solo el dueño puede nombrar Jefe de taller. */
+  /** Solo el dueño puede nombrar Jefe de taller o asignar roles a medida. */
   esDueno: boolean;
+  rolesPersonalizados: RolPersonalizado[];
 }) {
   const router = useRouter();
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
-  const [rol, setRol] = useState<Rol>("mecanico");
+  const [valorRol, setValorRol] = useState<string>("mecanico");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkGenerado, setLinkGenerado] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
+
+  const esPersonalizado = valorRol.startsWith(PREFIJO_PERSONALIZADO);
+  const rol: Rol = esPersonalizado
+    ? "mecanico"
+    : (valorRol as Rol);
+  const rolPersonalizadoId = esPersonalizado
+    ? valorRol.slice(PREFIJO_PERSONALIZADO.length)
+    : null;
+
+  const opcionesRol = [
+    ...(esDueno ? ROLES : ROLES.filter((r) => r.valor === "mecanico")),
+    ...(esDueno
+      ? rolesPersonalizados.map((r) => ({
+          valor: `${PREFIJO_PERSONALIZADO}${r.id}`,
+          texto: r.nombre,
+        }))
+      : []),
+  ];
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setEnviando(true);
 
-    const res = await crearInvitacion({ nombre, correo, rol });
+    const res = await crearInvitacion({ nombre, correo, rol, rolPersonalizadoId });
     setEnviando(false);
 
     if (res?.error || !res?.url) {
@@ -149,18 +177,16 @@ function Formulario({
         <div>
           <span className="mb-2 block text-[13px] font-medium">Rol</span>
           <Selector
-            value={rol}
-            onChange={(v) => setRol(v as Rol)}
-            opciones={
-              esDueno
-                ? ROLES
-                : ROLES.filter((r) => r.valor === "mecanico")
-            }
+            value={valorRol}
+            onChange={setValorRol}
+            opciones={opcionesRol}
           />
           <p className="mt-2 text-[12px] text-muted-foreground">
-            {rol === "jefe_taller"
-              ? "Ve todo salvo poder tocar a otro jefe de taller o al dueño."
-              : "Ve Órdenes, Vehículos y lo operativo del día a día."}
+            {esPersonalizado
+              ? "Ve solo los módulos que elegiste al crear este rol."
+              : rol === "jefe_taller"
+                ? "Ve todo salvo poder tocar a otro jefe de taller o al dueño."
+                : "Ve Órdenes, Vehículos y lo operativo del día a día."}
           </p>
         </div>
 
@@ -179,18 +205,54 @@ function Formulario({
   );
 }
 
+function PestanasEquipo({
+  pestana,
+  onCambiar,
+}: {
+  pestana: "equipo" | "roles";
+  onCambiar: (p: "equipo" | "roles") => void;
+}) {
+  const opciones: { valor: "equipo" | "roles"; texto: string }[] = [
+    { valor: "equipo", texto: "Equipo" },
+    { valor: "roles", texto: "Roles" },
+  ];
+  return (
+    <div className="mb-6 flex gap-1 border-b border-border">
+      {opciones.map((o) => (
+        <button
+          key={o.valor}
+          onClick={() => onCambiar(o.valor)}
+          className={`px-4 py-2 text-[14px] font-medium transition-colors ${
+            pestana === o.valor
+              ? "border-b-2 border-primary text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {o.texto}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function TablaEquipo({
   miembros: iniciales,
   invitaciones,
   esDueno,
+  rolesPersonalizados,
+  tieneRolesPersonalizados,
 }: {
   miembros: Miembro[];
   invitaciones: Invitacion[];
   /** El dueño puede nombrar jefes de taller y tocar a cualquiera. */
   esDueno: boolean;
+  rolesPersonalizados: RolPersonalizado[];
+  /** Plan Empresarial — sin esto, la pestaña "Roles" ni se muestra. */
+  tieneRolesPersonalizados: boolean;
 }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
+  const [pestana, setPestana] = useState<"equipo" | "roles">("equipo");
   const [confirmando, setConfirmando] = useState<Miembro | null>(null);
   const [quitando, setQuitando] = useState(false);
   // Optimista: el checkbox/selector responde al instante, sin esperar
@@ -214,27 +276,79 @@ export function TablaEquipo({
     await cambiarVePagos(m.id, nuevo);
   }
 
-  async function alternarRol(m: Miembro, rol: Rol) {
+  async function alternarRol(m: Miembro, valor: string) {
+    const esPersonalizado = valor.startsWith(PREFIJO_PERSONALIZADO);
+    const anterior = { rol: m.rol, rolPersonalizadoId: m.rolPersonalizadoId };
+
+    if (esPersonalizado) {
+      const rolPersonalizadoId = valor.slice(PREFIJO_PERSONALIZADO.length);
+      const nombre =
+        rolesPersonalizados.find((r) => r.id === rolPersonalizadoId)?.nombre ??
+        null;
+      setMiembros((actuales) =>
+        actuales.map((x) =>
+          x.id === m.id
+            ? { ...x, rolPersonalizadoId, rolPersonalizadoNombre: nombre }
+            : x
+        )
+      );
+      const res = await asignarRolPersonalizado(m.id, rolPersonalizadoId);
+      if (res?.error) {
+        setMiembros((actuales) =>
+          actuales.map((x) => (x.id === m.id ? { ...x, ...anterior } : x))
+        );
+        router.refresh();
+      }
+      return;
+    }
+
+    const rol = valor as Rol;
     setMiembros((actuales) =>
-      actuales.map((x) => (x.id === m.id ? { ...x, rol } : x))
+      actuales.map((x) =>
+        x.id === m.id
+          ? { ...x, rol, rolPersonalizadoId: null, rolPersonalizadoNombre: null }
+          : x
+      )
     );
     const res = await cambiarRol(m.id, rol);
     if (res?.error) {
       // Revertir en la UI si el servidor lo rechazó (ej. un jefe de
       // taller tratando de nombrar a otro jefe de taller).
       setMiembros((actuales) =>
-        actuales.map((x) => (x.id === m.id ? { ...x, rol: m.rol } : x))
+        actuales.map((x) => (x.id === m.id ? { ...x, ...anterior } : x))
       );
       router.refresh();
     }
   }
 
   if (abierto) {
-    return <Formulario onListo={() => setAbierto(false)} esDueno={esDueno} />;
+    return (
+      <Formulario
+        onListo={() => setAbierto(false)}
+        esDueno={esDueno}
+        rolesPersonalizados={rolesPersonalizados}
+      />
+    );
+  }
+
+  if (tieneRolesPersonalizados && pestana === "roles") {
+    return (
+      <>
+        <PestanasEquipo pestana={pestana} onCambiar={setPestana} />
+        <Roles
+          roles={rolesPersonalizados}
+          modulos={MODULOS_PERSONALIZABLES}
+          etiquetas={ETIQUETA_MODULO}
+        />
+      </>
+    );
   }
 
   return (
     <>
+      {tieneRolesPersonalizados && (
+        <PestanasEquipo pestana={pestana} onCambiar={setPestana} />
+      )}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
           <button
@@ -343,23 +457,33 @@ export function TablaEquipo({
                 {puedeGestionar ? (
                   <div className="mt-3">
                     <Selector
-                      value={m.rol}
-                      onChange={(v) => alternarRol(m, v as Rol)}
-                      opciones={
-                        esDueno
-                          ? ROLES
-                          : ROLES.filter((r) => r.valor === "mecanico")
+                      value={
+                        m.rolPersonalizadoId
+                          ? `${PREFIJO_PERSONALIZADO}${m.rolPersonalizadoId}`
+                          : m.rol
                       }
+                      onChange={(v) => alternarRol(m, v)}
+                      opciones={[
+                        ...(esDueno
+                          ? ROLES
+                          : ROLES.filter((r) => r.valor === "mecanico")),
+                        ...(esDueno
+                          ? rolesPersonalizados.map((r) => ({
+                              valor: `${PREFIJO_PERSONALIZADO}${r.id}`,
+                              texto: r.nombre,
+                            }))
+                          : []),
+                      ]}
                       className="text-[13px]"
                     />
                   </div>
                 ) : (
                   <span className="mt-3 inline-block w-fit rounded-full bg-foreground/10 px-3 py-1 text-[12px] font-medium">
-                    {ETIQUETA_ROL[m.rol] ?? m.rol}
+                    {m.rolPersonalizadoNombre ?? ETIQUETA_ROL[m.rol] ?? m.rol}
                   </span>
                 )}
 
-                {m.rol !== "jefe_taller" && (
+                {!m.rolPersonalizadoId && m.rol !== "jefe_taller" && (
                   <label className="mt-4 flex items-center gap-2 text-[13px]">
                     <input
                       type="checkbox"

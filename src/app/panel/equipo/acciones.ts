@@ -5,8 +5,20 @@ import { revalidatePath } from "next/cache";
 import { eq, and, gt, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { user, account, miembroTaller, invitacionTaller } from "@/db/schema";
-import { tallerActual, rolActual, type Rol } from "@/lib/taller";
+import {
+  user,
+  account,
+  miembroTaller,
+  invitacionTaller,
+  rolPersonalizado,
+} from "@/db/schema";
+import {
+  tallerActual,
+  rolActual,
+  tienePlan,
+  MODULOS_PERSONALIZABLES,
+  type Rol,
+} from "@/lib/taller";
 import { enviarInvitacionEquipo } from "@/lib/correo";
 import { hashPassword } from "@better-auth/utils/password";
 
@@ -22,11 +34,121 @@ export async function listarEquipo() {
       correo: user.email,
       rol: miembroTaller.rol,
       vePagos: miembroTaller.vePagos,
+      rolPersonalizadoId: miembroTaller.rolPersonalizadoId,
+      rolPersonalizadoNombre: rolPersonalizado.nombre,
       createdAt: miembroTaller.createdAt,
     })
     .from(miembroTaller)
     .innerJoin(user, eq(miembroTaller.userId, user.id))
+    .leftJoin(
+      rolPersonalizado,
+      eq(miembroTaller.rolPersonalizadoId, rolPersonalizado.id)
+    )
     .where(eq(miembroTaller.tallerId, tallerId));
+}
+
+/**
+ * Roles a medida del taller — Plan Empresarial. Vacío en cualquier
+ * otro plan: ni siquiera se molesta en consultar la tabla.
+ */
+export async function listarRolesPersonalizados() {
+  if (!(await tienePlan("rolesPersonalizados"))) return [];
+
+  const tallerId = await tallerActual();
+
+  return db
+    .select({
+      id: rolPersonalizado.id,
+      nombre: rolPersonalizado.nombre,
+      permisos: rolPersonalizado.permisos,
+    })
+    .from(rolPersonalizado)
+    .where(eq(rolPersonalizado.tallerId, tallerId));
+}
+
+/** Solo dueño y jefe_taller crean/editan/eliminan roles a medida. */
+async function puedeGestionarRoles() {
+  const rol = await rolActual();
+  return (
+    (rol === "dueno" || rol === "jefe_taller") &&
+    (await tienePlan("rolesPersonalizados"))
+  );
+}
+
+function permisosValidos(permisos: Record<string, boolean>) {
+  const limpio: Record<string, boolean> = {};
+  for (const modulo of MODULOS_PERSONALIZABLES) {
+    if (permisos[modulo] === true) limpio[modulo] = true;
+  }
+  return limpio;
+}
+
+export async function crearRolPersonalizado(datos: {
+  nombre: string;
+  permisos: Record<string, boolean>;
+}) {
+  if (!(await puedeGestionarRoles())) {
+    return { error: "No tienes permiso para crear roles." };
+  }
+
+  const nombre = datos.nombre.trim();
+  if (!nombre) return { error: "Escribe un nombre para el rol." };
+
+  const tallerId = await tallerActual();
+
+  await db.insert(rolPersonalizado).values({
+    id: crypto.randomUUID(),
+    tallerId,
+    nombre,
+    permisos: permisosValidos(datos.permisos),
+  });
+
+  revalidatePath("/panel/equipo");
+  return { ok: true };
+}
+
+export async function actualizarRolPersonalizado(
+  rolId: string,
+  datos: { nombre: string; permisos: Record<string, boolean> }
+) {
+  if (!(await puedeGestionarRoles())) {
+    return { error: "No tienes permiso para editar roles." };
+  }
+
+  const nombre = datos.nombre.trim();
+  if (!nombre) return { error: "Escribe un nombre para el rol." };
+
+  const tallerId = await tallerActual();
+
+  await db
+    .update(rolPersonalizado)
+    .set({ nombre, permisos: permisosValidos(datos.permisos) })
+    .where(
+      and(eq(rolPersonalizado.id, rolId), eq(rolPersonalizado.tallerId, tallerId))
+    );
+
+  revalidatePath("/panel/equipo");
+  return { ok: true };
+}
+
+/**
+ * Borrar un rol no elimina a quienes lo tienen asignado — solo se
+ * quedan sin rol personalizado (rolPersonalizadoId vuelve a null por
+ * el ON DELETE SET NULL de la FK) y caen de vuelta a las reglas
+ * clásicas de mecanico, para no dejar a nadie con una sesión rota.
+ */
+export async function eliminarRolPersonalizado(rolId: string) {
+  if (!(await puedeGestionarRoles())) return;
+
+  const tallerId = await tallerActual();
+
+  await db
+    .delete(rolPersonalizado)
+    .where(
+      and(eq(rolPersonalizado.id, rolId), eq(rolPersonalizado.tallerId, tallerId))
+    );
+
+  revalidatePath("/panel/equipo");
 }
 
 export async function listarInvitacionesPendientes() {
@@ -67,6 +189,8 @@ export async function crearInvitacion(datos: {
   nombre: string;
   correo: string;
   rol: Rol;
+  /** Solo Plan Empresarial — manda sobre `rol` si viene seteado. */
+  rolPersonalizadoId?: string | null;
 }) {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) throw new Error("Sin sesión");
@@ -76,7 +200,27 @@ export async function crearInvitacion(datos: {
   const correo = datos.correo.trim().toLowerCase();
   const rol = datos.rol === "jefe_taller" ? "jefe_taller" : "mecanico";
 
-  if (!(await puedeGestionar(rol))) {
+  // Un rol personalizado siempre pasa por gestión de Equipo (dueño o
+  // jefe_taller) — no hereda el chequeo jefe_taller-nunca-crea-jefes,
+  // que solo aplica a los dos roles clásicos.
+  let rolPersonalizadoId: string | null = null;
+  if (datos.rolPersonalizadoId) {
+    if (!(await puedeGestionarRoles())) {
+      return { error: "No tienes permiso para asignar roles a medida." };
+    }
+    const [fila] = await db
+      .select({ id: rolPersonalizado.id })
+      .from(rolPersonalizado)
+      .where(
+        and(
+          eq(rolPersonalizado.id, datos.rolPersonalizadoId),
+          eq(rolPersonalizado.tallerId, tallerId)
+        )
+      )
+      .limit(1);
+    if (!fila) return { error: "Ese rol ya no existe." };
+    rolPersonalizadoId = fila.id;
+  } else if (!(await puedeGestionar(rol))) {
     return {
       error:
         rol === "jefe_taller"
@@ -116,6 +260,7 @@ export async function crearInvitacion(datos: {
     email: correo,
     nombre,
     rol,
+    rolPersonalizadoId,
     expiraEn: new Date(Date.now() + SIETE_DIAS_MS),
   });
 
@@ -163,12 +308,18 @@ export async function obtenerInvitacion(token: string) {
       nombre: invitacionTaller.nombre,
       email: invitacionTaller.email,
       rol: invitacionTaller.rol,
+      rolPersonalizadoId: invitacionTaller.rolPersonalizadoId,
+      rolPersonalizadoNombre: rolPersonalizado.nombre,
       expiraEn: invitacionTaller.expiraEn,
       usadaEn: invitacionTaller.usadaEn,
       tallerNombre: user.name,
     })
     .from(invitacionTaller)
     .innerJoin(user, eq(invitacionTaller.tallerId, user.id))
+    .leftJoin(
+      rolPersonalizado,
+      eq(invitacionTaller.rolPersonalizadoId, rolPersonalizado.id)
+    )
     .where(eq(invitacionTaller.token, token))
     .limit(1);
 
@@ -230,6 +381,7 @@ export async function aceptarInvitacion(
     tallerId: fila.tallerId,
     userId: nuevoId,
     rol: invitacion.rol,
+    rolPersonalizadoId: invitacion.rolPersonalizadoId,
   });
 
   await db
@@ -253,9 +405,57 @@ export async function cambiarRol(miembroId: string, rol: Rol) {
     };
   }
 
+  // Volver a jefe_taller/mecanico clásico deja atrás cualquier rol a
+  // medida que tuviera asignado — los dos sistemas son excluyentes
+  // para un mismo miembro.
   await db
     .update(miembroTaller)
-    .set({ rol: nuevoRol })
+    .set({ rol: nuevoRol, rolPersonalizadoId: null })
+    .where(
+      and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId))
+    );
+
+  revalidatePath("/panel/equipo");
+  return { ok: true };
+}
+
+/**
+ * Asigna (o quita, con null) un rol a medida a un miembro ya
+ * existente — la contraparte de cambiarRol() para el otro sistema.
+ * Un jefe_taller nunca gestiona esto: roles a medida quedan
+ * reservados al dueño, igual que nombrar otro jefe_taller.
+ */
+export async function asignarRolPersonalizado(
+  miembroId: string,
+  rolPersonalizadoId: string | null
+) {
+  if (!(await puedeGestionarRoles())) {
+    return { error: "No tienes permiso para asignar roles a medida." };
+  }
+  const rol = await rolActual();
+  if (rol !== "dueno") {
+    return { error: "Solo el dueño del taller asigna roles a medida." };
+  }
+
+  const tallerId = await tallerActual();
+
+  if (rolPersonalizadoId) {
+    const [fila] = await db
+      .select({ id: rolPersonalizado.id })
+      .from(rolPersonalizado)
+      .where(
+        and(
+          eq(rolPersonalizado.id, rolPersonalizadoId),
+          eq(rolPersonalizado.tallerId, tallerId)
+        )
+      )
+      .limit(1);
+    if (!fila) return { error: "Ese rol ya no existe." };
+  }
+
+  await db
+    .update(miembroTaller)
+    .set({ rolPersonalizadoId })
     .where(
       and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId))
     );

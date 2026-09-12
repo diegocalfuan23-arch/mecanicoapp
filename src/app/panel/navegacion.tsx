@@ -391,6 +391,7 @@ function Enlaces({
   tieneCatalogoServicios,
   vePagos,
   veEquipo,
+  modulosPersonalizados,
 }: {
   alNavegar?: () => void;
   tieneInventario: boolean;
@@ -399,6 +400,15 @@ function Enlaces({
   tieneCatalogoServicios: boolean;
   vePagos: boolean;
   veEquipo: boolean;
+  /**
+   * Solo viene con valores cuando el miembro tiene un rol
+   * personalizado asignado (Plan Empresarial) — cada href listado ahí
+   * ya pasó por su matriz de permisos y el booleano es la decisión
+   * final para ese módulo. Un href ausente sigue las reglas de
+   * siempre (plan/rol clásico). undefined = sin rol personalizado,
+   * no cambia nada del comportamiento de hoy.
+   */
+  modulosPersonalizados?: Record<string, boolean>;
 }) {
   const ruta = usePathname();
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
@@ -429,6 +439,13 @@ function Enlaces({
   }
 
   const secciones = SECCIONES.filter((s) => {
+    // El rol personalizado manda sobre las reglas clásicas de abajo
+    // para cualquier módulo que su matriz ya haya decidido — así un
+    // dueño Empresarial puede ocultarle a un rol a medida hasta
+    // módulos que antes solo dependían del plan (ej. Órdenes).
+    if (modulosPersonalizados && s.href in modulosPersonalizados) {
+      return modulosPersonalizados[s.href];
+    }
     if (s.href === "/panel/agenda") return tieneServicios;
     if (s.href === "/panel/compras") return tieneServicios;
     if (s.href === "/panel/inventario") return tieneInventario;
@@ -494,6 +511,7 @@ export function Sidebar({
   tieneCatalogoServicios,
   vePagos,
   veEquipo,
+  modulosPersonalizados,
 }: {
   nombre: string;
   plan: string;
@@ -502,6 +520,7 @@ export function Sidebar({
   tieneCatalogoServicios: boolean;
   vePagos: boolean;
   veEquipo: boolean;
+  modulosPersonalizados?: Record<string, boolean>;
 }) {
   return (
     <aside className="hidden w-52 shrink-0 border-r border-border lg:block">
@@ -519,6 +538,7 @@ export function Sidebar({
             tieneCatalogoServicios={tieneCatalogoServicios}
             vePagos={vePagos}
             veEquipo={veEquipo}
+            modulosPersonalizados={modulosPersonalizados}
           />
         </div>
         <div className="mt-2 shrink-0">
@@ -538,6 +558,7 @@ export function MenuMovil({
   tieneCatalogoServicios,
   vePagos,
   veEquipo,
+  modulosPersonalizados,
 }: {
   nombre: string;
   plan: string;
@@ -546,6 +567,7 @@ export function MenuMovil({
   tieneCatalogoServicios: boolean;
   vePagos: boolean;
   veEquipo: boolean;
+  modulosPersonalizados?: Record<string, boolean>;
 }) {
   const [abierto, setAbierto] = useState(false);
 
@@ -585,6 +607,7 @@ export function MenuMovil({
                 tieneCatalogoServicios={tieneCatalogoServicios}
                 vePagos={vePagos}
                 veEquipo={veEquipo}
+                modulosPersonalizados={modulosPersonalizados}
               />
             </div>
             <div className="mt-2 shrink-0">

@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
-import { puedeVerEquipo, tallerActual } from "@/lib/taller";
+import { puedeVerEquipo, tallerActual, tienePlan } from "@/lib/taller";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { listarEquipo, listarInvitacionesPendientes } from "./acciones";
+import {
+  listarEquipo,
+  listarInvitacionesPendientes,
+  listarRolesPersonalizados,
+} from "./acciones";
 import { TablaEquipo } from "./tabla";
 
 export default async function Equipo() {
@@ -15,10 +19,13 @@ export default async function Equipo() {
 
   const esDueno = (await tallerActual()) === sesion.user.id;
 
-  const [miembros, invitaciones] = await Promise.all([
-    listarEquipo(),
-    listarInvitacionesPendientes(),
-  ]);
+  const [miembros, invitaciones, rolesPersonalizados, tieneRolesPersonalizados] =
+    await Promise.all([
+      listarEquipo(),
+      listarInvitacionesPendientes(),
+      listarRolesPersonalizados(),
+      tienePlan("rolesPersonalizados"),
+    ]);
 
   return (
     <>
@@ -35,6 +42,8 @@ export default async function Equipo() {
         miembros={miembros}
         invitaciones={invitaciones}
         esDueno={esDueno}
+        rolesPersonalizados={rolesPersonalizados}
+        tieneRolesPersonalizados={tieneRolesPersonalizados}
       />
     </>
   );

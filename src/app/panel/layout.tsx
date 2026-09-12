@@ -2,7 +2,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { tienePlan, puedeVerPagos, puedeVerEquipo, puedeVerInventario } from "@/lib/taller";
+import {
+  tienePlan,
+  puedeVerPagos,
+  puedeVerEquipo,
+  puedeVerInventario,
+  modulosDeRolPersonalizado,
+} from "@/lib/taller";
 import { RegistrarSW } from "@/components/registrar-sw";
 import { BotonInstalar } from "@/components/boton-instalar";
 import { FlechaVolver } from "@/components/flecha-volver";
@@ -28,14 +34,21 @@ export default async function LayoutPanel({
   // en el sidebar. Además, un mecánico no ve Inventario ni Servicios
   // aunque el taller sí tenga el plan — eso es gestión, no operación
   // del día a día.
-  const [planInventario, planServicios, vePagos, veEquipo, rolVeInventario] =
-    await Promise.all([
-      tienePlan("inventario"),
-      tienePlan("impresionOrden"),
-      puedeVerPagos(),
-      puedeVerEquipo(),
-      puedeVerInventario(),
-    ]);
+  const [
+    planInventario,
+    planServicios,
+    vePagos,
+    veEquipo,
+    rolVeInventario,
+    modulosPersonalizados,
+  ] = await Promise.all([
+    tienePlan("inventario"),
+    tienePlan("impresionOrden"),
+    puedeVerPagos(),
+    puedeVerEquipo(),
+    puedeVerInventario(),
+    modulosDeRolPersonalizado(),
+  ]);
   const tieneInventario = planInventario && rolVeInventario;
   const tieneServicios = planServicios;
   const tieneCatalogoServicios = planServicios && rolVeInventario;
@@ -71,6 +84,7 @@ export default async function LayoutPanel({
             tieneCatalogoServicios={tieneCatalogoServicios}
             vePagos={vePagos}
             veEquipo={veEquipo}
+            modulosPersonalizados={modulosPersonalizados}
           />
 
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
@@ -86,6 +100,7 @@ export default async function LayoutPanel({
                     tieneCatalogoServicios={tieneCatalogoServicios}
                     vePagos={vePagos}
                     veEquipo={veEquipo}
+                    modulosPersonalizados={modulosPersonalizados}
                   />
                   <Link
                     href="/panel"

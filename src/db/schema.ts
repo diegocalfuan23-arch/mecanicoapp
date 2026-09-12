@@ -5,6 +5,7 @@ import {
   boolean,
   integer,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 /* ── Cuentas y sesiones (Better Auth) ── */
@@ -70,9 +71,40 @@ export const miembroTaller = pgTable(
     // de rol solo por eso. true por defecto: no le saca acceso a nadie
     // de golpe al desplegar esto.
     vePagos: boolean("ve_pagos").notNull().default(true),
+    // Si está seteado, manda sobre `rol`: sus permisos vienen de
+    // rolPersonalizado.permisos en vez de los fijos jefe_taller/mecanico
+    // — Plan Empresarial. Null en todos los demás planes, así que el
+    // comportamiento de Taller/Serviteca queda intacto.
+    rolPersonalizadoId: text("rol_personalizado_id").references(
+      () => rolPersonalizado.id,
+      { onDelete: "set null" }
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("miembro_taller_taller_idx").on(t.tallerId)]
+);
+
+/**
+ * Roles a medida — Plan Empresarial. Cada taller define los suyos
+ * (ej. "Contador", "Ayudante de recepción") con un set libre de
+ * módulos habilitados, en vez de los dos roles fijos jefe_taller/
+ * mecanico. `permisos` guarda un booleano por módulo del sidebar
+ * (misma clave que su `href`, ej. "/panel/caja": true) — se lee tal
+ * cual, sin migrar filas viejas si mañana se agrega un módulo nuevo:
+ * uno ausente en el jsonb simplemente se trata como `false`.
+ */
+export const rolPersonalizado = pgTable(
+  "rol_personalizado",
+  {
+    id: text("id").primaryKey(),
+    tallerId: text("taller_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    nombre: text("nombre").notNull(),
+    permisos: jsonb("permisos").notNull().default({}),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("rol_personalizado_taller_idx").on(t.tallerId)]
 );
 
 /**
@@ -99,6 +131,12 @@ export const invitacionTaller = pgTable(
     email: text("email").notNull(),
     nombre: text("nombre").notNull(),
     rol: text("rol").notNull().default("mecanico"),
+    // Mismo criterio que miembroTaller.rolPersonalizadoId: si viene
+    // seteado, manda sobre `rol` al aceptar la invitación.
+    rolPersonalizadoId: text("rol_personalizado_id").references(
+      () => rolPersonalizado.id,
+      { onDelete: "set null" }
+    ),
     expiraEn: timestamp("expira_en").notNull(),
     usadaEn: timestamp("usada_en"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
