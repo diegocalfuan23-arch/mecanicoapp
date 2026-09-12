@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { user } from "@/db/schema";
+import { tallerActual } from "@/lib/taller";
 import { PanelDatos } from "./panel-datos";
 import { PanelTaller } from "./panel-taller";
 import { BotonSalir } from "../boton-salir";
@@ -13,6 +14,12 @@ import { SelectorTema } from "@/components/selector-tema";
 export default async function Cuenta() {
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) redirect("/entrar");
+
+  // Datos del taller (logo/nombre/RUT/dirección) son de identidad
+  // legal del negocio — solo el dueño los edita, nunca un ayudante
+  // (jefe_taller, mecánico o rol a medida), sea cual sea su plan.
+  const tallerId = await tallerActual();
+  const esDueno = tallerId === sesion.user.id;
 
   const [datos] = await db
     .select({
@@ -23,7 +30,7 @@ export default async function Cuenta() {
       logo: user.image,
     })
     .from(user)
-    .where(eq(user.id, sesion.user.id))
+    .where(eq(user.id, tallerId))
     .limit(1);
 
   return (
@@ -35,16 +42,18 @@ export default async function Cuenta() {
         </p>
       </div>
 
-      <PanelTaller
-        taller={datos?.taller ?? ""}
-        rut={datos?.rut ?? ""}
-        direccion={datos?.direccion ?? ""}
-        telefono={datos?.telefono ?? ""}
-        logo={datos?.logo ?? null}
-      />
+      {esDueno && (
+        <PanelTaller
+          taller={datos?.taller ?? ""}
+          rut={datos?.rut ?? ""}
+          direccion={datos?.direccion ?? ""}
+          telefono={datos?.telefono ?? ""}
+          logo={datos?.logo ?? null}
+        />
+      )}
 
       <div className="mt-6">
-        <PanelDatos correo={sesion.user.email} />
+        <PanelDatos correo={sesion.user.email} esDueno={esDueno} />
       </div>
 
       <div className="mt-6">

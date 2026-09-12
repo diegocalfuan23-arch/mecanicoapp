@@ -5,6 +5,7 @@ import { eq, inArray } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
+import { tallerActual } from "@/lib/taller";
 import {
   user,
   cliente,
@@ -13,6 +14,7 @@ import {
   abono,
   conversacion,
   mensaje,
+  miembroTaller,
 } from "@/db/schema";
 
 async function sesionActual() {
@@ -24,6 +26,10 @@ async function sesionActual() {
 /**
  * Datos del taller para el encabezado de la orden de trabajo impresa
  * (Plan Serviteca) — nombre, RUT, dirección y teléfono del negocio.
+ * Solo el dueño los edita — son identidad legal del negocio, no algo
+ * que un ayudante (jefe_taller, mecánico o rol a medida) deba tocar,
+ * sea cual sea su plan. El gate visual en page.tsx no basta: una
+ * server action es invocable directo sin pasar por la UI.
  */
 export async function guardarDatosTaller(datos: {
   taller: string;
@@ -33,6 +39,10 @@ export async function guardarDatosTaller(datos: {
   logo?: string;
 }) {
   const sesion = await sesionActual();
+  const tallerId = await tallerActual();
+  if (tallerId !== sesion.user.id) {
+    throw new Error("Solo el dueño del taller puede editar estos datos.");
+  }
 
   await db
     .update(user)
@@ -43,16 +53,21 @@ export async function guardarDatosTaller(datos: {
       telefono: datos.telefono.trim() || null,
       ...(datos.logo !== undefined ? { image: datos.logo || null } : {}),
     })
-    .where(eq(user.id, sesion.user.id));
+    .where(eq(user.id, tallerId));
 }
 
 /**
  * Derecho de acceso y portabilidad (ley 21.719): todo lo que la app
  * guarda del taller, en un JSON que se puede descargar y llevar.
  */
+/**
+ * Trae el taller real, no sesion.user.id directo: para un ayudante
+ * eso exportaría una cuenta prácticamente vacía en vez de los datos
+ * reales del taller donde trabaja.
+ */
 export async function exportarMisDatos() {
-  const sesion = await sesionActual();
-  const tallerId = sesion.user.id;
+  await sesionActual();
+  const tallerId = await tallerActual();
 
   const [cuenta] = await db
     .select({
@@ -131,9 +146,17 @@ function claveDeFoto(url: string) {
  *
  * Pide el correo escrito a mano: es irreversible y no puede pasar por
  * un clic accidental.
+ *
+ * Solo el dueño: para un ayudante su user.id no es el taller, así que
+ * esto de nada le serviría para "borrar el taller" (el texto de la UI
+ * es específicamente sobre eso) — su equivalente es salirDelEquipo().
  */
 export async function eliminarMiCuenta(correoEscrito: string) {
   const sesion = await sesionActual();
+  const tallerId = await tallerActual();
+  if (tallerId !== sesion.user.id) {
+    return { error: "Los ayudantes no pueden eliminar el taller — usa \"Salir del equipo\"." };
+  }
 
   if (
     correoEscrito.trim().toLowerCase() !== sesion.user.email.toLowerCase()
@@ -164,5 +187,23 @@ export async function eliminarMiCuenta(correoEscrito: string) {
   }
 
   await db.delete(user).where(eq(user.id, sesion.user.id));
+  return { ok: true };
+}
+
+/**
+ * Equivalente a "eliminar cuenta" para un ayudante: deja de tener
+ * acceso al taller, pero su cuenta de usuario sigue existiendo (podría
+ * unirse a otro taller después). No borra nada del taller — a
+ * diferencia de eliminarMiCuenta(), esto nunca toca vehículos,
+ * clientes ni órdenes.
+ */
+export async function salirDelEquipo() {
+  const sesion = await sesionActual();
+  const tallerId = await tallerActual();
+  if (tallerId === sesion.user.id) {
+    return { error: "El dueño no puede salir de su propio taller." };
+  }
+
+  await db.delete(miembroTaller).where(eq(miembroTaller.userId, sesion.user.id));
   return { ok: true };
 }

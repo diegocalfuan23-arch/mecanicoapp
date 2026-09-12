@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { exportarMisDatos, eliminarMiCuenta } from "./acciones";
+import {
+  exportarMisDatos,
+  eliminarMiCuenta,
+  salirDelEquipo,
+} from "./acciones";
 import { Button } from "@/components/ui/button";
 
-export function PanelDatos({ correo }: { correo: string }) {
+export function PanelDatos({
+  correo,
+  esDueno,
+}: {
+  correo: string;
+  /** Ayudantes ven "Salir del equipo" en vez de "Eliminar la cuenta" — no son dueños del taller para poder borrarlo. */
+  esDueno: boolean;
+}) {
   const [exportando, setExportando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [escrito, setEscrito] = useState("");
@@ -37,7 +48,7 @@ export function PanelDatos({ correo }: { correo: string }) {
     setBorrando(true);
     setError(null);
 
-    const res = await eliminarMiCuenta(escrito);
+    const res = esDueno ? await eliminarMiCuenta(escrito) : await salirDelEquipo();
 
     if (res?.error) {
       setError(res.error);
@@ -72,11 +83,13 @@ export function PanelDatos({ correo }: { correo: string }) {
       </div>
 
       <div className="rounded-xl border border-destructive/40 bg-card p-6">
-        <h2 className="text-lg font-medium">Eliminar la cuenta</h2>
+        <h2 className="text-lg font-medium">
+          {esDueno ? "Eliminar la cuenta" : "Salir del equipo"}
+        </h2>
         <p className="mt-2 text-[15px] text-muted-foreground">
-          Se borra tu cuenta y todo lo que hay dentro: vehículos, clientes,
-          órdenes, pagos, fotos y conversaciones. No se puede deshacer y no
-          hay forma de recuperarlo después.
+          {esDueno
+            ? "Se borra tu cuenta y todo lo que hay dentro: vehículos, clientes, órdenes, pagos, fotos y conversaciones. No se puede deshacer y no hay forma de recuperarlo después."
+            : "Dejas de tener acceso a este taller. Tu cuenta sigue existiendo — nada de los vehículos, clientes ni órdenes del taller se borra."}
         </p>
 
         {!confirmando ? (
@@ -84,9 +97,9 @@ export function PanelDatos({ correo }: { correo: string }) {
             onClick={() => setConfirmando(true)}
             className="mt-4 rounded-lg border border-destructive/50 px-6 py-2 font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
-            Eliminar mi cuenta
+            {esDueno ? "Eliminar mi cuenta" : "Salir del equipo"}
           </button>
-        ) : (
+        ) : esDueno ? (
           <div className="mt-4">
             <label className="block">
               <span className="mb-2 block text-[13px] font-medium">
@@ -120,6 +133,19 @@ export function PanelDatos({ correo }: { correo: string }) {
                 Cancelar
               </Button>
             </div>
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <button
+              onClick={borrar}
+              disabled={borrando}
+              className="rounded-lg bg-destructive px-6 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {borrando ? "Saliendo…" : "Sí, salir del equipo"}
+            </button>
+            <Button variant="outline" onClick={() => setConfirmando(false)}>
+              Cancelar
+            </Button>
           </div>
         )}
 
