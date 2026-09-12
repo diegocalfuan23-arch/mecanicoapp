@@ -262,6 +262,9 @@ export function TablaEquipo({
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [pestana, setPestana] = useState<"equipo" | "roles">("equipo");
+  const [editandoRol, setEditandoRol] = useState<
+    RolPersonalizado | null | "nuevo"
+  >(null);
   const [confirmando, setConfirmando] = useState<Miembro | null>(null);
   const [quitando, setQuitando] = useState(false);
   // Optimista: el checkbox/selector responde al instante, sin esperar
@@ -343,11 +346,19 @@ export function TablaEquipo({
   if (tieneRolesPersonalizados && pestana === "roles") {
     return (
       <>
-        <PestanasEquipo pestana={pestana} onCambiar={setPestana} />
+        <PestanasEquipo pestana={pestana} onCambiar={setPestana}>
+          {!editandoRol && (
+            <Button onClick={() => setEditandoRol("nuevo")} className="shrink-0">
+              Nuevo rol
+            </Button>
+          )}
+        </PestanasEquipo>
         <Roles
           roles={rolesPersonalizados}
           modulos={modulosDisponibles}
           etiquetas={ETIQUETA_MODULO}
+          editando={editandoRol}
+          onEditar={setEditandoRol}
         />
       </>
     );

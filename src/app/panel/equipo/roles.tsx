@@ -131,15 +131,17 @@ export function Roles({
   roles,
   modulos,
   etiquetas,
+  editando,
+  onEditar,
 }: {
   roles: RolPersonalizado[];
   modulos: readonly string[];
   etiquetas: Record<string, string>;
+  /** Controlado desde tabla.tsx — así el botón "Nuevo rol" vive junto a las pestañas, no acá. */
+  editando: RolPersonalizado | null | "nuevo";
+  onEditar: (r: RolPersonalizado | null | "nuevo") => void;
 }) {
   const router = useRouter();
-  const [editando, setEditando] = useState<RolPersonalizado | null | "nuevo">(
-    null
-  );
   const [borrando, setBorrando] = useState<RolPersonalizado | null>(null);
 
   async function confirmarBorrado() {
@@ -155,7 +157,7 @@ export function Roles({
         modulos={modulos}
         etiquetas={etiquetas}
         rol={editando === "nuevo" ? null : editando}
-        onListo={() => setEditando(null)}
+        onListo={() => onEditar(null)}
       />
     );
   }
@@ -194,24 +196,15 @@ export function Roles({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-medium">Roles a medida</h2>
-          <p className="mt-1 text-[14px] text-muted-foreground">
-            Crea roles como Contador o Ayudante y decide qué módulos ve
-            cada uno.
-          </p>
-        </div>
-        <Button onClick={() => setEditando("nuevo")} className="shrink-0">
-          Nuevo rol
-        </Button>
-      </div>
+      <p className="text-[14px] text-muted-foreground">
+        Crea roles como Contador o Ayudante y decide qué módulos ve cada uno.
+      </p>
 
       {roles.length === 0 ? (
         <div className="mt-6 rounded-xl border border-dashed border-border py-12 text-center">
           <p className="text-muted-foreground">Todavía no creaste ningún rol.</p>
           <button
-            onClick={() => setEditando("nuevo")}
+            onClick={() => onEditar("nuevo")}
             className="mt-4 text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             Crear el primero
@@ -236,7 +229,7 @@ export function Roles({
                 </p>
                 <div className="mt-4 flex gap-4">
                   <button
-                    onClick={() => setEditando(rol)}
+                    onClick={() => onEditar(rol)}
                     className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
                   >
                     Editar
