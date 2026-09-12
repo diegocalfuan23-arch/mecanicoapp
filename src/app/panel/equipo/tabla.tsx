@@ -208,29 +208,35 @@ function Formulario({
 function PestanasEquipo({
   pestana,
   onCambiar,
+  children,
 }: {
   pestana: "equipo" | "roles";
   onCambiar: (p: "equipo" | "roles") => void;
+  /** Acción a la derecha, al mismo nivel que las pestañas — ej. "Invitar al equipo". */
+  children?: React.ReactNode;
 }) {
   const opciones: { valor: "equipo" | "roles"; texto: string }[] = [
     { valor: "equipo", texto: "Equipo" },
     { valor: "roles", texto: "Roles" },
   ];
   return (
-    <div className="mb-6 flex gap-1 border-b border-border">
-      {opciones.map((o) => (
-        <button
-          key={o.valor}
-          onClick={() => onCambiar(o.valor)}
-          className={`px-4 py-2 text-[14px] font-medium transition-colors ${
-            pestana === o.valor
-              ? "border-b-2 border-primary text-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {o.texto}
-        </button>
-      ))}
+    <div className="mb-6 flex items-center justify-between border-b border-border">
+      <div className="flex gap-1">
+        {opciones.map((o) => (
+          <button
+            key={o.valor}
+            onClick={() => onCambiar(o.valor)}
+            className={`px-4 py-2 text-[14px] font-medium transition-colors ${
+              pestana === o.valor
+                ? "border-b-2 border-primary text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {o.texto}
+          </button>
+        ))}
+      </div>
+      {children && <div className="pb-2">{children}</div>}
     </div>
   );
 }
@@ -350,7 +356,11 @@ export function TablaEquipo({
   return (
     <>
       {tieneRolesPersonalizados && (
-        <PestanasEquipo pestana={pestana} onCambiar={setPestana} />
+        <PestanasEquipo pestana={pestana} onCambiar={setPestana}>
+          <Button onClick={() => setAbierto(true)} className="shrink-0">
+            Invitar al equipo
+          </Button>
+        </PestanasEquipo>
       )}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
@@ -388,11 +398,13 @@ export function TablaEquipo({
         </div>
       )}
 
-      <div className="flex justify-end">
-        <Button onClick={() => setAbierto(true)} className="shrink-0">
-          Invitar al equipo
-        </Button>
-      </div>
+      {!tieneRolesPersonalizados && (
+        <div className="flex justify-end">
+          <Button onClick={() => setAbierto(true)} className="shrink-0">
+            Invitar al equipo
+          </Button>
+        </div>
+      )}
 
       {invitaciones.length > 0 && (
         <div className="mt-6">
