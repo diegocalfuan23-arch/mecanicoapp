@@ -41,7 +41,11 @@ export default async function Equipo() {
       </div>
 
       <TablaEquipo
-        miembros={miembros}
+        miembros={miembros.map((m) => ({
+          ...m,
+          permisosIndividuales:
+            (m.permisosIndividuales as Record<string, boolean> | null) ?? null,
+        }))}
         invitaciones={invitaciones}
         esDueno={esDueno}
         rolesPersonalizados={rolesPersonalizados}

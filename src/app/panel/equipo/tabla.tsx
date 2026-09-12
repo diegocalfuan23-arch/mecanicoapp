@@ -9,6 +9,7 @@ import {
   cambiarVePagos,
   quitarMiembro,
   asignarRolPersonalizado,
+  asignarPermisosIndividuales,
 } from "./acciones";
 import { Roles, type RolPersonalizado } from "./roles";
 import { ETIQUETA_MODULO } from "@/lib/modulos-panel";
@@ -25,6 +26,7 @@ type Miembro = {
   vePagos: boolean;
   rolPersonalizadoId: string | null;
   rolPersonalizadoNombre: string | null;
+  permisosIndividuales: Record<string, boolean> | null;
   createdAt: Date;
 };
 
@@ -48,17 +50,24 @@ const ETIQUETA_ROL: Record<string, string> = {
 
 /** Prefijo para distinguir un valor de rol a medida dentro del mismo Selector que jefe_taller/mecanico. */
 const PREFIJO_PERSONALIZADO = "personalizado:";
+/** Valor especial: permisos exclusivos de esta persona, sin un rol compartido. */
+const VALOR_INDIVIDUAL = "individual";
 
 /**
  * Opciones del Selector de rol: Mecánico/Jefe de taller (según quién
- * gestiona) más los roles a medida del taller. Sin ninguno creado
- * aún, se muestra una opción atenuada que invita a crear uno primero
- * — así el dueño sabe que la función existe, sin bloquear nunca
- * invitar a alguien como Mecánico/Jefe de taller por esto.
+ * gestiona), los roles a medida del taller, y "Personalizado para
+ * esta persona" (permisos propios, sin depender de un rol que
+ * compartan otros). Sin ningún rol a medida creado aún, se muestra
+ * una opción atenuada que invita a crear uno primero — así el dueño
+ * sabe que la función existe, sin bloquear nunca invitar a alguien
+ * como Mecánico/Jefe de taller por esto.
  */
 function opcionesRolConPersonalizados(
   esDueno: boolean,
-  rolesPersonalizados: RolPersonalizado[]
+  rolesPersonalizados: RolPersonalizado[],
+  // Solo tiene sentido para un miembro ya existente — al invitar no
+  // hay a quién asignarle permisos individuales todavía.
+  conOpcionIndividual = false
 ) {
   return [
     ...(esDueno ? ROLES : ROLES.filter((r) => r.valor === "mecanico")),
@@ -75,6 +84,9 @@ function opcionesRolConPersonalizados(
               deshabilitado: true,
             },
           ]
+      : []),
+    ...(esDueno && conOpcionIndividual
+      ? [{ valor: VALOR_INDIVIDUAL, texto: "Personalizado para esta persona" }]
       : []),
   ];
 }
@@ -278,6 +290,49 @@ function PestanasEquipo({
   );
 }
 
+/**
+ * Checklist inline de módulos para el permiso individual de un
+ * miembro — misma idea que la matriz de un rol a medida (roles.tsx),
+ * pero guardada solo para esta persona, sin crear ni tocar un rol
+ * compartido. Aparece debajo del Selector cuando el miembro tiene
+ * "Personalizado para esta persona" elegido.
+ */
+function ChecklistPermisosIndividuales({
+  miembro,
+  modulosDisponibles,
+  onGuardado,
+}: {
+  miembro: Miembro;
+  modulosDisponibles: readonly string[];
+  onGuardado: (permisos: Record<string, boolean>) => void;
+}) {
+  async function alternar(modulo: string) {
+    const actuales = miembro.permisosIndividuales ?? {};
+    const siguiente = { ...actuales, [modulo]: !actuales[modulo] };
+    onGuardado(siguiente);
+    await asignarPermisosIndividuales(miembro.id, siguiente);
+  }
+
+  return (
+    <div className="mt-3 grid gap-2 rounded-lg border border-dashed border-border p-3 sm:grid-cols-2">
+      {modulosDisponibles.map((modulo) => (
+        <label
+          key={modulo}
+          className="flex items-center gap-2 text-[13px]"
+        >
+          <input
+            type="checkbox"
+            checked={miembro.permisosIndividuales?.[modulo] === true}
+            onChange={() => alternar(modulo)}
+            className="size-4 accent-primary"
+          />
+          {ETIQUETA_MODULO[modulo as keyof typeof ETIQUETA_MODULO] ?? modulo}
+        </label>
+      ))}
+    </div>
+  );
+}
+
 export function TablaEquipo({
   miembros: iniciales,
   invitaciones,
@@ -327,7 +382,36 @@ export function TablaEquipo({
 
   async function alternarRol(m: Miembro, valor: string) {
     const esPersonalizado = valor.startsWith(PREFIJO_PERSONALIZADO);
-    const anterior = { rol: m.rol, rolPersonalizadoId: m.rolPersonalizadoId };
+    const anterior = {
+      rol: m.rol,
+      rolPersonalizadoId: m.rolPersonalizadoId,
+      permisosIndividuales: m.permisosIndividuales,
+    };
+
+    if (valor === VALOR_INDIVIDUAL) {
+      // Empieza vacío — el checklist que aparece debajo del Selector
+      // es lo que realmente marca los módulos; esto solo activa el modo.
+      setMiembros((actuales) =>
+        actuales.map((x) =>
+          x.id === m.id
+            ? {
+                ...x,
+                permisosIndividuales: {},
+                rolPersonalizadoId: null,
+                rolPersonalizadoNombre: null,
+              }
+            : x
+        )
+      );
+      const res = await asignarPermisosIndividuales(m.id, {});
+      if (res?.error) {
+        setMiembros((actuales) =>
+          actuales.map((x) => (x.id === m.id ? { ...x, ...anterior } : x))
+        );
+        router.refresh();
+      }
+      return;
+    }
 
     if (esPersonalizado) {
       const rolPersonalizadoId = valor.slice(PREFIJO_PERSONALIZADO.length);
@@ -337,7 +421,12 @@ export function TablaEquipo({
       setMiembros((actuales) =>
         actuales.map((x) =>
           x.id === m.id
-            ? { ...x, rolPersonalizadoId, rolPersonalizadoNombre: nombre }
+            ? {
+                ...x,
+                rolPersonalizadoId,
+                rolPersonalizadoNombre: nombre,
+                permisosIndividuales: null,
+              }
             : x
         )
       );
@@ -355,7 +444,13 @@ export function TablaEquipo({
     setMiembros((actuales) =>
       actuales.map((x) =>
         x.id === m.id
-          ? { ...x, rol, rolPersonalizadoId: null, rolPersonalizadoNombre: null }
+          ? {
+              ...x,
+              rol,
+              rolPersonalizadoId: null,
+              rolPersonalizadoNombre: null,
+              permisosIndividuales: null,
+            }
           : x
       )
     );
@@ -520,17 +615,35 @@ export function TablaEquipo({
                   <div className="mt-3">
                     <Selector
                       value={
-                        m.rolPersonalizadoId
-                          ? `${PREFIJO_PERSONALIZADO}${m.rolPersonalizadoId}`
-                          : m.rol
+                        m.permisosIndividuales
+                          ? VALOR_INDIVIDUAL
+                          : m.rolPersonalizadoId
+                            ? `${PREFIJO_PERSONALIZADO}${m.rolPersonalizadoId}`
+                            : m.rol
                       }
                       onChange={(v) => alternarRol(m, v)}
                       opciones={opcionesRolConPersonalizados(
                         esDueno,
-                        rolesPersonalizados
+                        rolesPersonalizados,
+                        true
                       )}
                       className="text-[13px]"
                     />
+                    {m.permisosIndividuales && (
+                      <ChecklistPermisosIndividuales
+                        miembro={m}
+                        modulosDisponibles={modulosDisponibles}
+                        onGuardado={(permisos) =>
+                          setMiembros((actuales) =>
+                            actuales.map((x) =>
+                              x.id === m.id
+                                ? { ...x, permisosIndividuales: permisos }
+                                : x
+                            )
+                          )
+                        }
+                      />
+                    )}
                   </div>
                 ) : (
                   <span className="mt-3 inline-block w-fit rounded-full bg-foreground/10 px-3 py-1 text-[12px] font-medium">

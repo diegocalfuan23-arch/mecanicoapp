@@ -151,10 +151,13 @@ export async function rolActual(): Promise<Rol> {
 }
 
 /**
- * Si la sesión actual tiene un rol personalizado asignado (Plan
- * Empresarial), y de ser así, su matriz de permisos por módulo. Null
- * si no aplica (dueño, jefe_taller/mecanico clásicos, o el rol
- * personalizado fue borrado y quedó sin efecto).
+ * Matriz de permisos por módulo de la sesión actual, si aplica algún
+ * sistema de permisos a medida. Prioridad: `permisosIndividuales`
+ * (exclusivo de esta persona) manda sobre el rol compartido si ambos
+ * estuvieran seteados — dan cubierto el caso "quiero un acceso puntual
+ * para alguien sin tocar el rol que usan otros". Null si no aplica
+ * ninguno (dueño, jefe_taller/mecanico clásicos, o el rol personalizado
+ * fue borrado y quedó sin efecto).
  */
 async function permisosPersonalizadosActuales(): Promise<Record<
   string,
@@ -163,14 +166,27 @@ async function permisosPersonalizadosActuales(): Promise<Record<
   const sesion = await auth.api.getSession({ headers: await headers() });
   if (!sesion) return null;
 
+  const [miembro] = await db
+    .select({
+      permisosIndividuales: miembroTaller.permisosIndividuales,
+      rolPersonalizadoId: miembroTaller.rolPersonalizadoId,
+    })
+    .from(miembroTaller)
+    .where(eq(miembroTaller.userId, sesion.user.id))
+    .limit(1);
+
+  if (!miembro) return null;
+
+  if (miembro.permisosIndividuales) {
+    return miembro.permisosIndividuales as Record<string, boolean>;
+  }
+
+  if (!miembro.rolPersonalizadoId) return null;
+
   const [fila] = await db
     .select({ permisos: rolPersonalizado.permisos })
-    .from(miembroTaller)
-    .innerJoin(
-      rolPersonalizado,
-      eq(miembroTaller.rolPersonalizadoId, rolPersonalizado.id)
-    )
-    .where(eq(miembroTaller.userId, sesion.user.id))
+    .from(rolPersonalizado)
+    .where(eq(rolPersonalizado.id, miembro.rolPersonalizadoId))
     .limit(1);
 
   return (fila?.permisos as Record<string, boolean> | undefined) ?? null;
@@ -207,6 +223,7 @@ export async function puedeVerPagos() {
       rol: miembroTaller.rol,
       vePagos: miembroTaller.vePagos,
       rolPersonalizadoId: miembroTaller.rolPersonalizadoId,
+      permisosIndividuales: miembroTaller.permisosIndividuales,
     })
     .from(miembroTaller)
     .where(eq(miembroTaller.userId, sesion.user.id))
@@ -214,7 +231,7 @@ export async function puedeVerPagos() {
 
   // Sin fila en miembroTaller: es el dueño, ve todo.
   if (!miembro) return true;
-  if (miembro.rolPersonalizadoId) {
+  if (miembro.permisosIndividuales || miembro.rolPersonalizadoId) {
     const veModulo = await puedeVerModulo("/panel/pagos");
     return veModulo ?? false;
   }

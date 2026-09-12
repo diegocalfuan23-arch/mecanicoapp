@@ -79,6 +79,11 @@ export const miembroTaller = pgTable(
       () => rolPersonalizado.id,
       { onDelete: "set null" }
     ),
+    // Permisos por módulo exclusivos de ESTA persona, sin pasar por un
+    // rol compartido — manda incluso sobre rolPersonalizadoId cuando
+    // está seteado (no null). Para el caso "quiero darle un acceso
+    // puntual a alguien sin crear/tocar un rol que usan otros".
+    permisosIndividuales: jsonb("permisos_individuales"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("miembro_taller_taller_idx").on(t.tallerId)]

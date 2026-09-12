@@ -37,6 +37,7 @@ export async function listarEquipo() {
       vePagos: miembroTaller.vePagos,
       rolPersonalizadoId: miembroTaller.rolPersonalizadoId,
       rolPersonalizadoNombre: rolPersonalizado.nombre,
+      permisosIndividuales: miembroTaller.permisosIndividuales,
       createdAt: miembroTaller.createdAt,
     })
     .from(miembroTaller)
@@ -417,11 +418,11 @@ export async function cambiarRol(miembroId: string, rol: Rol) {
   }
 
   // Volver a jefe_taller/mecanico clásico deja atrás cualquier rol a
-  // medida que tuviera asignado — los dos sistemas son excluyentes
-  // para un mismo miembro.
+  // medida o permiso individual que tuviera — los tres sistemas son
+  // excluyentes para un mismo miembro.
   await db
     .update(miembroTaller)
-    .set({ rol: nuevoRol, rolPersonalizadoId: null })
+    .set({ rol: nuevoRol, rolPersonalizadoId: null, permisosIndividuales: null })
     .where(
       and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId))
     );
@@ -466,7 +467,50 @@ export async function asignarRolPersonalizado(
 
   await db
     .update(miembroTaller)
-    .set({ rolPersonalizadoId })
+    .set({ rolPersonalizadoId, permisosIndividuales: null })
+    .where(
+      and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId))
+    );
+
+  revalidatePath("/panel/equipo");
+  return { ok: true };
+}
+
+/**
+ * Permisos exclusivos de una persona, sin pasar por un rol compartido
+ * — "quiero darle un acceso puntual a alguien sin crear o tocar un
+ * rol que usan otros". Pasar `permisos: null` quita el modo individual
+ * (el miembro vuelve a depender de rolPersonalizadoId/rol clásico).
+ */
+export async function asignarPermisosIndividuales(
+  miembroId: string,
+  permisos: Record<string, boolean> | null
+) {
+  if (!(await puedeGestionarRoles())) {
+    return { error: "No tienes permiso para asignar permisos individuales." };
+  }
+  const rol = await rolActual();
+  if (rol !== "dueno") {
+    return { error: "Solo el dueño del taller asigna permisos individuales." };
+  }
+
+  const tallerId = await tallerActual();
+
+  // Un permiso individual reemplaza al rol compartido, no convive con
+  // él — al activarlo se limpia rolPersonalizadoId. Al desactivarlo
+  // (permisos: null) no se toca rolPersonalizadoId: si el dueño elige
+  // un rol de la lista después, esa es asignarRolPersonalizado(), no
+  // esta acción.
+  await db
+    .update(miembroTaller)
+    .set(
+      permisos
+        ? {
+            permisosIndividuales: await permisosValidos(permisos),
+            rolPersonalizadoId: null,
+          }
+        : { permisosIndividuales: null }
+    )
     .where(
       and(eq(miembroTaller.id, miembroId), eq(miembroTaller.tallerId, tallerId))
     );
