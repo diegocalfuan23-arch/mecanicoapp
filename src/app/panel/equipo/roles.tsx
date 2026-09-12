@@ -66,64 +66,73 @@ function FormularioRol({
   }
 
   return (
-    <form
-      onSubmit={guardar}
-      className="rounded-xl border border-border bg-card p-6 sm:p-8"
-    >
-      <h2 className="text-lg font-medium">
-        {rol ? `Editar ${rol.nombre}` : "Nuevo rol"}
-      </h2>
-      <p className="mt-1 text-[14px] text-muted-foreground">
-        Elige qué puede ver esta persona — tú decides, según tu propio
-        criterio, sin reglas fijas.
-      </p>
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onListo}
+        className="absolute inset-0 bg-black/60"
+      />
+      <form
+        onSubmit={guardar}
+        role="dialog"
+        aria-modal
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        <h2 className="text-lg font-medium">
+          {rol ? `Editar ${rol.nombre}` : "Nuevo rol"}
+        </h2>
+        <p className="mt-1 text-[14px] text-muted-foreground">
+          Elige qué puede ver esta persona — tú decides, según tu propio
+          criterio, sin reglas fijas.
+        </p>
 
-      <label className="mt-6 block">
-        <span className="mb-2 block text-[13px] font-medium">
-          Nombre del rol
-        </span>
-        <input
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Ej: Contador, Ayudante de recepción"
-          autoFocus
-          className={campo}
-        />
-      </label>
+        <label className="mt-6 block">
+          <span className="mb-2 block text-[13px] font-medium">
+            Nombre del rol
+          </span>
+          <input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej: Contador, Ayudante de recepción"
+            autoFocus
+            className={campo}
+          />
+        </label>
 
-      <div className="mt-6">
-        <span className="mb-2 block text-[13px] font-medium">
-          Módulos habilitados
-        </span>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {modulos.map((modulo) => (
-            <label
-              key={modulo}
-              className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-[14px]"
-            >
-              <input
-                type="checkbox"
-                checked={permisos[modulo] === true}
-                onChange={() => alternar(modulo)}
-                className="size-4 accent-primary"
-              />
-              {etiquetas[modulo] ?? modulo}
-            </label>
-          ))}
+        <div className="mt-6">
+          <span className="mb-2 block text-[13px] font-medium">
+            Módulos habilitados
+          </span>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {modulos.map((modulo) => (
+              <label
+                key={modulo}
+                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-[14px]"
+              >
+                <input
+                  type="checkbox"
+                  checked={permisos[modulo] === true}
+                  onChange={() => alternar(modulo)}
+                  className="size-4 accent-primary"
+                />
+                {etiquetas[modulo] ?? modulo}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {error && <p className="mt-4 text-[13px] text-destructive">{error}</p>}
+        {error && <p className="mt-4 text-[13px] text-destructive">{error}</p>}
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-        <Button type="submit" disabled={guardando}>
-          {guardando ? "Guardando…" : "Guardar rol"}
-        </Button>
-        <Button variant="outline" type="button" onClick={onListo}>
-          Cancelar
-        </Button>
-      </div>
-    </form>
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row">
+          <Button type="submit" disabled={guardando}>
+            {guardando ? "Guardando…" : "Guardar rol"}
+          </Button>
+          <Button variant="outline" type="button" onClick={onListo}>
+            Cancelar
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -151,19 +160,17 @@ export function Roles({
     router.refresh();
   }
 
-  if (editando) {
-    return (
-      <FormularioRol
-        modulos={modulos}
-        etiquetas={etiquetas}
-        rol={editando === "nuevo" ? null : editando}
-        onListo={() => onEditar(null)}
-      />
-    );
-  }
-
   return (
     <div>
+      {editando && (
+        <FormularioRol
+          modulos={modulos}
+          etiquetas={etiquetas}
+          rol={editando === "nuevo" ? null : editando}
+          onListo={() => onEditar(null)}
+        />
+      )}
+
       {borrando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
           <button
