@@ -135,94 +135,109 @@ function Formulario({
     setTimeout(() => setCopiado(false), 1500);
   }
 
-  if (linkGenerado) {
-    return (
-      <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <h2 className="text-lg font-medium">Invitación enviada</h2>
-        <p className="mt-1 text-[14px] text-muted-foreground">
-          Le mandamos un correo a {correo}. Si prefieres avisarle tú mismo
-          (WhatsApp, etc.), comparte este link:
-        </p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <input
-            readOnly
-            value={linkGenerado}
-            onFocus={(e) => e.target.select()}
-            className={`${campo} font-mono text-[13px]`}
-          />
-          <Button type="button" variant="outline" onClick={copiarLink} className="shrink-0">
-            {copiado ? "Copiado" : "Copiar"}
-          </Button>
-        </div>
-        <p className="mt-2 text-[12px] text-muted-foreground">
-          El link sirve por 7 días. La persona crea su propia contraseña
-          al entrar.
-        </p>
-        <Button type="button" onClick={onListo} className="mt-4">
-          Listo
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-      <h2 className="text-lg font-medium">Invitar al equipo</h2>
-      <p className="mt-1 text-[14px] text-muted-foreground">
-        Le mandamos un link para que cree su propia cuenta y contraseña —
-        tú no necesitas definirla.
-      </p>
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button
+        aria-label="Cancelar"
+        onClick={onListo}
+        className="absolute inset-0 bg-black/60"
+      />
+      <div
+        role="dialog"
+        aria-modal
+        className="scroll-discreto relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 sm:p-8"
+      >
+        {linkGenerado ? (
+          <>
+            <h2 className="text-lg font-medium">Invitación enviada</h2>
+            <p className="mt-1 text-[14px] text-muted-foreground">
+              Le mandamos un correo a {correo}. Si prefieres avisarle tú mismo
+              (WhatsApp, etc.), comparte este link:
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <input
+                readOnly
+                value={linkGenerado}
+                onFocus={(e) => e.target.select()}
+                className={`${campo} font-mono text-[13px]`}
+              />
+              <Button type="button" variant="outline" onClick={copiarLink} className="shrink-0">
+                {copiado ? "Copiado" : "Copiar"}
+              </Button>
+            </div>
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              El link sirve por 7 días. La persona crea su propia contraseña
+              al entrar.
+            </p>
+            <Button type="button" onClick={onListo} className="mt-4">
+              Listo
+            </Button>
+          </>
+        ) : (
+          <>
+            <h2 className="text-lg font-medium">Invitar al equipo</h2>
+            <p className="mt-1 text-[14px] text-muted-foreground">
+              Le mandamos un link para que cree su propia cuenta y contraseña
+              — tú no necesitas definirla.
+            </p>
 
-      <form onSubmit={enviar} className="mt-6 flex flex-col gap-4">
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">Nombre</span>
-          <input
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Nombre de la persona"
-            autoFocus
-            className={campo}
-          />
-        </label>
+            <form onSubmit={enviar} className="mt-6 flex flex-col gap-4">
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium">
+                  Nombre
+                </span>
+                <input
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Nombre de la persona"
+                  autoFocus
+                  className={campo}
+                />
+              </label>
 
-        <label className="block">
-          <span className="mb-2 block text-[13px] font-medium">Correo</span>
-          <input
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            type="email"
-            placeholder="correo@ejemplo.cl"
-            className={campo}
-          />
-        </label>
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium">
+                  Correo
+                </span>
+                <input
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                  type="email"
+                  placeholder="correo@ejemplo.cl"
+                  className={campo}
+                />
+              </label>
 
-        <div>
-          <span className="mb-2 block text-[13px] font-medium">Rol</span>
-          <Selector
-            value={valorRol}
-            onChange={setValorRol}
-            opciones={opcionesRol}
-          />
-          <p className="mt-2 text-[12px] text-muted-foreground">
-            {esPersonalizado
-              ? "Ve solo los módulos que elegiste al crear este rol."
-              : rol === "jefe_taller"
-                ? "Ve todo salvo poder tocar a otro jefe de taller o al dueño."
-                : "Ve Órdenes, Vehículos y lo operativo del día a día."}
-          </p>
-        </div>
+              <div>
+                <span className="mb-2 block text-[13px] font-medium">Rol</span>
+                <Selector
+                  value={valorRol}
+                  onChange={setValorRol}
+                  opciones={opcionesRol}
+                />
+                <p className="mt-2 text-[12px] text-muted-foreground">
+                  {esPersonalizado
+                    ? "Ve solo los módulos que elegiste al crear este rol."
+                    : rol === "jefe_taller"
+                      ? "Ve todo salvo poder tocar a otro jefe de taller o al dueño."
+                      : "Ve Órdenes, Vehículos y lo operativo del día a día."}
+                </p>
+              </div>
 
-        {error && <p className="text-[13px] text-destructive">{error}</p>}
+              {error && <p className="text-[13px] text-destructive">{error}</p>}
 
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Button type="submit" disabled={enviando}>
-            {enviando ? "Enviando…" : "Enviar invitación"}
-          </Button>
-          <Button variant="outline" type="button" onClick={onListo}>
-            Cancelar
-          </Button>
-        </div>
-      </form>
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <Button type="submit" disabled={enviando}>
+                  {enviando ? "Enviando…" : "Enviar invitación"}
+                </Button>
+                <Button variant="outline" type="button" onClick={onListo}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -355,16 +370,6 @@ export function TablaEquipo({
     }
   }
 
-  if (abierto) {
-    return (
-      <Formulario
-        onListo={() => setAbierto(false)}
-        esDueno={esDueno}
-        rolesPersonalizados={rolesPersonalizados}
-      />
-    );
-  }
-
   if (tieneRolesPersonalizados && pestana === "roles") {
     return (
       <>
@@ -390,10 +395,19 @@ export function TablaEquipo({
     <>
       {tieneRolesPersonalizados && (
         <PestanasEquipo pestana={pestana} onCambiar={setPestana}>
-          <Button onClick={() => setAbierto(true)} className="shrink-0">
-            Invitar al equipo
-          </Button>
+          {!abierto && (
+            <Button onClick={() => setAbierto(true)} className="shrink-0">
+              Invitar al equipo
+            </Button>
+          )}
         </PestanasEquipo>
+      )}
+      {abierto && (
+        <Formulario
+          onListo={() => setAbierto(false)}
+          esDueno={esDueno}
+          rolesPersonalizados={rolesPersonalizados}
+        />
       )}
       {confirmando && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
