@@ -411,34 +411,49 @@ export function Buscador({
       )}
 
       {!consulta.trim() && recientes.length > 0 && (
-        <div className="mt-8 text-center">
+        <div className="mt-8">
           <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">
-            Búsquedas recientes
+            Recientes
           </p>
-          <div className="mt-3 grid grid-cols-2 justify-items-center gap-2 sm:grid-cols-3">
+          <ul className="mt-3 flex flex-col gap-2">
             {recientes.map((r) => (
-              <button
-                key={r.patente}
-                type="button"
-                onClick={() => buscarYa(r.patente)}
-                className="flex aspect-square w-full max-w-28 flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-3 text-center transition-colors hover:border-primary/40"
-              >
-                <span className="font-mono text-[14px] font-medium">
-                  {r.patente}
-                </span>
-                {(r.marca || r.modelo) && (
-                  <span className="line-clamp-2 text-[11px] text-muted-foreground">
-                    {[r.marca, r.modelo].filter(Boolean).join(" ")}
-                  </span>
-                )}
-                {r.ultimaAtencion && (
-                  <span className="text-[10px] text-muted-foreground/70">
-                    {formatoFechaCorta(r.ultimaAtencion)}
-                  </span>
-                )}
-              </button>
+              <li key={r.patente}>
+                <button
+                  type="button"
+                  onClick={() => buscarYa(r.patente)}
+                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-card px-5 py-3.5 text-left transition-colors hover:border-primary/40"
+                >
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-[13px] font-medium">
+                      {r.patente}
+                    </span>
+                    {(r.marca || r.modelo) && (
+                      <span className="text-[13px] text-muted-foreground">
+                        {[r.marca, r.modelo].filter(Boolean).join(" ")}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    {r.ultimaAtencion && (
+                      <span className="text-[12px]">
+                        Última atención {formatoFechaCorta(r.ultimaAtencion)}
+                      </span>
+                    )}
+                    <svg viewBox="0 0 20 20" className="size-4 shrink-0" aria-hidden>
+                      <path
+                        d="M8 5l5 5-5 5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
