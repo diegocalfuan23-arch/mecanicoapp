@@ -226,6 +226,7 @@ export type BusquedaReciente = {
   patente: string;
   marca: string | null;
   modelo: string | null;
+  ultimaAtencion: Date | null;
 };
 
 /**
@@ -257,7 +258,9 @@ export async function busquedasRecientes(): Promise<BusquedaReciente[]> {
 
   // Marca/modelo: primero el vehículo propio del taller si existe,
   // si no la caché de GetAPI — el mismo orden de prioridad que usa
-  // la búsqueda en vivo.
+  // la búsqueda en vivo. "Última atención" solo existe para autos
+  // propios (join con trabajo) — un vehículo externo nunca pasó por
+  // este taller, así que no tiene fecha que mostrar.
   const patentes = recientes.map((r) => r.patente);
 
   const propios = await db
@@ -265,11 +268,14 @@ export async function busquedasRecientes(): Promise<BusquedaReciente[]> {
       patente: vehiculo.patente,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
+      ultimaAtencion: sql<Date | null>`max(${trabajo.fecha})`,
     })
     .from(vehiculo)
+    .leftJoin(trabajo, eq(trabajo.vehiculoId, vehiculo.id))
     .where(
       and(eq(vehiculo.tallerId, tallerId), inArray(vehiculo.patente, patentes))
-    );
+    )
+    .groupBy(vehiculo.patente, vehiculo.marca, vehiculo.modelo);
 
   const externos = await db
     .select({
@@ -280,13 +286,17 @@ export async function busquedasRecientes(): Promise<BusquedaReciente[]> {
     .from(vehiculoExterno)
     .where(inArray(vehiculoExterno.patente, patentes));
 
-  const porPatente = new Map<string, { marca: string | null; modelo: string | null }>();
-  for (const e of externos) porPatente.set(e.patente, e);
+  const porPatente = new Map<
+    string,
+    { marca: string | null; modelo: string | null; ultimaAtencion: Date | null }
+  >();
+  for (const e of externos) porPatente.set(e.patente, { ...e, ultimaAtencion: null });
   for (const p of propios) porPatente.set(p.patente, p);
 
   return recientes.map((r) => ({
     patente: r.patente,
     marca: porPatente.get(r.patente)?.marca ?? null,
     modelo: porPatente.get(r.patente)?.modelo ?? null,
+    ultimaAtencion: porPatente.get(r.patente)?.ultimaAtencion ?? null,
   }));
 }

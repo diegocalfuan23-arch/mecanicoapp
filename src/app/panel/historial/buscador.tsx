@@ -26,6 +26,13 @@ type DatosExternos = {
   kilometrajeInicial: string;
 };
 
+function formatoFechaCorta(fecha: Date) {
+  return new Date(fecha).toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
 export function Buscador({
   tieneBusquedaExterna = false,
 }: {
@@ -44,12 +51,14 @@ export function Buscador({
   const [registrando, setRegistrando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState<string | null>(null);
   const [recientes, setRecientes] = useState<BusquedaReciente[]>([]);
+  const [placeholder, setPlaceholder] = useState("Escribe la patente");
   // Marca que `consulta` ya fue resuelta a mano por buscarYa(), para
   // que los efectos de debounce de abajo no la vuelvan a buscar por
   // su cuenta cuando setConsulta() los dispare igual. Es un ref (no
   // estado) justamente para no reordenar renders: solo lo leen los
   // efectos, nunca pinta nada.
   const resueltaAMano = useRef<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     busquedasRecientes().then(setRecientes);
@@ -210,12 +219,13 @@ export function Buscador({
           />
         </svg>
         <input
+          ref={inputRef}
           value={consulta}
           onChange={(e) => {
             resueltaAMano.current = null;
             setConsulta(e.target.value);
           }}
-          placeholder="Escribe la patente"
+          placeholder={placeholder}
           autoFocus
           autoCapitalize="characters"
           className="w-full rounded-xl border border-border bg-card py-4 pr-11 pl-12 text-lg outline-none placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
@@ -421,6 +431,11 @@ export function Buscador({
                     {[r.marca, r.modelo].filter(Boolean).join(" ")}
                   </span>
                 )}
+                {r.ultimaAtencion && (
+                  <span className="text-[10px] text-muted-foreground/70">
+                    {formatoFechaCorta(r.ultimaAtencion)}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -429,7 +444,17 @@ export function Buscador({
 
       {!consulta.trim() && (
         <p className="mt-8 text-center text-muted-foreground">
-          También puedes buscar por marca o modelo.
+          ¿No tienes la patente?{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setPlaceholder("Ej: Toyota Hilux");
+              inputRef.current?.focus();
+            }}
+            className="text-acento hover:underline"
+          >
+            Buscar por marca o modelo
+          </button>
         </p>
       )}
     </>
