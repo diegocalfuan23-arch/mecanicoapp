@@ -8,11 +8,18 @@ import { useState, useEffect } from "react";
  * Sin `grupo`, el ítem va siempre visible arriba del todo, fuera de
  * cualquier sección colapsable — son los accesos de uso diario que
  * nadie debería tener que expandir nada para encontrar.
+ *
+ * `descripcion` alimenta al tour de onboarding (tour-onboarding.tsx) —
+ * un texto corto y concreto, no marketing, de qué se hace realmente
+ * ahí. Exportada (junto a SECCIONES) para que el tour reuse los mismos
+ * íconos y textos en vez de duplicar esta lista.
  */
-const SECCIONES = [
+export const SECCIONES = [
   {
     href: "/panel",
     texto: "Inicio",
+    descripcion:
+      "Un vistazo rápido al día: cuántas órdenes tienes abiertas, terminadas y pendientes, más lo cobrado en el mes.",
     icono: (
       <path
         d="M3 9.5L10 4l7 5.5V16a1 1 0 01-1 1h-4v-4H8v4H4a1 1 0 01-1-1V9.5z"
@@ -26,6 +33,8 @@ const SECCIONES = [
   {
     href: "/panel/agenda",
     texto: "Agenda",
+    descripcion:
+      "Calendario de citas del taller — quién viene, cuándo, y para qué.",
     icono: (
       <path
         d="M5 4.5h10a1 1 0 011 1V16a1 1 0 01-1 1H5a1 1 0 01-1-1V5.5a1 1 0 011-1zM4 8h12M7 3v3M13 3v3"
@@ -40,6 +49,8 @@ const SECCIONES = [
   {
     href: "/panel/historial",
     texto: "Buscar patente",
+    descripcion:
+      "Escribe la patente y ves todo lo que le has hecho a ese auto — qué se cambió, cuándo y cuánto se cobró.",
     icono: (
       <path
         d="M9 15A6 6 0 109 3a6 6 0 000 12zM13.5 13.5L17 17"
@@ -54,6 +65,8 @@ const SECCIONES = [
     href: "/panel/diagnosticos",
     texto: "Diagnósticos",
     grupo: "Operación",
+    descripcion:
+      "Consultas técnicas sobre fallas o códigos de error de un vehículo, con ayuda del Asistente.",
     icono: (
       <path
         d="M6 3.5v4a3 3 0 006 0v-4M9 12.5a3.5 3.5 0 107 0v-1M13.5 15.5a2 2 0 100-4 2 2 0 000 4z"
@@ -69,6 +82,8 @@ const SECCIONES = [
     href: "/panel/inspecciones",
     texto: "Inspecciones",
     grupo: "Operación",
+    descripcion:
+      "Checklist completo del vehículo antes de comprarlo — para dejar registrado en qué estado llegó.",
     icono: (
       <path
         d="M4 6.5a2 2 0 012-2h8a2 2 0 012 2v9.5l-3-2-3 2-3-2-3 2v-9.5zM7 7.5h6M7 10h6M7 12.5h3.5"
@@ -84,6 +99,8 @@ const SECCIONES = [
     href: "/panel/presupuestos",
     texto: "Presupuestos",
     grupo: "Operación",
+    descripcion:
+      "Cotiza un trabajo antes de que el cliente decida — si lo acepta, se convierte en orden sin volver a escribir nada.",
     icono: (
       <path
         d="M5 3.5h10a1 1 0 011 1v11a1 1 0 01-1 1H5a1 1 0 01-1-1v-11a1 1 0 011-1zM7 7.5h6M7 10h6M7 12.5h3.5"
@@ -99,6 +116,8 @@ const SECCIONES = [
     href: "/panel/ordenes",
     texto: "Órdenes",
     grupo: "Operación",
+    descripcion:
+      "El trabajo del día a día — abre una orden, anota qué se hizo, y ciérrala cuando el auto sale del taller.",
     icono: (
       <path
         d="M6 3.5h8a1 1 0 011 1V16a.5.5 0 01-.8.4L10 14l-4.2 2.4A.5.5 0 015 16V4.5a1 1 0 011-1zM7.5 8h5M7.5 10.5h3"
@@ -114,6 +133,8 @@ const SECCIONES = [
     href: "/panel/ventas",
     texto: "Ventas POS",
     grupo: "Ventas",
+    descripcion:
+      "Venta directa de repuestos o servicios, sin pasar por una orden de trabajo — como una caja registradora.",
     icono: (
       <path
         d="M4 5.5h1.5l1.4 8.4a1.5 1.5 0 001.5 1.3h6.4a1.5 1.5 0 001.5-1.2l1-5.3H6.3M8 17a1 1 0 100-2 1 1 0 000 2zM13.5 17a1 1 0 100-2 1 1 0 000 2z"
@@ -129,6 +150,8 @@ const SECCIONES = [
     href: "/panel/vehiculos",
     texto: "Vehículos",
     grupo: "Ventas",
+    descripcion:
+      "Todos los autos que han pasado por el taller, con su patente, dueño y datos técnicos.",
     icono: (
       <path
         d="M3 12.5h14M4.5 12.5l1.2-4.2A2 2 0 017.6 7h4.8a2 2 0 011.9 1.3l1.2 4.2M4 12.5V15a1 1 0 001 1h1a1 1 0 001-1v-.5M13 14.5v.5a1 1 0 001 1h1a1 1 0 001-1v-2.5"
@@ -144,6 +167,8 @@ const SECCIONES = [
     href: "/panel/propietarios",
     texto: "Propietarios",
     grupo: "Ventas",
+    descripcion:
+      "Tus clientes: contacto, historial de visitas y recordatorios de servicio.",
     icono: (
       <path
         d="M10 10a3 3 0 100-6 3 3 0 000 6zM4 16.5c0-2.5 2.7-4 6-4s6 1.5 6 4"
@@ -158,6 +183,8 @@ const SECCIONES = [
     href: "/panel/inventario",
     texto: "Inventario",
     grupo: "Inventario",
+    descripcion:
+      "Qué repuestos tienes, cuántos quedan, y te avisa antes de que se te acaben.",
     icono: (
       <path
         d="M4 6.5l6-3 6 3v7l-6 3-6-3v-7zM4 6.5l6 3 6-3M10 9.5V16.5"
@@ -173,6 +200,8 @@ const SECCIONES = [
     href: "/panel/servicios",
     texto: "Servicios",
     grupo: "Inventario",
+    descripcion:
+      "Tu catálogo de mano de obra — precios ya definidos para no volver a cotizarlos cada vez.",
     icono: (
       <path
         d="M11.5 2.5l1 2.2 2.3.5-1.6 1.8.2 2.4-2.2-1-2.2 1 .2-2.4-1.6-1.8 2.3-.5 1-2.2zM5.5 12.5a3 3 0 100 6 3 3 0 000-6zM4.5 15.5h2M14 12l2.5 2.5M16.5 12L14 14.5"
@@ -188,6 +217,8 @@ const SECCIONES = [
     href: "/panel/compras",
     texto: "Compras",
     grupo: "Inventario",
+    descripcion:
+      "Lo que le compras a tus proveedores — el stock sube solo apenas registras la compra.",
     icono: (
       <path
         d="M4 6l1-3h10l1 3M4 6h12M4 6v9a1 1 0 001 1h10a1 1 0 001-1V6M7.5 9a2.5 2.5 0 005 0"
@@ -203,6 +234,8 @@ const SECCIONES = [
     href: "/panel/equipo",
     texto: "Equipo",
     grupo: "Administración",
+    descripcion:
+      "Invita a quienes trabajan contigo y decide qué puede ver y hacer cada uno.",
     icono: (
       <path
         d="M7 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM13 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM2.5 16c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5M11 12.8c2 .2 3.5 1.4 3.5 3.2"
@@ -218,6 +251,8 @@ const SECCIONES = [
     href: "/panel/pagos",
     texto: "Pagos",
     grupo: "Administración",
+    descripcion:
+      "Quién te debe, cuánto y desde cuándo — los fiados anotados, no perdidos en la memoria.",
     icono: (
       <path
         d="M3 6.5h14v9H3v-9zM3 9.5h14M6 13h2"
@@ -233,6 +268,8 @@ const SECCIONES = [
     href: "/panel/caja",
     texto: "Caja",
     grupo: "Administración",
+    descripcion:
+      "Lo que entró y salió en efectivo y otros medios, día por día — con cierre de caja al final.",
     icono: (
       <path
         d="M4 5.5h12a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1v-7a1 1 0 011-1zM10 8a2 2 0 100 4 2 2 0 000-4zM4 8v-.5M16 8v-.5M4 12v.5M16 12v.5"
@@ -248,6 +285,53 @@ const SECCIONES = [
 
 const GRUPOS_ORDEN = ["Operación", "Ventas", "Inventario", "Administración"];
 const CLAVE_COLAPSADOS = "mecanicoapp:sidebar:grupos-colapsados";
+
+/**
+ * Mismo filtro por plan/rol/rol-personalizado que decide qué ve el
+ * sidebar — exportado para que tour-onboarding.tsx muestre exactamente
+ * los mismos módulos que la persona realmente tiene, sin duplicar
+ * estas reglas ni arriesgar que se desincronicen con el tiempo.
+ */
+export function seccionesVisibles({
+  tieneInventario,
+  tieneServicios,
+  tieneCatalogoServicios,
+  vePagos,
+  veEquipo,
+  modulosPersonalizados,
+}: {
+  tieneInventario: boolean;
+  tieneServicios: boolean;
+  tieneCatalogoServicios: boolean;
+  vePagos: boolean;
+  veEquipo: boolean;
+  modulosPersonalizados?: Record<string, boolean>;
+}) {
+  return SECCIONES.filter((s) => {
+    // El rol personalizado manda sobre las reglas clásicas de abajo
+    // para cualquier módulo que su matriz ya haya decidido — así un
+    // dueño Empresarial puede ocultarle a un rol a medida hasta
+    // módulos que antes solo dependían del plan (ej. Órdenes).
+    if (modulosPersonalizados && s.href in modulosPersonalizados) {
+      return modulosPersonalizados[s.href];
+    }
+    if (s.href === "/panel/agenda") return tieneServicios;
+    if (s.href === "/panel/compras") return tieneServicios;
+    if (s.href === "/panel/inventario") return tieneInventario;
+    if (s.href === "/panel/servicios") return tieneCatalogoServicios;
+    if (s.href === "/panel/diagnosticos") return tieneServicios;
+    if (s.href === "/panel/inspecciones") return tieneServicios;
+    if (s.href === "/panel/ventas") return tieneServicios;
+    if (s.href === "/panel/presupuestos") return tieneServicios;
+    if (s.href === "/panel/pagos") return vePagos;
+    // Caja es Plan Serviteca (como Agenda/Compras), además del gate
+    // de rol que ya tenía — antes cualquier Plan Taller con permiso
+    // de ver Pagos también veía Caja, sin chequear el plan.
+    if (s.href === "/panel/caja") return vePagos && tieneServicios;
+    if (s.href === "/panel/equipo") return veEquipo;
+    return true;
+  });
+}
 
 function leerColapsadosGuardados(): Set<string> {
   try {
@@ -438,29 +522,13 @@ function Enlaces({
     });
   }
 
-  const secciones = SECCIONES.filter((s) => {
-    // El rol personalizado manda sobre las reglas clásicas de abajo
-    // para cualquier módulo que su matriz ya haya decidido — así un
-    // dueño Empresarial puede ocultarle a un rol a medida hasta
-    // módulos que antes solo dependían del plan (ej. Órdenes).
-    if (modulosPersonalizados && s.href in modulosPersonalizados) {
-      return modulosPersonalizados[s.href];
-    }
-    if (s.href === "/panel/agenda") return tieneServicios;
-    if (s.href === "/panel/compras") return tieneServicios;
-    if (s.href === "/panel/inventario") return tieneInventario;
-    if (s.href === "/panel/servicios") return tieneCatalogoServicios;
-    if (s.href === "/panel/diagnosticos") return tieneServicios;
-    if (s.href === "/panel/inspecciones") return tieneServicios;
-    if (s.href === "/panel/ventas") return tieneServicios;
-    if (s.href === "/panel/presupuestos") return tieneServicios;
-    if (s.href === "/panel/pagos") return vePagos;
-    // Caja es Plan Serviteca (como Agenda/Compras), además del gate
-    // de rol que ya tenía — antes cualquier Plan Taller con permiso
-    // de ver Pagos también veía Caja, sin chequear el plan.
-    if (s.href === "/panel/caja") return vePagos && tieneServicios;
-    if (s.href === "/panel/equipo") return veEquipo;
-    return true;
+  const secciones = seccionesVisibles({
+    tieneInventario,
+    tieneServicios,
+    tieneCatalogoServicios,
+    vePagos,
+    veEquipo,
+    modulosPersonalizados,
   });
 
   const sinGrupo = secciones.filter((s) => !("grupo" in s));
