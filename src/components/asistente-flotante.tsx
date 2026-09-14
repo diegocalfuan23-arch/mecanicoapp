@@ -99,6 +99,23 @@ export function PanelAsistente({
   const { abierto, alternar } = useAsistente();
   const altoVisual = useAltoViewportVisual();
   const angosta = useEsPantallaAngosta();
+
+  // Con el panel fixed sobre toda la pantalla en móvil, Android Chrome
+  // igual puede "rebotar"/desplazar el documento de atrás al enfocar
+  // el input con el teclado abierto (el fixed no evita eso por sí
+  // solo) — se ve como que "algo" scrollea aunque el panel esté bien
+  // posicionado. overflow:hidden en <html> mientras el panel está
+  // abierto en pantallas angostas lo evita; se restaura siempre al
+  // cerrar, nunca queda pegado.
+  useEffect(() => {
+    if (!abierto || !angosta) return;
+    const previo = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = previo;
+    };
+  }, [abierto, angosta]);
+
   if (!abierto) return null;
 
   // Vive dentro del MISMO contenedor que ya envuelve a Sidebar +
@@ -129,7 +146,14 @@ export function PanelAsistente({
   return (
     <div
       style={fixedMovil}
-      className={`z-30 flex flex-col bg-background lg:inset-auto lg:top-0 lg:right-0 lg:h-[min(600px,calc(100%-2rem))] lg:w-105 lg:rounded-xl lg:border lg:border-border lg:shadow-2xl ${
+      // overflow-hidden acá, no solo en el <ul> de mensajes de
+      // ChatAsistente: sin esto, si el alto calculado quedaba un
+      // instante desajustado del contenido real, era el panel ENTERO
+      // el que scrolleaba (arrastrando el header y el input con él) en
+      // vez de solo el área de mensajes — el panel no debe tener
+      // scroll propio bajo ninguna circunstancia, eso es trabajo
+      // exclusivo del <ul> interno.
+      className={`z-30 flex flex-col overflow-hidden bg-background lg:inset-auto lg:top-0 lg:right-0 lg:h-[min(600px,calc(100%-2rem))] lg:w-105 lg:rounded-xl lg:border lg:border-border lg:shadow-2xl ${
         fixedMovil ? "" : "absolute inset-0"
       }`}
     >
