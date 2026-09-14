@@ -31,10 +31,25 @@ export const metadata: Metadata = {
   },
 };
 
-/** Sin esto el navegador del celular asume ~980px de ancho y encoge todo. */
+/**
+ * width/initialScale: sin esto el navegador del celular asume ~980px
+ * de ancho y encoge todo.
+ *
+ * interactiveWidget "resizes-content": el default de Chrome Android
+ * es "resizes-visual" — al abrir el teclado, solo `visualViewport` se
+ * encoge, pero `100dvh`/el layout viewport que usa el resto del CSS
+ * (`h-dvh` en panel/layout.tsx, `inset-0`, etc.) se queda del tamaño
+ * de ANTES del teclado. Esa diferencia entre "lo que el CSS cree que
+ * mide la pantalla" y "lo que realmente se ve" es lo que generaba
+ * scroll donde no debía haber ninguno. "resizes-content" hace que el
+ * propio layout viewport se encoja con el teclado, así los `dvh` del
+ * proyecto (y el hook useAltoViewportVisual del Asistente) dejan de
+ * pelear contra un tamaño viejo.
+ */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
