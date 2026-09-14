@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITIO, changeFrequency: "weekly", priority: 1 },
     { url: `${SITIO}/registro`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITIO}/entrar`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITIO}/ayuda`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITIO}/privacidad`, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

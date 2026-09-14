@@ -166,6 +166,12 @@ export default function Home() {
           <span>© {new Date().getFullYear()} MecanicoApp</span>
           <div className="flex items-center gap-4">
             <Link
+              href="/ayuda"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Ayuda
+            </Link>
+            <Link
               href="/privacidad"
               className="underline underline-offset-4 hover:text-foreground"
             >

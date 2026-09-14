@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LogoAuth } from "./logo-auth";
 
 export function MarcoAuth({
@@ -31,6 +32,15 @@ export function MarcoAuth({
           </p>
         </div>
       </main>
+
+      <p className="pb-6 text-center text-[13px] text-muted-foreground">
+        <Link
+          href="/ayuda"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          ¿Necesitas ayuda?
+        </Link>
+      </p>
     </div>
   );
 }
