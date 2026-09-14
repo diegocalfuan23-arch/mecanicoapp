@@ -83,16 +83,42 @@ function useEsPantallaAngosta() {
 type Rect = { top: number; left: number; width: number; height: number };
 
 /**
+ * Paso sintético fuera del sidebar — el Asistente vive en el header
+ * (asistente-flotante.tsx), no es un ítem de SECCIONES. Mismo ícono
+ * que BotonAsistente, mismo mecanismo de data-tour-href para que el
+ * spotlight lo encuentre en el DOM real, así queda igual de "real"
+ * que cualquier otro paso, no un cartel aparte sin nada que señalar.
+ */
+const PASO_ASISTENTE = {
+  href: "asistente",
+  texto: "Asistente",
+  descripcion:
+    "Pregúntale por un vehículo, un diagnóstico o cualquier duda del taller — responde con tus propios datos.",
+  icono: (
+    <path
+      d="M4 4.5h12a1 1 0 011 1v7a1 1 0 01-1 1H8.5L5 16.5V13.5H4a1 1 0 01-1-1v-7a1 1 0 011-1zM7 8h6M7 10.5h4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
+};
+
+/**
  * Marca el ítem real del sidebar (data-tour-href, ver ItemEnlace en
  * navegacion.tsx) — nunca una copia del ícono/texto en un modal
  * aparte, así el tour siempre apunta a donde la cosa está de verdad
  * en pantalla, sin arriesgar que se desincronice con el diseño real
- * del sidebar.
+ * del sidebar. El último paso sale del sidebar y apunta al botón del
+ * Asistente en el header (PASO_ASISTENTE).
  *
  * En pantallas angostas el sidebar vive oculto dentro de MenuMovil,
  * así que el tour lo abre por su cuenta vía un evento personalizado
  * (ver MenuMovil en navegacion.tsx) apenas arranca, y lo cierra al
- * terminar o cancelar.
+ * terminar o cancelar — el paso del Asistente no necesita eso: su
+ * botón vive en el header, siempre visible sin importar el ancho.
  */
 function TourSidebar({
   filtro,
@@ -104,23 +130,38 @@ function TourSidebar({
   const [paso, setPaso] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const angosta = useEsPantallaAngosta();
-  const pasos = seccionesVisibles(filtro).filter((s) => s.descripcion);
+  const pasos = [
+    ...seccionesVisibles(filtro).filter((s) => s.descripcion),
+    PASO_ASISTENTE,
+  ];
   const actual = pasos[paso];
   const esPrimero = paso === 0;
   const esUltimo = paso === pasos.length - 1;
+  const esPasoAsistente = actual?.href === "asistente";
 
+  // El menú deslizante cubre TODA la pantalla en móvil, header
+  // incluido — así que en el paso del Asistente (su botón vive en el
+  // header, fuera del sidebar) hay que cerrarlo para que quede
+  // visible, no sumarlo al spotlight con el menú de fondo tapándolo
+  // todo.
   useEffect(() => {
     if (!angosta) return;
+    if (esPasoAsistente) {
+      window.dispatchEvent(new Event("mecanicoapp:tour-cerrar-menu"));
+      return;
+    }
     window.dispatchEvent(new Event("mecanicoapp:tour-abrir-menu"));
     return () => {
       window.dispatchEvent(new Event("mecanicoapp:tour-cerrar-menu"));
     };
-  }, [angosta]);
+  }, [angosta, esPasoAsistente]);
 
-  // Se recalcula en cada paso (el ítem cambia) y en cada resize —
-  // en móvil, además, espera un instante a que el menú deslizante
+  // Se recalcula en cada paso (el ítem cambia) y en cada resize — en
+  // móvil, además, espera un instante a que el menú deslizante
   // termine su animación de apertura antes de medir, o el primer
-  // paso mediría el elemento todavía fuera de pantalla.
+  // paso mediría el elemento todavía fuera de pantalla. El paso del
+  // Asistente no espera: ahí el menú se está CERRANDO (o ni se abrió),
+  // su botón en el header ya está visible de inmediato.
   useEffect(() => {
     if (!actual) return;
 
@@ -136,14 +177,14 @@ function TourSidebar({
       setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
     }
 
-    const demora = angosta ? 260 : 0;
+    const demora = angosta && !esPasoAsistente ? 260 : 0;
     const id = setTimeout(medir, demora);
     window.addEventListener("resize", medir);
     return () => {
       clearTimeout(id);
       window.removeEventListener("resize", medir);
     };
-  }, [actual, angosta]);
+  }, [actual, angosta, esPasoAsistente]);
 
   if (!actual) return null;
 

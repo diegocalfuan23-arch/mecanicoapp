@@ -51,6 +51,10 @@ export function BotonAsistente() {
       onClick={alternar}
       aria-label={abierto ? "Cerrar asistente" : "Abrir asistente"}
       aria-expanded={abierto}
+      // El tour de onboarding (tour-onboarding.tsx) lo busca por este
+      // atributo, igual que hace con cada ítem del sidebar — no es una
+      // ruta real, solo un identificador para el paso final del tour.
+      data-tour-href="asistente"
       className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors ${
         abierto
           ? "bg-primary text-primary-foreground"
