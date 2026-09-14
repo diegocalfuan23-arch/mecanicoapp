@@ -396,6 +396,11 @@ function ItemEnlace({
         href={seccion.href}
         onClick={alNavegar}
         aria-current={activo ? "page" : undefined}
+        // El tour de onboarding (tour-onboarding.tsx) busca este
+        // atributo en el DOM real para resaltar el ítem correcto —
+        // así nunca se desincroniza de dónde está cada cosa
+        // realmente en pantalla, sea cual sea el layout del sidebar.
+        data-tour-href={seccion.href}
         className={`flex items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] transition-colors ${
           activo
             ? "bg-foreground/10 font-medium text-foreground"
@@ -638,6 +643,21 @@ export function MenuMovil({
   modulosPersonalizados?: Record<string, boolean>;
 }) {
   const [abierto, setAbierto] = useState(false);
+
+  // El tour de onboarding necesita abrir este menú por su cuenta en
+  // pantallas angostas (el sidebar real vive oculto acá) y cerrarlo
+  // al terminar — eventos personalizados en vez de convertir esto en
+  // un componente controlado, para no tocar su API ni otros usos.
+  useEffect(() => {
+    const abrir = () => setAbierto(true);
+    const cerrar = () => setAbierto(false);
+    window.addEventListener("mecanicoapp:tour-abrir-menu", abrir);
+    window.addEventListener("mecanicoapp:tour-cerrar-menu", cerrar);
+    return () => {
+      window.removeEventListener("mecanicoapp:tour-abrir-menu", abrir);
+      window.removeEventListener("mecanicoapp:tour-cerrar-menu", cerrar);
+    };
+  }, []);
 
   return (
     <>
