@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { ChatAsistente } from "@/components/chat-asistente";
+import { useAltoViewportVisual } from "@/hooks/usar-alto-viewport-visual";
 
 type Conversacion = { id: string; titulo: string; updatedAt: Date };
 
@@ -70,12 +71,34 @@ export function BotonAsistente() {
   );
 }
 
+/** Mismo breakpoint que el `lg:` de Tailwind (1024px) — por debajo de
+ * eso el panel es el que necesita seguir al teclado en vivo.
+ *
+ * matchMedia es síncrono: se lee en el inicializador de useState
+ * (evaluado solo en el primer render del cliente) en vez de en un
+ * efecto — mismo patrón que navegacion.tsx, así el valor ya está
+ * listo desde el primer paint del cliente. */
+function useEsPantallaAngosta() {
+  const [angosta, setAngosta] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const actualizar = () => setAngosta(mq.matches);
+    mq.addEventListener("change", actualizar);
+    return () => mq.removeEventListener("change", actualizar);
+  }, []);
+  return angosta;
+}
+
 export function PanelAsistente({
   conversaciones,
 }: {
   conversaciones: Conversacion[];
 }) {
   const { abierto, alternar } = useAsistente();
+  const altoVisual = useAltoViewportVisual();
+  const angosta = useEsPantallaAngosta();
   if (!abierto) return null;
 
   // Vive dentro del MISMO contenedor que ya envuelve a Sidebar +
@@ -88,8 +111,28 @@ export function PanelAsistente({
   // escritorio es un panel angosto anclado arriba a la derecha (se ve
   // el sidebar y el contenido de atrás); en pantallas angostas no hay
   // espacio para eso, así que cubre todo el ancho.
+  //
+  // En móvil, `absolute inset-0` se mide contra el contenedor padre,
+  // que NO se encoge cuando aparece el teclado (solo el viewport
+  // VISUAL se reduce) — el panel quedaba con la altura de antes del
+  // teclado, así que el input terminaba empujado fuera de lo que
+  // realmente se ve. `position: fixed` con el alto real de
+  // visualViewport (useAltoViewportVisual) sigue al teclado en vivo,
+  // como hace claude.ai — solo se aplica en pantallas angostas, nunca
+  // en el panel anclado de escritorio (ahí las clases lg: de Tailwind
+  // ya definen su propio tamaño fijo, no depende del teclado).
+  const fixedMovil =
+    angosta && altoVisual != null
+      ? ({ position: "fixed", inset: 0, height: altoVisual } as const)
+      : undefined;
+
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-background lg:inset-auto lg:top-0 lg:right-0 lg:h-[min(600px,calc(100%-2rem))] lg:w-105 lg:rounded-xl lg:border lg:border-border lg:shadow-2xl">
+    <div
+      style={fixedMovil}
+      className={`z-30 flex flex-col bg-background lg:inset-auto lg:top-0 lg:right-0 lg:h-[min(600px,calc(100%-2rem))] lg:w-105 lg:rounded-xl lg:border lg:border-border lg:shadow-2xl ${
+        fixedMovil ? "" : "absolute inset-0"
+      }`}
+    >
       <ChatAsistente conversaciones={conversaciones} onCerrar={alternar} />
     </div>
   );
