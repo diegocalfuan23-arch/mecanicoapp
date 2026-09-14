@@ -189,13 +189,18 @@ function TourSidebar({
   if (!actual) return null;
 
   // Tarjeta a la derecha del ítem resaltado en escritorio (hay
-  // espacio de sobra); debajo del sidebar completo en móvil (el
-  // ítem puede estar muy pegado al borde superior o inferior de una
-  // pantalla angosta, a la derecha no cabría igual). El clamp contra
-  // el alto de la ventana aplica en ambos: un ítem como "Caja" (el
-  // último del sidebar) puede estar pegado abajo del todo, y sin
-  // esto la tarjeta se saldría de la pantalla por debajo.
+  // espacio de sobra ahí, los ítems del sidebar viven a la
+  // izquierda); debajo del sidebar completo en móvil (el ítem puede
+  // estar muy pegado al borde superior o inferior de una pantalla
+  // angosta, a la derecha no cabría igual). El paso del Asistente
+  // rompe ese supuesto: su botón vive en el header, cerca del borde
+  // DERECHO — "a la derecha del ítem" lo sacaba de la pantalla. Con
+  // anchoTarjetaEstimado se detecta cuándo no cabe y se prueba a la
+  // izquierda del ítem en su lugar; el clamp contra el alto/ancho de
+  // la ventana cubre además un ítem pegado a cualquier borde (ej.
+  // "Caja", el último del sidebar, pegado abajo).
   const altoTarjetaEstimado = 200;
+  const anchoTarjetaEstimado = 320;
   const tarjetaEstilo: React.CSSProperties = rect
     ? angosta
       ? {
@@ -203,11 +208,22 @@ function TourSidebar({
             rect.top + rect.height + 12,
             window.innerHeight - altoTarjetaEstimado
           ),
+          left: Math.max(
+            16,
+            Math.min(rect.left, window.innerWidth - anchoTarjetaEstimado - 16)
+          ),
         }
-      : {
-          top: Math.min(rect.top, window.innerHeight - altoTarjetaEstimado),
-          left: rect.left + rect.width + 16,
-        }
+      : (() => {
+          const cabeADerecha =
+            rect.left + rect.width + 16 + anchoTarjetaEstimado <=
+            window.innerWidth;
+          return {
+            top: Math.min(rect.top, window.innerHeight - altoTarjetaEstimado),
+            left: cabeADerecha
+              ? rect.left + rect.width + 16
+              : Math.max(16, rect.left - anchoTarjetaEstimado - 16),
+          };
+        })()
     : {};
 
   return (
