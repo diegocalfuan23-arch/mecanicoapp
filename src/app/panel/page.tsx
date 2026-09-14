@@ -54,6 +54,7 @@ export default async function Panel() {
     [ingresosMes],
     ordenesRecientes,
     pagosRecientes,
+    [vehiculos],
   ] = await Promise.all([
     // Total de trabajo vivo en el taller ahora mismo: todo lo que no
     // se ha entregado todavía, sin importar cuándo entró.
@@ -125,6 +126,13 @@ export default async function Panel() {
           .orderBy(desc(abono.fecha))
           .limit(4)
       : [],
+    // Sin ningún vehículo registrado = cuenta recién creada, sin uso
+    // real todavía — así se decide si mostrar el banner de bienvenida,
+    // sin depender de una fecha ni de un campo nuevo en la base.
+    db
+      .select({ total: count() })
+      .from(vehiculo)
+      .where(eq(vehiculo.tallerId, tallerId)),
   ]);
 
   const tarjetas = [
@@ -170,11 +178,58 @@ export default async function Panel() {
       : []),
   ];
 
+  // Sin ningún vehículo aún: cuenta recién creada, sin uso real
+  // todavía — se muestra la bienvenida en vez de las tarjetas vacías
+  // de siempre, que sin datos no dicen nada útil.
+  const esTallerNuevo = vehiculos.total === 0;
+
   return (
     <>
       <h1 className="text-xl font-semibold tracking-tight">
         Hola, {sesion.user.name.split(" ")[0]}
       </h1>
+
+      {esTallerNuevo && (
+        <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-6">
+          <h2 className="text-lg font-medium">Bienvenido a MecanicoApp</h2>
+          <p className="mt-2 text-[14px] text-muted-foreground">
+            Esto es lo primero que conviene hacer para empezar a usarla de
+            verdad:
+          </p>
+          <ol className="mt-4 flex flex-col gap-2 text-[14px]">
+            <li>
+              <span className="font-medium">1. </span>
+              <Link
+                href="/panel/vehiculos"
+                className="text-foreground underline underline-offset-4 hover:text-acento"
+              >
+                Registra tu primer vehículo
+              </Link>
+              , el que tengas más a mano ahora mismo.
+            </li>
+            <li>
+              <span className="font-medium">2. </span>
+              <Link
+                href="/panel/equipo"
+                className="text-foreground underline underline-offset-4 hover:text-acento"
+              >
+                Invita a tu equipo
+              </Link>{" "}
+              si trabajas con más gente en el taller.
+            </li>
+          </ol>
+          <p className="mt-4 text-[13px] text-muted-foreground">
+            ¿Dudas de cómo funciona el registro o el inicio de sesión?{" "}
+            <Link
+              href="/ayuda"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Revisa el centro de ayuda
+            </Link>
+            .
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tarjetas.map((t) => (

@@ -61,6 +61,13 @@ export default async function Cuenta() {
       </div>
 
       <p className="mt-8 text-[13px] text-muted-foreground">
+        <Link
+          href="/ayuda"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          Centro de ayuda
+        </Link>
+        {" · "}
         Cómo tratamos los datos está en la{" "}
         <Link
           href="/panel/cuenta/privacidad"
