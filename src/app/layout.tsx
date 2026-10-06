@@ -18,9 +18,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mecanicoapp.com"),
-  title: "MecanicoApp — El cuaderno del taller, en tu celular",
+  title:
+    "MecanicoApp — Software de gestión para talleres mecánicos en Chile",
   description:
-    "Historial por patente, control de repuestos, fiados al día y recordatorios por WhatsApp. Hecho para talleres independientes en Chile.",
+    "Sistema para talleres mecánicos: historial por patente, control de repuestos, fiados al día y recordatorios por WhatsApp. Hecho para talleres independientes en Chile.",
   alternates: {
     canonical: "/",
   },

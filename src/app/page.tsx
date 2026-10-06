@@ -37,6 +37,36 @@ const antes = [
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Datos estructurados (Schema.org): le dice a Google qué es el
+          producto, para quién, y que tiene un plan gratis — puede
+          mejorar cómo se ve el resultado en la búsqueda (rich
+          snippets), no solo ayudar a entender el texto. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "MecanicoApp",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web, Android, iOS",
+            description:
+              "Software de gestión para talleres mecánicos en Chile: historial por patente, control de repuestos, fiados al día y recordatorios por WhatsApp.",
+            url: "https://mecanicoapp.com",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "CLP",
+              description: "Plan Prueba gratis, sin tarjeta",
+            },
+            audience: {
+              "@type": "Audience",
+              audienceType: "Talleres mecánicos independientes en Chile",
+            },
+          }),
+        }}
+      />
+
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <span className="text-lg font-semibold tracking-tight">
           Mecanico<span className="text-acento">App</span>
@@ -69,14 +99,14 @@ export default function Home() {
             Para talleres independientes
           </span>
           <h1 className="text-balance text-4xl leading-[1.05] font-semibold tracking-tight sm:text-6xl">
-            El cuaderno del taller,
+            Software de gestión para
             <br />
-            en tu celular.
+            talleres mecánicos en Chile
           </h1>
           <p className="max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
-            Historial de cada auto por patente, los fiados anotados, el stock
-            al día y el cliente que vuelve solo. Sin planillas ni cuadernos que
-            se pierden.
+            El cuaderno del taller, en tu celular. Historial de cada auto por
+            patente, los fiados anotados, el stock al día y el cliente que
+            vuelve solo. Sin planillas ni cuadernos que se pierden.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link
