@@ -1,23 +1,178 @@
 import Link from "next/link";
 import { BotonVolver } from "@/components/boton-volver";
 import { LogoAuth } from "@/components/logo-auth";
+import { BuscadorAyuda } from "./buscador";
 
 export const metadata = {
   title: "Ayuda — MecanicoApp",
 };
 
-const TEMAS = [
+const TEMAS_CUENTA = [
   { id: "registrarse", texto: "Cómo crear una cuenta" },
   { id: "iniciar-sesion", texto: "Cómo iniciar sesión" },
   { id: "recuperar-contrasena", texto: "Cómo recuperar la contraseña" },
 ];
 
 /**
- * Manual de usuario público — pensado para quien todavía no logra
- * entrar a la app (registro, login, recuperar clave), así que no
- * puede depender de nada dentro del panel. Una sola página con
- * secciones, no artículos separados: son solo 3 temas hoy, dividirlos
- * en rutas propias sería más para navegar que para leer.
+ * Cómo usar cada módulo — contenido más largo que las descripciones
+ * cortas del tour (tour-onboarding.tsx/SECCIONES en navegacion.tsx),
+ * pensado para leerse de principio a fin, no solo para orientar un
+ * recorrido rápido. `video` queda listo para cuando existan los
+ * videos de YouTube — opcional, no bloquea publicar el texto ahora.
+ */
+const MODULOS = [
+  {
+    id: "ordenes",
+    texto: "Órdenes de trabajo",
+    video: null as string | null,
+    pasos: [
+      "Entra a Órdenes y toca \"Nueva orden\".",
+      "Busca al cliente o el vehículo por patente — si no existe, lo creas ahí mismo.",
+      "Anota qué se va a hacer: puedes escribirlo en texto libre o elegir del catálogo de Servicios si tu plan lo tiene.",
+      "La orden queda con un estado (ingresado, en proceso, esperando repuesto, terminado, entregado) que vas cambiando a medida que avanza el trabajo.",
+      "Al cerrarla, registras mano de obra, repuestos usados y el total — eso descuenta stock si usaste Inventario.",
+    ],
+  },
+  {
+    id: "vehiculos",
+    texto: "Vehículos",
+    video: null as string | null,
+    pasos: [
+      "Entra a Vehículos y toca \"Nuevo vehículo\".",
+      "Escribe la patente — en los planes con búsqueda automática, se completan solos marca, modelo, año y color.",
+      "Elige el dueño buscándolo entre tus clientes ya registrados, o crea uno nuevo ahí mismo.",
+      "Desde la ficha del vehículo ves todo su historial: qué se le ha hecho, cuándo, y cuánto se ha cobrado.",
+    ],
+  },
+  {
+    id: "propietarios",
+    texto: "Propietarios",
+    video: null as string | null,
+    pasos: [
+      "Acá están todos tus clientes, con su contacto y los vehículos que tienen registrados.",
+      "Entra a la ficha de un cliente para ver su historial completo: visitas, gasto total, y si debe algo.",
+      "Puedes dejar notas y marcar cuándo conviene contactarlo de nuevo para su próximo servicio.",
+    ],
+  },
+  {
+    id: "agenda",
+    texto: "Agenda",
+    video: null as string | null,
+    pasos: [
+      "Entra a Agenda y toca el día en que quieres agendar una cita.",
+      "Elige el cliente y el vehículo (o anota el contacto si es alguien nuevo), y qué va a hacerse.",
+      "La cita queda en el calendario con su hora — puedes cambiar su estado (agendada, confirmada, completada, cancelada) a medida que se acerca la fecha.",
+    ],
+  },
+  {
+    id: "historial",
+    texto: "Buscar patente",
+    video: null as string | null,
+    pasos: [
+      "Escribe la patente en el buscador — si el vehículo ya pasó por tu taller, ves todo su historial al tiro.",
+      "Si nunca lo has atendido pero existe en el sistema, igual puedes ver sus datos técnicos (según lo que el dueño haya compartido).",
+      "Si no existe, te ofrece registrarlo directo desde ahí.",
+    ],
+  },
+  {
+    id: "presupuestos",
+    texto: "Presupuestos",
+    video: null as string | null,
+    pasos: [
+      "Crea un presupuesto igual que una orden, pero sin comprometer el trabajo todavía — es una cotización.",
+      "Si el cliente lo acepta, lo conviertes en una orden de trabajo real sin tener que escribir todo de nuevo.",
+    ],
+  },
+  {
+    id: "diagnosticos",
+    texto: "Diagnósticos",
+    video: null as string | null,
+    pasos: [
+      "Usa esta sección para dejar registrado un diagnóstico técnico de un vehículo — útil cuando el problema no es obvio.",
+      "Puedes apoyarte en el Asistente de IA para interpretar códigos de falla o resolver dudas técnicas mientras trabajas.",
+    ],
+  },
+  {
+    id: "inspecciones",
+    texto: "Inspecciones",
+    video: null as string | null,
+    pasos: [
+      "Usa esta sección antes de comprar o recibir un vehículo usado — es un checklist completo de su estado.",
+      "Se guarda con el cliente y el vehículo reales, y queda como respaldo de en qué condiciones llegó.",
+    ],
+  },
+  {
+    id: "ventas",
+    texto: "Ventas POS",
+    video: null as string | null,
+    pasos: [
+      "Úsala para vender un repuesto o un servicio directo, sin pasar por una orden de trabajo completa — como una caja registradora.",
+      "Elige los ítems, el medio de pago, y listo: descuenta stock automáticamente si corresponde.",
+    ],
+  },
+  {
+    id: "inventario",
+    texto: "Inventario",
+    video: null as string | null,
+    pasos: [
+      "Registra cada repuesto con su costo, precio de venta y stock actual.",
+      "Cada vez que un repuesto se usa en una orden o una venta, el stock se descuenta solo.",
+      "Puedes definir un mínimo para que te avise antes de quedarte sin stock.",
+    ],
+  },
+  {
+    id: "servicios",
+    texto: "Servicios",
+    video: null as string | null,
+    pasos: [
+      "Arma tu propio catálogo de servicios y mano de obra, con precios ya definidos.",
+      "Al abrir una orden, eliges del catálogo en vez de escribir el precio cada vez.",
+    ],
+  },
+  {
+    id: "compras",
+    texto: "Compras",
+    video: null as string | null,
+    pasos: [
+      "Registra lo que le compras a tus proveedores.",
+      "El stock de Inventario sube automáticamente apenas registras la compra, antes de que la pagues.",
+    ],
+  },
+  {
+    id: "equipo",
+    texto: "Equipo",
+    video: null as string | null,
+    pasos: [
+      "Invita a quienes trabajan contigo — les llega un link para crear su propia cuenta y contraseña.",
+      "Elige su rol (Mecánico, Jefe de taller, o un rol a medida si tu plan lo permite) para decidir qué puede ver y hacer cada uno.",
+    ],
+  },
+  {
+    id: "pagos",
+    texto: "Pagos",
+    video: null as string | null,
+    pasos: [
+      "Acá ves quién te debe, cuánto, y desde cuándo — los fiados que antes quedaban en la memoria o en una hoja suelta.",
+      "Registra un abono cada vez que el cliente paga algo, aunque no sea el total.",
+    ],
+  },
+  {
+    id: "caja",
+    texto: "Caja",
+    video: null as string | null,
+    pasos: [
+      "Lleva el control de lo que entra y sale en efectivo y otros medios, día por día.",
+      "Al final del día, cierras la caja — queda un registro de cuánto hubo y con qué se cuadró.",
+    ],
+  },
+];
+
+/**
+ * Manual de usuario público. Dos bloques distintos a propósito: Cuenta
+ * (registro/login/recuperar) no depende de tener sesión ni de conocer
+ * el panel — por eso usa LogoAuth, igual que las páginas de auth.
+ * "Cómo usar cada módulo" es más largo y con buscador porque son 15
+ * temas, no 3 — una sola lista sin filtrar sería difícil de escanear.
  */
 export default function Ayuda() {
   return (
@@ -34,21 +189,28 @@ export default function Ayuda() {
             Centro de ayuda
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Lo básico para empezar a usar MecanicoApp.
+            Cómo crear tu cuenta y cómo usar cada parte de MecanicoApp.
           </p>
         </div>
 
-        <nav className="mt-8 flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
-          {TEMAS.map((t) => (
-            <a
-              key={t.id}
-              href={`#${t.id}`}
-              className="text-[14px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-            >
-              {t.texto}
-            </a>
-          ))}
-        </nav>
+        <BuscadorAyuda modulos={MODULOS} />
+
+        <div className="mt-16">
+          <h2 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+            Tu cuenta
+          </h2>
+          <nav className="mt-3 flex flex-col gap-2 rounded-xl border border-border bg-card p-4">
+            {TEMAS_CUENTA.map((t) => (
+              <a
+                key={t.id}
+                href={`#${t.id}`}
+                className="text-[14px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                {t.texto}
+              </a>
+            ))}
+          </nav>
+        </div>
 
         <div className="mt-10 flex flex-col gap-12">
           <section id="registrarse">
@@ -146,6 +308,40 @@ export default function Ayuda() {
               vence después de un tiempo — si ya pasó, pide uno nuevo.
             </p>
           </section>
+        </div>
+
+        <div className="mt-16">
+          <h2 className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">
+            Cómo usar cada módulo
+          </h2>
+
+          <div className="mt-6 flex flex-col gap-12">
+            {MODULOS.map((m) => (
+              <section key={m.id} id={m.id}>
+                <h3 className="text-lg font-medium">{m.texto}</h3>
+                <ol className="mt-4 flex flex-col gap-3 text-[15px] leading-relaxed text-muted-foreground">
+                  {m.pasos.map((paso, i) => (
+                    <li key={i}>
+                      <span className="font-medium text-foreground">
+                        {i + 1}.{" "}
+                      </span>
+                      {paso}
+                    </li>
+                  ))}
+                </ol>
+                {m.video && (
+                  <a
+                    href={m.video}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-block text-[13px] text-acento underline underline-offset-4 hover:text-foreground"
+                  >
+                    Ver video
+                  </a>
+                )}
+              </section>
+            ))}
+          </div>
         </div>
 
         <p className="mt-16 border-t border-border pt-6 text-[13px] text-muted-foreground">

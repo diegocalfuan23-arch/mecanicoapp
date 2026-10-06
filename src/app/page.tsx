@@ -102,6 +102,12 @@ export default function Home() {
             Precio
           </Link>
           <Link
+            href="/ayuda"
+            className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block"
+          >
+            Ayuda
+          </Link>
+          <Link
             href="/registro"
             className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
