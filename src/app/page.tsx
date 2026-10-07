@@ -127,6 +127,14 @@ export default function Home() {
             aria-hidden
             className="pointer-events-none absolute top-20 -right-32 size-[28rem] rounded-full bg-primary/15 blur-[100px]"
           />
+          {/* El glow no corta en seco contra "Cuatro cosas" — se
+              desvanece hacia el fondo real en los últimos ~10rem, así
+              el border-t de la sección siguiente no se ve como un
+              borde recto sobre un degradado todavía vivo. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-0 bottom-0 left-0 h-40 bg-linear-to-b from-transparent to-background"
+          />
 
           <div className="relative mx-auto grid max-w-6xl items-center gap-16 px-6 py-20 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:py-32">
             <div className="flex flex-col items-start gap-7 text-left">
@@ -243,7 +251,7 @@ export default function Home() {
 
             <div className="mt-16 flex flex-col gap-20">
               {/* 1. Historial por patente */}
-              <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+              <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
                 <div className="flex gap-5">
                   <span className="font-mono text-5xl leading-none font-bold text-acento/30">
                     01
@@ -302,8 +310,8 @@ export default function Home() {
               {/* 2. Fiados al día — fondo ámbar sólido de baja opacidad
                   en la tarjeta visual, para que esta fila pese distinto
                   a la anterior. */}
-              <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-                <div className="rounded-xl border border-acento/40 bg-gradient-to-br from-acento/15 to-transparent p-5 shadow-lg shadow-black/20 lg:order-1">
+              <div className="grid items-start gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+                <div className="rounded-xl border border-acento/40 bg-linear-to-br from-acento/15 to-transparent p-5 shadow-lg shadow-black/20 lg:order-1">
                   <p className="text-[11px] font-semibold tracking-wide text-acento uppercase">
                     Quién debe
                   </p>
@@ -348,7 +356,7 @@ export default function Home() {
               </div>
 
               {/* 3. Repuestos y stock */}
-              <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+              <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
                 <div className="flex gap-5">
                   <span className="font-mono text-5xl leading-none font-bold text-acento/30">
                     03
@@ -385,29 +393,45 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 4. El cliente vuelve solo */}
-              <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-                <div className="rounded-xl border border-success/40 bg-gradient-to-br from-success/10 to-transparent p-5 shadow-lg shadow-black/20 lg:order-1">
-                  <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-success uppercase">
-                    <svg
-                      viewBox="0 0 20 20"
-                      className="size-4"
-                      aria-hidden
-                    >
-                      <path
-                        d="M10 2.5a7.5 7.5 0 00-6.5 11.2L2.5 17.5l3.9-1a7.5 7.5 0 109.6-14z"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                      />
-                    </svg>
-                    WhatsApp
+              {/* 4. El cliente vuelve solo — mismo peso que las otras
+                  3 tarjetas: ícono en círculo sólido, sombra de color
+                  real (no solo shadow-black), borde más marcado. */}
+              <div className="grid items-start gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+                <div className="rounded-xl border-2 border-success/50 bg-linear-to-br from-success/15 via-success/5 to-transparent p-5 shadow-[0_20px_50px_-20px_var(--success)]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success text-background">
+                      <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
+                        <path
+                          d="M10 2.5a7.5 7.5 0 00-6.5 11.2L2.5 17.5l3.9-1a7.5 7.5 0 109.6-14z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </span>
+                    <span className="text-[12px] font-semibold tracking-wide text-success uppercase">
+                      WhatsApp
+                    </span>
+                    <span className="ml-auto text-[11px] text-muted-foreground">
+                      19:42
+                    </span>
                   </div>
-                  <div className="mt-3 max-w-[90%] rounded-lg rounded-tl-none bg-background p-3 text-[13px] leading-relaxed shadow-sm">
+                  <div className="mt-3 max-w-[92%] rounded-lg rounded-tl-none bg-background p-3.5 text-[13px] leading-relaxed shadow-md shadow-black/30">
                     Hola Rosa! Han pasado 6 meses desde tu último servicio en
                     el taller (cambio de pastillas). ¿Quieres que te
                     agendemos una revisión?
                   </div>
+                  <p className="mt-2 flex items-center justify-end gap-1 text-[11px] text-success">
+                    Enviado automáticamente
+                    <svg viewBox="0 0 20 20" className="size-3.5" aria-hidden>
+                      <path
+                        d="M2 10.5l3.5 3.5L11 8M7 10.5l3.5 3.5L16 8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </p>
                 </div>
                 <div className="flex gap-5 lg:order-2">
                   <span className="font-mono text-5xl leading-none font-bold text-acento/30">
@@ -432,7 +456,7 @@ export default function Home() {
             bloque sólido que da peso al final del recorrido. */}
         <section
           id="precio"
-          className="relative overflow-hidden border-t border-acento/20 bg-gradient-to-b from-acento/15 via-acento/5 to-transparent py-28"
+          className="relative overflow-hidden border-t border-acento/20 bg-linear-to-b from-acento/15 via-acento/5 to-transparent py-28"
         >
           <div
             aria-hidden
